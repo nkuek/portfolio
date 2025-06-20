@@ -9,9 +9,9 @@ export default function MobileNavbar() {
   return (
     <>
       <div className="bg-inherit md:hidden">
-        <div className="bg-inherit, left-0, right-0 flex min-h-14 justify-end">
+        <div className="right-0 left-0 flex min-h-14 justify-end bg-inherit">
           <button
-            className="group z-3 flex flex-col p-4"
+            className="group z-3 flex flex-col p-4 hover:cursor-pointer"
             onClick={() => {
               setShowNavDrawer((prev) => !prev);
             }}
@@ -21,7 +21,7 @@ export default function MobileNavbar() {
             aria-label="open navigation menu"
           >
             <div
-              className="[&>div]:bg-text flex flex-col gap-1.5 text-inherit transition-transform duration-200 ease-linear group-aria-expanded:translate-y-1 [&>div]:h-[2px] [&>div]:w-[23.5px] group-aria-expanded:[&>div]:transition-transform group-aria-expanded:[&>div]:duration-200 group-aria-expanded:[&>div]:ease-linear"
+              className="[&>div]:bg-text flex flex-col gap-1.5 text-inherit transition-transform duration-200 ease-linear [&>div]:h-[2px] [&>div]:w-[23.5px] [&>div]:transition-transform group-aria-expanded:[&>div]:duration-200 group-aria-expanded:[&>div]:ease-linear"
               // class={vstack({
               //   color: "inherit",
               //   gap: 1.5,
@@ -87,7 +87,10 @@ export default function MobileNavbar() {
             </DSLink>
           </li>
         ))}
-        <li className="flex w-full items-center py-6" role="menuitem">
+        <li
+          className="flex w-full items-center justify-center py-6"
+          role="menuitem"
+        >
           <ThemeToggle />
         </li>
       </ul>

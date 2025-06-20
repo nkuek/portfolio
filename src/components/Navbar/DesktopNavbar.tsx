@@ -4,7 +4,7 @@ import ThemeToggle from "./ThemeToggle";
 
 export default function DesktopNavbar() {
   return (
-    <ul className="hidden justify-end gap-6 px-6 py-4 text-lg sm:flex">
+    <ul className="hidden justify-end gap-6 px-6 py-4 text-lg md:flex">
       {sections.map((section) => (
         <li key={section.title} className="flex">
           <DSLink href={section.href} className="h-full">
