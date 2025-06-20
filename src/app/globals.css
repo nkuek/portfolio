@@ -1,26 +1,135 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: var(--color-stone-50);
+  --background-dark: var(--color-neutral-900);
+  --text: var(--color-neutral-900);
+  --text-dark: var(--color-stone-50);
+  --link-hover: var(--color-teal-700);
+  --caption: var(--color-neutral-600);
+  --caption-dark: var(--color-stone-300);
+  --inline-code: var(--color-neutral-300);
+  --inline-code-dark: var(--color-neutral-600);
+
+  --primary: var(--color-teal-600);
+  --track-color: var(--primary);
+  --text-on-button: var(--color-stone-50);
+  --primary-hover: var(--color-teal-700);
+
+  --secondary: var(--color-transparent);
+  --secondary-hover: var(--color-teal-700);
+
+  --tertiary: var(--color-teal-950);
+  --tertiary-hover: var(--color-teal-900);
+  --grainy-background:
+    linear-gradient(
+      0deg,
+      --alpha(var(--background) / 95%),
+      --alpha(var(--background) / 95%)
+    ),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+@utility hero {
+  font-size: 48px;
+  letter-spacing: -0.025em;
+  font-weight: 400;
+
+  @media (max-width: var(--breakpoint-sm)) {
+    font-size: 32px;
+  }
+}
+
+@utility title {
+  font-size: 32px;
+  font-weight: 400;
+
+  @media (max-width: var(--breakpoint-sm)) {
+    font-size: 24px;
+  }
+}
+
+@utility subtitle {
+  font-size: 32px;
+  font-weight: 300;
+
+  @media (max-width: var(--breakpoint-sm)) {
+    font-size: 24px;
+    line-height: 29px;
+  }
+}
+
+@utility body {
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 29px;
+
+  @media (max-width: var(--breakpoint-sm)) {
+    font-size: 18px;
+    line-height: 26px;
+  }
+}
+
+@utility caption {
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 29px;
+
+  @media (max-width: var(--breakpoint-sm)) {
+    font-size: 18px;
+    line-height: 26px;
+  }
+}
+
+@utility grainy-background {
+  /* resulting css */
+  background-size: 300px;
+  filter: contrast(100%) brightness(100%);
+  background: var(--grainy-background);
+}
+
+@utility dark-tokens {
+  --background: var(--color-background-dark);
+  --text: var(--color-text-dark);
+  --caption: var(--color-stone-300);
+  --caption-dark: var(--color-caption-dark);
+  --inline-code: var(--color-inline-code-dark);
+  --track-color: var(--text);
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background-dark: var(--background-dark);
+  --color-text: var(--text);
+  --color-text-dark: var(--text-dark);
+  --color-caption: var(--caption);
+  --color-caption-dark: var(--caption-dark);
+  --color-link-hover: var(--link-hover);
+  --color-inline-code: var(--inline-code);
+  --color-inline-code-dark: var(--inline-code-dark);
+
+  --color-primary: var(--primary);
+  --color-track-color: var(--track-color);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary: var(--secondary);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-hover: var(--tertiary-hover);
+  --color-text-on-button: var(--text-on-button);
+
+  --font-sans: var(--font-poppins);
+}
+
+html[data-color-scheme="dark"] {
+  @apply dark-tokens;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    @apply dark-tokens;
   }
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
