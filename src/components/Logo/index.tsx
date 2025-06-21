@@ -22,26 +22,26 @@ export default function Logo({ className }: { className?: string }) {
       <path
         d="M7.75195 127.31L39.8814 127.221"
         stroke="#FAFF1A"
-        stroke-width="15.2312"
-        stroke-linecap="round"
+        strokeWidth="15.2312"
+        strokeLinecap="round"
       />
       <path
         d="M39.8813 127.221L72.0108 127.132"
         stroke="#6DD3CE"
-        stroke-width="15.2312"
-        stroke-linecap="round"
+        strokeWidth="15.2312"
+        strokeLinecap="round"
       />
       <path
         d="M72.0107 127.132L104.14 127.044"
         stroke="#3A0CA3"
-        stroke-width="15.2312"
-        stroke-linecap="round"
+        strokeWidth="15.2312"
+        strokeLinecap="round"
       />
       <path
         d="M104.14 127.044L136.27 126.955"
         stroke="#F72585"
-        stroke-width="15.2312"
-        stroke-linecap="round"
+        strokeWidth="15.2312"
+        strokeLinecap="round"
       />
     </svg>
   );

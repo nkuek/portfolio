@@ -39,7 +39,7 @@ export default function RootLayout({
         className={`${poppins.variable} ${sourceCodePro.variable} ${firaCode.variable} before:grainy-background antialiased before:fixed before:inset-0 before:z-[-1]`}
       >
         <Navbar />
-        <div className="relative pt-70">{children}</div>
+        <div className="relative">{children}</div>
         {/* <Footer /> */}
       </body>
     </html>

@@ -11,7 +11,7 @@ export default function SunAndMoon() {
       width="24"
       height="24"
       viewBox="0 0 24 24"
-      stroke-linecap="round"
+      strokeLinecap="round"
     >
       <mask className={cn(styles.moon, "fill-background")} id={id}>
         <rect x="0" y="0" width="100%" height="100%" fill="white" />
