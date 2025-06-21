@@ -18,29 +18,6 @@
   stroke-width: 2px;
 }
 
-html[data-color-scheme="dark"] .sun-and-moon {
-  transform: translateX(-50%);
-}
-
-html[data-color-scheme="dark"] .sun-and-moon > .sun {
-  transform: scale(1.75);
-}
-
-html[data-color-scheme="dark"] .sun-and-moon > .sun-beams {
-  opacity: 0;
-}
-
-html[data-color-scheme="dark"] .sun-and-moon > .moon > circle {
-  transform: translateX(-7px);
-}
-
-@supports (cx: 1) {
-  html[data-color-scheme="dark"] .sun-and-moon > .moon > circle {
-    transform: translateX(0);
-    cx: 17;
-  }
-}
-
 @media (prefers-reduced-motion: no-preference) {
   .sun-and-moon > .sun {
     transition: transform 0.5s var(--ease-elastic-3);
@@ -77,4 +54,65 @@ html[data-color-scheme="dark"] .sun-and-moon > .sun-beams {
 html[data-color-scheme="dark"] .sun-and-moon > .moon > circle {
   transition-delay: 0.25s;
   transition-duration: 0.5s;
+}
+
+html[data-color-scheme="dark"] .sun-and-moon {
+  transform: translateX(-50%);
+}
+
+html[data-color-scheme="dark"] .sun-and-moon > .sun {
+  transform: scale(1.75);
+}
+
+html[data-color-scheme="dark"] .sun-and-moon > .sun-beams {
+  opacity: 0;
+}
+
+html[data-color-scheme="dark"] .sun-and-moon > .moon > circle {
+  transform: translateX(-7px);
+}
+
+@supports (cx: 1) {
+  html[data-color-scheme="dark"] .sun-and-moon > .moon > circle {
+    transform: translateX(0);
+    cx: 17;
+  }
+}
+
+/* handles initial color scheme */
+@media (prefers-color-scheme: dark) {
+  html:not([data-color-scheme="light"]) .sun-and-moon > .sun {
+    transform: scale(1.75);
+    transition-timing-function: var(--ease-3);
+    transition-duration: 0.25s;
+  }
+
+  html:not([data-color-scheme="light"]) .sun-and-moon > .sun-beams {
+    transform: rotateZ(-25deg);
+    transition-duration: 0.15s;
+  }
+
+  html:not([data-color-scheme="light"]) .sun-and-moon > .moon > circle {
+    transition-delay: 0.25s;
+    transition-duration: 0.5s;
+  }
+  html:not([data-color-scheme="light"]) .sun-and-moon {
+    transform: translateX(-50%);
+  }
+  html:not([data-color-scheme="light"]) .sun-and-moon > .sun {
+    transform: scale(1.75);
+  }
+  html:not([data-color-scheme="light"]) .sun-and-moon > .sun-beams {
+    opacity: 0;
+  }
+  html:not([data-color-scheme="light"]) .sun-and-moon > .moon > circle {
+    transform: translateX(-7px);
+  }
+
+  @supports (cx: 1) {
+    html:not([data-color-scheme="light"]) .sun-and-moon > .moon > circle {
+      transform: translateX(0);
+      cx: 17;
+    }
+  }
 }

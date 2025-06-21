@@ -174,8 +174,9 @@ html[data-color-scheme="dark"] {
   @apply dark-tokens;
 }
 
+/* handles initial color scheme */
 @media (prefers-color-scheme: dark) {
-  :root {
+  html:not([data-color-scheme="light"]):root {
     @apply dark-tokens;
   }
 }
