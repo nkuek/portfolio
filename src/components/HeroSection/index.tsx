@@ -41,20 +41,18 @@ export default function HeroSection() {
       </div>
       <Link
         href="#about-me"
-        style={{
-          opacity: hasScrolled ? 0 : 1,
-          visibility: hideChevron ? "hidden" : "visible",
-        }}
+        data-scrolled={hasScrolled}
+        aria-hidden={hasScrolled}
         onTransitionEnd={() => {
           if (hasScrolled) {
             setHideChevron(true);
           }
         }}
-        className="hover:text-link-hover absolute bottom-5 text-inherit transition-opacity duration-500 ease-in-out"
+        className="hover:text-link-hover text-text absolute bottom-5 transition-opacity duration-500 ease-in-out data-[scrolled=true]:pointer-events-none data-[scrolled=true]:invisible data-[scrolled=true]:opacity-0"
         aria-label="go to next section"
       >
         <svg
-          className="stroke-text aspect-square w-6 animate-[bounce_1000ms_linear_infinite] md:w-10"
+          className="aspect-square w-6 animate-[bounce_1000ms_linear_infinite] transition-colors duration-200 md:w-10"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="none"
