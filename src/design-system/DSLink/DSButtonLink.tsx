@@ -3,7 +3,9 @@ import { DSButtonVariantProps } from "../DSButton/types";
 import { PropsWithChildren } from "react";
 import { buttonVariants } from "../DSButton/variants";
 
-type DSButtonLinkProps = LinkProps & DSButtonVariantProps;
+type DSButtonLinkProps = LinkProps &
+  DSButtonVariantProps &
+  React.AnchorHTMLAttributes<HTMLAnchorElement>;
 
 export function DSButtonLink({
   variant,

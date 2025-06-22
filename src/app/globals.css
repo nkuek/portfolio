@@ -107,6 +107,12 @@
   background-color: var(--grainy-background-color);
 }
 
+@utility image-grain {
+  background-image: url("/overlay.png");
+  inset: 0;
+  position: absolute;
+}
+
 @utility dark-tokens {
   --background: var(--color-background-dark);
   --text: var(--color-text-dark);
@@ -115,6 +121,31 @@
   --inline-code: var(--color-inline-code-dark);
   --track-color: var(--text);
   --grainy-background-color: rgb(23, 24, 32);
+}
+
+@utility clip-path-* {
+  /* prettier-ignore */
+  clip-path: --value([*]);
+}
+
+@utility animation-state-* {
+  /* prettier-ignore */
+  animation-play-state: --value('paused','running');
+}
+
+@utility animation-function-* {
+  /* prettier-ignore */
+  animation-timing-function: --value(--ease-*,'ease',);
+}
+
+@utility after-underline {
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  position: absolute;
+  height: 1px;
+  background-color: var(--color-teal-700);
 }
 
 @theme inline {
@@ -137,6 +168,9 @@
   --color-text-on-button: var(--text-on-button);
 
   --font-sans: var(--font-poppins);
+
+  --animate-reveal-left-to-right: revealLeftToRight 1s ease-out forwards;
+  --animate-reveal-right-to-left: revealRightToLeft 1s ease-out forwards;
 
   @keyframes blink {
     0%,
@@ -166,6 +200,24 @@
 
     100%: {
       left: 0;
+    }
+  }
+
+  @keyframes revealLeftToRight {
+    from {
+      clip-path: polygon(0 0, 0 0, 0 100%, 0% 100%);
+    }
+    to {
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+  }
+
+  @keyframes revealRightToLeft {
+    from {
+      clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
+    }
+    to {
+      clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%);
     }
   }
 }

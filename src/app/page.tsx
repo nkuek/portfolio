@@ -1,9 +1,13 @@
+import AboutMe from "~/components/AboutMeSection";
 import HeroSection from "~/components/HeroSection";
+import PortfolioSection from "~/components/PortfolioSection";
 
 export default function Home() {
   return (
-    <main className="row-start-2 flex flex-col items-center gap-[32px] sm:items-start">
+    <main>
       <HeroSection />
+      <AboutMe />
+      <PortfolioSection />
     </main>
   );
 }
