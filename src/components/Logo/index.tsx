@@ -7,7 +7,7 @@ export default function Logo({ className }: { className?: string }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={cn(
-        "logo [&>path]:fill-text dark:[&>path]:fill-text-dark [&>path]:transition-colors [&>path]:duration-200",
+        "logo [&>path]:fill-text [&>path]:transition-colors [&>path]:duration-200",
         className,
       )}
     >
