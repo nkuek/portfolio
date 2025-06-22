@@ -23,7 +23,6 @@ export default function ThemeToggle() {
     );
     const abortController = new AbortController();
     const listener = () => {
-      console.log("color scheme changed");
       updatePreference();
     };
     window
@@ -34,8 +33,6 @@ export default function ThemeToggle() {
 
     return () => abortController.abort();
   }, []);
-
-  console.log(preference);
 
   return (
     <>

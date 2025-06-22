@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 export default function AboutMeText() {
   const textContainerRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
-  console.log();
   useEffect(() => {
     if (!textContainerRef.current) {
       return;
