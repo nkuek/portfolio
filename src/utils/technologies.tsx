@@ -8,9 +8,8 @@ import GSAPLogo from "~/images/gsap.png";
 import ReactThreeFiberLogo from "~/images/r3f.svg";
 import CSSLogo from "~/images/css.svg";
 import TailwindCSSLogo from "~/images/tailwind.svg";
-import Image from "next/image";
 
-type Technology =
+export type Technology =
   | "React"
   | "Redux"
   | "JavaScript"
@@ -32,7 +31,7 @@ export type AllTechnologies = Technology | OldTechnologies;
 type ShowcasedTechnologies = Exclude<AllTechnologies, OldTechnologies>;
 
 type TechnologyMap = {
-  logo: typeof ReactLogo | typeof GSAPLogo;
+  logo: typeof ReactLogo | { src: string; alt: string };
   href: string;
 };
 
@@ -67,7 +66,7 @@ export const logoMap: Record<ShowcasedTechnologies, TechnologyMap> = {
     href: "https://developer.mozilla.org/en-US/docs/Web/CSS",
   },
   GSAP: {
-    logo: <Image src={GSAPLogo} alt="gsap" />,
+    logo: { src: GSAPLogo, alt: "GSAP" },
     href: "https://greensock.com/gsap/",
   },
   Redux: { logo: ReduxLogo, href: "https://redux.js.org/" },
