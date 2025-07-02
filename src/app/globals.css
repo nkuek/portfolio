@@ -140,7 +140,7 @@
 
 @utility animation-delay-* {
   /* prettier-ignore */
-  --animation-delay: --value(integer,0)ms;
+  --animation-delay: --value(integer)ms;
 }
 
 @utility after-underline {
