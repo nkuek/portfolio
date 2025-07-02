@@ -140,24 +140,6 @@ export default function SkillsSection() {
               href={skill.href}
               data-animate={false}
               className="*:ease *:fill-text max-w-[200px] transition-transform duration-500 ease-in-out *:aspect-square *:h-auto *:w-full *:max-w-[200px] *:scale-75 *:transition-transform *:delay-(--delay) *:duration-500 hover:scale-105 data-[animate=true]:*:scale-100"
-              // class={css({
-              //   transition: "transform 500ms ease",
-              //   _hover: {
-              //     transform: "scale(1.05)",
-              //   },
-              //   "& > *": {
-              //     aspectRatio: 1,
-              //     width: "full",
-              //     height: "auto",
-              //     transitionProperty: "transform",
-              //     transitionDelay: "var(--delay)",
-              //     transitionTimingFunction: "ease",
-              //     transitionDuration: "500ms",
-              //     transform: "scale(var(--scale, .75))",
-              //     maxWidth: "200px",
-              //     fill: "text",
-              //   },
-              // })}
               target="_blank"
               rel="noopener"
               aria-label={skill.name}
