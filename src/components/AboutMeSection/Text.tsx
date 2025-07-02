@@ -27,7 +27,7 @@ export default function AboutMeText() {
     <div
       ref={textContainerRef}
       data-visible={visible}
-      className="text-text-dark ease relative w-full grow self-end bg-[rgba(23,23,23,.95)] opacity-0 duration-700 md:transition-[opacity,translate] md:data-[visible=false]:translate-y-[15%] md:data-[visible=true]:opacity-100"
+      className="text-text-dark ease relative w-full grow self-end bg-[rgba(23,23,23,.95)] duration-700 md:opacity-0 md:transition-[opacity,translate] md:data-[visible=false]:translate-y-[15%] md:data-[visible=true]:opacity-100"
     >
       <div className="mx-auto grid w-full max-w-[1408px] gap-4 px-4 py-12 md:min-h-[35vh] md:grid-cols-3 md:gap-10 md:px-8 md:py-16">
         <div className="mb-6 flex flex-col gap-4 text-center md:text-left">

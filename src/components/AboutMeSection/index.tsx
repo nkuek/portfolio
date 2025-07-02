@@ -9,7 +9,7 @@ export default async function AboutMe() {
   return (
     <section
       id="about-me"
-      className="clip-path-[inset(0)] before:image-grain relative flex min-h-screen w-full scroll-mt-14 flex-col items-end overflow-hidden before:z-[-1] sm:flex-row sm:items-start"
+      className="clip-path-[inset(0)] before:image-grain relative flex min-h-screen w-full scroll-mt-14 flex-col items-end overflow-hidden before:z-[-1] sm:items-start md:flex-row"
     >
       <Image
         alt=""

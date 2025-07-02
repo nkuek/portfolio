@@ -36,7 +36,7 @@ export default function ProjectSectionClient({
     <section
       ref={sectionRef}
       data-visible={visible}
-      className="clip-path-[inset(0)] before:image-grain group relative flex overflow-hidden before:z-[-1] md:min-h-dvh md:even:justify-end"
+      className="clip-path-[inset(0)] before:image-grain group relative flex flex-col overflow-hidden before:z-[-1] md:min-h-dvh md:flex-row md:even:justify-end"
     >
       <Image
         className="z-[-2] aspect-[325/206] md:fixed md:inset-0 md:aspect-auto md:h-[100dvh] md:w-full md:object-cover md:object-[0_62px]"
