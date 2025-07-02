@@ -3,6 +3,8 @@ import { Poppins, Source_Code_Pro, Fira_Code } from "next/font/google";
 import "./globals.css";
 import Navbar from "~/components/Navbar";
 import Footer from "~/components/Footer";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const poppins = Poppins({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -39,6 +41,8 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} ${sourceCodePro.variable} ${firaCode.variable} before:grainy-background antialiased before:fixed before:inset-0 before:z-[-1]`}
       >
+        <Analytics />
+        <SpeedInsights />
         <Navbar />
         {children}
         <Footer />
