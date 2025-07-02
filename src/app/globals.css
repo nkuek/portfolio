@@ -135,7 +135,12 @@
 
 @utility animation-function-* {
   /* prettier-ignore */
-  animation-timing-function: --value(--ease-*,'ease',);
+  animation-timing-function: --value(--ease-*,'ease');
+}
+
+@utility animation-delay-* {
+  /* prettier-ignore */
+  --animation-delay: --value(integer,0)ms;
 }
 
 @utility after-underline {
@@ -166,11 +171,15 @@
   --color-tertiary: var(--tertiary);
   --color-tertiary-hover: var(--tertiary-hover);
   --color-text-on-button: var(--text-on-button);
+  --animation-delay: 0ms;
 
   --font-sans: var(--font-poppins);
 
-  --animate-reveal-left-to-right: revealLeftToRight 1s ease-out forwards;
-  --animate-reveal-right-to-left: revealRightToLeft 1s ease-out forwards;
+  --animate-reveal-left-to-right: revealLeftToRight 1s ease-out forwards
+    var(--animation-delay);
+
+  --animate-reveal-right-to-left: revealRightToLeft 1s ease-out forwards
+    var(--animation-delay);
 
   @keyframes blink {
     0%,
@@ -205,18 +214,22 @@
 
   @keyframes revealLeftToRight {
     from {
+      opacity: 1;
       clip-path: polygon(0 0, 0 0, 0 100%, 0% 100%);
     }
     to {
+      opacity: 1;
       clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
     }
   }
 
   @keyframes revealRightToLeft {
     from {
+      opacity: 1;
       clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
     }
     to {
+      opacity: 1;
       clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%);
     }
   }

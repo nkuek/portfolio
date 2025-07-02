@@ -1,7 +1,11 @@
 import Image from "next/image";
 import AboutMeText from "./Text";
+import getCloudinaryPlaceholder from "~/utils/getCloudinaryPlaceholder";
 
-export default function AboutMe() {
+export default async function AboutMe() {
+  const blurredPlaceholder = await getCloudinaryPlaceholder(
+    "https://res.cloudinary.com/dunbkcyqq/image/upload/v1692465808/overlook_zindcs.jpg",
+  );
   return (
     <section
       id="about-me"
@@ -13,6 +17,8 @@ export default function AboutMe() {
         src="https://res.cloudinary.com/dunbkcyqq/image/upload/v1692465808/overlook_zindcs.jpg"
         width={1440}
         height={1080}
+        placeholder="blur"
+        blurDataURL={blurredPlaceholder}
       />
       <AboutMeText />
     </section>

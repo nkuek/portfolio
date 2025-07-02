@@ -12,3 +12,8 @@ export type Project = {
 export type PortfolioSectionProps = {
   project: Project;
 };
+
+export type PortfolioSectionClientProps = {
+  project: Project;
+  blurredPlaceholder: string;
+};
