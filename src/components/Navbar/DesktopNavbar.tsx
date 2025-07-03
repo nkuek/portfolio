@@ -1,10 +1,16 @@
 import DSLink from "~/design-system/DSLink";
+import DSAnchor from "~/design-system/DSLink/DSAnchor";
 import { sections } from "./constants";
 import ThemeToggle from "./ThemeToggle";
 
 export default function DesktopNavbar() {
   return (
     <ul className="hidden justify-end gap-6 px-6 py-4 text-lg md:flex">
+      <li className="flex">
+        <DSAnchor href="/KuekResume.pdf" className="h-full">
+          Resume
+        </DSAnchor>
+      </li>
       {sections.map((section) => (
         <li key={section.title} className="flex">
           <DSLink href={section.href} className="h-full">

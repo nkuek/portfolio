@@ -1,7 +1,6 @@
 import { NavbarSection } from "./types";
 
 export const sections: NavbarSection[] = [
-  { title: "Resume", href: "/KuekResume.pdf" },
   { title: "About Me", href: "/#about-me" },
   { title: "Portfolio", href: "/#portfolio" },
   { title: "Skills", href: "/#skills" },
