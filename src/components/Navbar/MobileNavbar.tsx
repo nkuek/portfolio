@@ -21,42 +21,10 @@ export default function MobileNavbar() {
             aria-controls="nav-menu"
             aria-label="open navigation menu"
           >
-            <div
-              className="[&>div]:bg-text flex flex-col gap-1.5 text-inherit transition-transform duration-200 ease-linear [&>div]:h-[2px] [&>div]:w-[23.5px] [&>div]:transition-transform group-aria-expanded:[&>div]:duration-200 group-aria-expanded:[&>div]:ease-linear"
-              // class={vstack({
-              //   color: "inherit",
-              //   gap: 1.5,
-              //   transform: showNavDrawer.value ? "translateY(4px)" : "none",
-              //   transition: "linear 200ms transform",
-              //   "& > div": {
-              //     w: "23.5px",
-              //     h: "2px",
-              //     background: "text",
-              //     transition: "linear 200ms transform",
-              //     "&:first-child": {
-              //       transform: showNavDrawer.value
-              //         ? "rotateZ(45deg) translateY(2px)"
-              //         : "none",
-              //       transformOrigin: "center",
-              //     },
-              //     "&:nth-child(2)": {
-              //       transform: showNavDrawer.value
-              //         ? "rotate(-45deg) scaleX(1.37) translate(2.75px, -.75px)"
-              //         : "none",
-              //       transformOrigin: "center",
-              //     },
-              //     "&:last-child": {
-              //       transform: showNavDrawer.value
-              //         ? "rotateZ(45deg) translateY(-1.1px)"
-              //         : "none",
-              //       transformOrigin: "23.5px",
-              //     },
-              //   },
-              // })}
-            >
-              <div className="origin-center group-aria-[expanded=true]:translate-y-[2px] group-aria-[expanded=true]:rotate-z-45" />
-              <div className="origin-center group-aria-[expanded=true]:translate-x-[2.75px] group-aria-[expanded=true]:-translate-y-[0.75px] group-aria-[expanded=true]:scale-x-[1.37] group-aria-[expanded=true]:-rotate-45" />
-              <div className="origin-[23.5px] group-aria-[expanded=true]:-translate-y-[1.1px] group-aria-[expanded=true]:rotate-z-45" />
+            <div className="[&>div]:bg-text flex flex-col gap-1.5 text-inherit transition-transform duration-200 ease-linear [&>div]:h-[2px] [&>div]:w-[23.5px] [&>div]:transition-transform group-aria-expanded:[&>div]:duration-200 group-aria-expanded:[&>div]:ease-linear">
+              <div className="origin-center group-aria-[expanded=true]:translate-y-[7.5px] group-aria-[expanded=true]:rotate-45" />
+              <div className="origin-center group-aria-[expanded=true]:scale-0 group-aria-[expanded=true]:opacity-0" />
+              <div className="origin-center group-aria-[expanded=true]:-translate-y-[7.5px] group-aria-[expanded=true]:-rotate-45" />
             </div>
           </button>
         </div>
