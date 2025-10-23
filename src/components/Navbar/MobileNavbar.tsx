@@ -22,16 +22,16 @@ export default function MobileNavbar() {
             aria-label="open navigation menu"
           >
             <div className="[&>div]:bg-text flex flex-col gap-1.5 text-inherit transition-transform duration-200 ease-linear [&>div]:h-[2px] [&>div]:w-[23.5px] [&>div]:transition-transform group-aria-expanded:[&>div]:duration-200 group-aria-expanded:[&>div]:ease-linear">
-              <div className="origin-center group-aria-[expanded=true]:translate-y-[7.5px] group-aria-[expanded=true]:rotate-45" />
-              <div className="origin-center group-aria-[expanded=true]:scale-0 group-aria-[expanded=true]:opacity-0" />
-              <div className="origin-center group-aria-[expanded=true]:-translate-y-[7.5px] group-aria-[expanded=true]:-rotate-45" />
+              <div className="origin-center group-aria-expanded:translate-y-[7.5px] group-aria-expanded:rotate-45" />
+              <div className="origin-center group-aria-expanded:scale-0 group-aria-expanded:opacity-0" />
+              <div className="origin-center group-aria-expanded:-translate-y-[7.5px] group-aria-expanded:-rotate-45" />
             </div>
           </button>
         </div>
         <div
           aria-hidden="true"
           data-visible={showNavDrawer}
-          className="fixed inset-0 z-[1] h-screen w-full bg-neutral-800 opacity-0 transition-[visibility,opacity] duration-500 ease-in-out data-[visible=false]:invisible data-[visible=true]:visible data-[visible=true]:opacity-50"
+          className="fixed inset-0 z-1 h-screen w-full bg-neutral-800 opacity-0 transition-[visibility,opacity] duration-500 ease-in-out data-[visible=false]:invisible data-[visible=true]:visible data-[visible=true]:opacity-50"
           onClick={() => setShowNavDrawer(false)}
         />
       </div>

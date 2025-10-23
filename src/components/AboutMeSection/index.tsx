@@ -13,7 +13,7 @@ export default async function AboutMe() {
     >
       <Image
         alt=""
-        className="z-[-2] object-cover md:fixed md:inset-0 md:h-[100dvh] md:w-full"
+        className="z-[-2] object-cover md:fixed md:inset-0 md:h-dvh md:w-full"
         src="https://res.cloudinary.com/dunbkcyqq/image/upload/v1692465808/overlook_zindcs.jpg"
         width={1440}
         height={1080}

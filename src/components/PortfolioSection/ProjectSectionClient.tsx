@@ -39,7 +39,7 @@ export default function ProjectSectionClient({
       className="clip-path-[inset(0)] before:image-grain group relative flex flex-col overflow-hidden before:z-[-1] md:min-h-dvh md:flex-row md:even:justify-end"
     >
       <Image
-        className="z-[-2] aspect-[325/206] md:fixed md:inset-0 md:aspect-auto md:h-[100dvh] md:w-full md:object-cover md:object-[0_62px]"
+        className="z-[-2] aspect-325/206 md:fixed md:inset-0 md:aspect-auto md:h-dvh md:w-full md:object-cover md:object-[0_62px]"
         alt=""
         src={project.src}
         width={1920}
@@ -47,7 +47,7 @@ export default function ProjectSectionClient({
         placeholder="blur"
         blurDataURL={blurredPlaceholder}
       />
-      <div className="bg-background-dark/95 text-text-dark md:group-data-visible=true]:translate-y-0 px-4 pt-12 pb-16 group-odd:group-data-[visible=false]:translate-x-[-15%] after:opacity-0 md:h-[100dvh] md:w-[max(35%,400px)] md:max-w-[660px] md:px-8 md:py-20 md:transition-[opacity,translate] md:duration-750 md:group-data-[visible=false]:opacity-0 md:group-even:group-data-[visible=false]:translate-x-[15%] lg:px-12 lg:py-[120px]">
+      <div className="bg-background-dark/95 text-text-dark md:group-data-visible=true]:translate-y-0 px-4 pt-12 pb-16 group-odd:group-data-[visible=false]:translate-x-[-15%] after:opacity-0 md:h-dvh md:w-[max(35%,400px)] md:max-w-[660px] md:px-8 md:py-20 md:transition-[opacity,translate] md:duration-750 md:group-data-[visible=false]:opacity-0 md:group-even:group-data-[visible=false]:translate-x-[15%] lg:px-12 lg:py-[120px]">
         <h3 className="hero md:group-even:group-data-[visible=true]:after:animate-reveal-right-to-left md:group-odd:group-data-[visible=true]:after:animate-reveal-left-to-right after:after-underline text-text-dark relative mb-6">
           {project.title}
         </h3>

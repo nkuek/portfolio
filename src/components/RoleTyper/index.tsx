@@ -37,7 +37,7 @@ export default function RoleTyper() {
                 "--typeSpeed": "4.5s",
               } as React.CSSProperties
             }
-            className="subtitle decoration-primary before:grainy-background-opaque relative w-max font-[family-name:var(--font-source-code-pro)] font-normal underline before:absolute before:top-[-.25em] before:right-0 before:bottom-[-.25em] before:left-0 before:animate-[type_var(--typeSpeed)_steps(var(--textLength))_infinite] after:absolute after:top-[-.25em] after:right-0 after:bottom-[-.25em] after:left-0 after:w-[0.125em] after:animate-[type_var(--typeSpeed)_steps(var(--textLength))_infinite,blink_var(--typeSpeed)_infinite] after:bg-teal-600 before:md:top-[-.35em] before:md:bottom-[-.35em] after:md:top-[-.35em] after:md:bottom-[-.35em]"
+            className="subtitle decoration-primary before:grainy-background-opaque relative w-max font-(family-name:--font-source-code-pro) font-normal underline before:absolute before:top-[-.25em] before:right-0 before:bottom-[-.25em] before:left-0 before:animate-[type_var(--typeSpeed)_steps(var(--textLength))_infinite] after:absolute after:top-[-.25em] after:right-0 after:bottom-[-.25em] after:left-0 after:w-[0.125em] after:animate-[type_var(--typeSpeed)_steps(var(--textLength))_infinite,blink_var(--typeSpeed)_infinite] after:bg-teal-600 before:md:top-[-.35em] before:md:bottom-[-.35em] after:md:top-[-.35em] after:md:bottom-[-.35em]"
           >
             {role}.
           </span>

@@ -121,7 +121,7 @@ export default function SkillsSection() {
             <span
               data-id={idx + 1}
               data-highlight={false}
-              className="ease skill text-[clamp(3rem,_7vw,_7rem)] opacity-25 transition-opacity duration-250 data-[highlight=true]:opacity-100"
+              className="ease skill text-[clamp(3rem,7vw,7rem)] opacity-25 transition-opacity duration-250 data-[highlight=true]:opacity-100"
               key={skill.name}
             >
               {skill.name}
@@ -131,7 +131,7 @@ export default function SkillsSection() {
       </div>
       <div
         ref={iconContainerRef}
-        className="fill-text mx-auto grid max-w-[1408px] grid-cols-[repeat(2,_auto)] place-items-center justify-center gap-[3vmax] px-4 py-[104px] sm:grid-cols-[repeat(3,_auto)] md:px-8 md:py-[300px] lg:px-16"
+        className="fill-text mx-auto grid max-w-[1408px] grid-cols-[repeat(2,auto)] place-items-center justify-center gap-[3vmax] px-4 py-[104px] sm:grid-cols-[repeat(3,auto)] md:px-8 md:py-[300px] lg:px-16"
       >
         {skills.map((skill, idx) => {
           return (
