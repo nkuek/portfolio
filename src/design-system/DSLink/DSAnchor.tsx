@@ -8,7 +8,7 @@ export default function DSAnchor({
   return (
     <a
       className={cn(
-        "hover:text-link-hover body text-text transition-colors duration-200",
+        "hover:text-link-hover body text-text transition-[color,transform] duration-200 ease-out active:scale-97",
         className,
       )}
       {...props}

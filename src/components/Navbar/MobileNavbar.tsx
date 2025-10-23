@@ -9,10 +9,10 @@ export default function MobileNavbar() {
   const [showNavDrawer, setShowNavDrawer] = useState(false);
   return (
     <>
-      <div className="bg-inherit md:hidden">
-        <div className="right-0 left-0 flex min-h-14 justify-end bg-inherit">
+      <div className="md:hidden">
+        <div className="right-0 left-0 flex min-h-14 justify-end">
           <button
-            className="group z-3 flex flex-col p-4 hover:cursor-pointer"
+            className="group z-3 flex flex-col p-4 transition-transform duration-150 ease-out hover:cursor-pointer active:scale-97"
             onClick={() => {
               setShowNavDrawer((prev) => !prev);
             }}
@@ -21,7 +21,7 @@ export default function MobileNavbar() {
             aria-controls="nav-menu"
             aria-label="open navigation menu"
           >
-            <div className="[&>div]:bg-text flex flex-col gap-1.5 text-inherit transition-transform duration-200 ease-linear [&>div]:h-[2px] [&>div]:w-[23.5px] [&>div]:transition-transform group-aria-expanded:[&>div]:duration-200 group-aria-expanded:[&>div]:ease-linear">
+            <div className="[&>div]:bg-text flex flex-col gap-1.5 text-inherit transition-transform duration-200 ease-out [&>div]:h-[2px] [&>div]:w-[23.5px] [&>div]:transition-transform group-aria-expanded:[&>div]:duration-200 group-aria-expanded:[&>div]:ease-out">
               <div className="origin-center group-aria-expanded:translate-y-[7.5px] group-aria-expanded:rotate-45" />
               <div className="origin-center group-aria-expanded:scale-0 group-aria-expanded:opacity-0" />
               <div className="origin-center group-aria-expanded:-translate-y-[7.5px] group-aria-expanded:-rotate-45" />

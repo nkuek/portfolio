@@ -11,8 +11,8 @@ export default function Navbar() {
         data-scrolled="false"
       >
         <div className="px-6 py-4">
-          <Link href="/" aria-label="Home">
-            <Logo className="h-auto w-11" />
+          <Link href="/" aria-label="Home" className="group">
+            <Logo className="h-auto w-11 transition-transform duration-200 ease-out group-active:scale-97" />
           </Link>
         </div>
         <MobileNavbar />

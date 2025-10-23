@@ -41,7 +41,7 @@ export default function ThemeToggle() {
           type="button"
           role="switch"
           aria-checked={preference === "dark"}
-          className="before:bg-track-color group block aspect-square rounded-[50%] duration-200 before:absolute before:m-auto before:flex before:h-[125%] before:w-[250%] before:translate-x-[-25%] before:translate-y-[-12.5%] before:rounded-2xl before:transition-colors before:group-focus-visible:outline hover:cursor-pointer focus-visible:outline-offset-[5px] focus-visible:outline-none"
+          className="before:bg-track-color group block aspect-square rounded-[50%] transition-transform duration-200 ease-out before:absolute before:m-auto before:flex before:h-[125%] before:w-[250%] before:translate-x-[-25%] before:translate-y-[-12.5%] before:rounded-2xl before:transition-colors before:group-focus-visible:outline hover:cursor-pointer focus-visible:outline-offset-[5px] focus-visible:outline-none active:scale-97"
           title="Toggles light & dark"
           aria-live="polite"
           onClick={() => updatePreference()}
