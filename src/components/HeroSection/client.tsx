@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import RoleTyper from "../RoleTyper";
 import Image from "next/image";
 import Link from "next/link";
+import HeroSectionCanvas from "./canvas";
 
 export default function HeroSectionClient(props: {
   blurredPlaceholder: string;
@@ -28,6 +29,7 @@ export default function HeroSectionClient(props: {
 
   return (
     <section className="relative mt-[76px] flex min-h-[calc(100dvh-76px)] w-full flex-col items-center justify-center px-4">
+      <HeroSectionCanvas />
       <div className="flex w-full flex-col items-center justify-center gap-10 lg:flex-row">
         <RoleTyper />
 

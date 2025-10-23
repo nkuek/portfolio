@@ -181,6 +181,8 @@
   --animate-reveal-right-to-left: revealRightToLeft 1s ease-out forwards
     var(--animation-delay);
 
+  --animate-fade-in: fadeIn 0.5s ease-in forwards var(--animation-delay);
+
   @keyframes blink {
     0%,
     50% {
@@ -231,6 +233,12 @@
     to {
       opacity: 1;
       clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%);
+    }
+  }
+
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
     }
   }
 }
