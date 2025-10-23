@@ -13,11 +13,14 @@ export default function HeroSectionClient(props: {
 
   useEffect(() => {
     const handleScroll = () => {
+      const navbar = document.querySelector("nav");
       if (window.scrollY > 0 && !hasScrolled) {
         setHasScrolled(true);
+        navbar?.setAttribute("data-scrolled", "true");
       } else if (hasScrolled && window.scrollY === 0) {
         setHasScrolled(false);
         setHideChevron(false);
+        navbar?.setAttribute("data-scrolled", "false");
       }
     };
 
