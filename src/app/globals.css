@@ -183,6 +183,9 @@
 
   --animate-fade-in: fadeIn 0.5s ease-in forwards var(--animation-delay);
 
+  --animate-revealLetters: revealLetters var(--typeSpeed)
+    steps(var(--textLength)) infinite;
+
   @keyframes blink {
     0%,
     50% {
@@ -196,6 +199,21 @@
     70%,
     100% {
       opacity: 1;
+    }
+  }
+
+  @keyframes revealLetters {
+    0% {
+      clip-path: rect(auto 0 auto auto);
+    }
+
+    40%,
+    75% {
+      clip-path: rect(auto 100% auto auto);
+    }
+
+    100%: {
+      clip-path: rect(auto 0 auto auto);
     }
   }
 

@@ -4,9 +4,10 @@ const roles = [
   "Software Engineer",
   "Creative Developer",
   "CSS Enthusiast",
-  "Keyboard Hobbyist",
   "Frontend Developer",
+  "Keyboard Hobbyist",
   "Coffee Fanatic",
+  "Pickleball Noob",
 ];
 
 export default function RoleTyper() {
@@ -20,16 +21,8 @@ export default function RoleTyper() {
       <div className="inline w-full">
         <div className="xs:min-w-[344px] xs:flex-row xs:items-start flex w-full flex-col items-center md:min-w-[473px] md:flex-row">
           <span className="subtitle">Iʼm a &nbsp;</span>
-          <span
-            onAnimationIteration={(event) => {
-              if (
-                event.animationName === "type" &&
-                event.pseudoElement === "::before"
-              ) {
-                const newIdx = roleIndex + 1;
-                setRoleIndex(newIdx % roles.length);
-              }
-            }}
+          <div
+            className="subtitle relative inline-block"
             style={
               {
                 // add 1 to account for period
@@ -37,10 +30,17 @@ export default function RoleTyper() {
                 "--typeSpeed": "4.5s",
               } as React.CSSProperties
             }
-            className="subtitle decoration-primary before:grainy-background-opaque relative w-max font-(family-name:--font-source-code-pro) font-normal underline before:absolute before:top-[-.25em] before:right-0 before:bottom-[-.25em] before:left-0 before:animate-[type_var(--typeSpeed)_steps(var(--textLength))_infinite] after:absolute after:top-[-.25em] after:right-0 after:bottom-[-.25em] after:left-0 after:w-[0.125em] after:animate-[type_var(--typeSpeed)_steps(var(--textLength))_infinite,blink_var(--typeSpeed)_infinite] after:bg-teal-600 before:md:top-[-.35em] before:md:bottom-[-.35em] after:md:top-[-.35em] after:md:bottom-[-.35em]"
+            onAnimationIteration={(event) => {
+              if (event.animationName === "revealLetters") {
+                setRoleIndex((prevIndex) => (prevIndex + 1) % roles.length);
+              }
+            }}
           >
-            {role}.
-          </span>
+            <span className="decoration-primary animate-type animate-revealLetters relative w-max font-(family-name:--font-source-code-pro) font-normal underline [clip-path:rect(auto_0_auto_auto)]">
+              {role}.
+            </span>
+            <span className="absolute -top-[0.25em] right-0 -bottom-[0.25em] left-0 w-[0.125em] animate-[type_var(--typeSpeed)_steps(var(--textLength))_infinite,blink_var(--typeSpeed)_infinite] bg-teal-600 md:-top-[.35em] md:-bottom-[.35em]" />
+          </div>
         </div>
       </div>
     </div>
