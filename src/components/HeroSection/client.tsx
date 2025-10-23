@@ -31,7 +31,7 @@ export default function HeroSectionClient(props: {
   }, [hasScrolled, hideChevron]);
 
   return (
-    <section className="relative mt-[76px] flex min-h-[calc(100dvh-76px)] w-full flex-col items-center justify-center px-4">
+    <section className="relative flex h-svh w-full flex-col items-center justify-center px-4">
       <HeroSectionCanvas />
       <div className="flex w-full flex-col items-center justify-center gap-10 lg:flex-row">
         <RoleTyper />

@@ -62,7 +62,7 @@ function CanvasContent() {
 
 export default function HeroSectionCanvas() {
   return (
-    <div className="animate-fade-in absolute inset-0 -top-19 z-[-1] h-screen w-full opacity-0">
+    <div className="animate-fade-in absolute inset-0 z-[-1] h-full w-full opacity-0">
       <WebGPUCanvas>
         <Suspense fallback={<div>Loading...</div>}>
           <CanvasContent />
