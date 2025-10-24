@@ -29,6 +29,15 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://www.nkuek.dev/",
   },
+  openGraph: {
+    title: "Nick Kuek's Portfolio",
+    description:
+      "Nick Kuek is a frontend engineer with a passion for making the web more beautiful.",
+    url: "https://www.nkuek.dev/",
+    siteName: "Nick Kuek's Portfolio",
+    locale: "en_US",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
