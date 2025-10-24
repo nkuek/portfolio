@@ -6,6 +6,7 @@ import SkillsSection from "~/components/SkillsSection";
 export default function Home() {
   return (
     <main>
+      <div id="top" />
       <HeroSection />
       <AboutMe />
       <PortfolioSection />
