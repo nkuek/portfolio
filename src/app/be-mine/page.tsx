@@ -5,6 +5,10 @@ export const metadata: Metadata = {
   title: "Be Mine? 💌",
   description: "A very important question...",
   robots: { index: false, follow: false },
+  openGraph: {
+    title: "Be Mine? 💌",
+    description: "A very important question...",
+  },
 };
 
 export default function BeMinePage() {
