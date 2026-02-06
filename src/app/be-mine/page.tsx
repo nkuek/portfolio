@@ -1,0 +1,12 @@
+import type { Metadata } from "next";
+import ValentineForm from "./ValentineForm";
+
+export const metadata: Metadata = {
+  title: "Be Mine? 💌",
+  description: "A very important question...",
+  robots: { index: false, follow: false },
+};
+
+export default function BeMinePage() {
+  return <ValentineForm />;
+}
