@@ -9,25 +9,6 @@ import {
 } from "react";
 import Slideshow from "./Slideshow";
 
-declare global {
-  interface Window {
-    YT: {
-      Player: new (
-        el: HTMLElement,
-        config: {
-          videoId: string;
-          height: string;
-          width: string;
-          playerVars?: Record<string, unknown>;
-          events?: Record<string, (event: { data: number }) => void>;
-        },
-      ) => void;
-      PlayerState: { PLAYING: number };
-    };
-    onYouTubeIframeAPIReady: (() => void) | undefined;
-  }
-}
-
 const FLEE_DISTANCE = 150;
 const MAX_NO_TAPS = 3;
 
@@ -268,63 +249,19 @@ export default function ValentineForm() {
     });
   }, [surrendered]);
 
-  // YouTube IFrame Player API: preload the API script on mount, create player on accept
-  const [musicPlaying, setMusicPlaying] = useState(false);
-  const playerContainerRef = useRef<HTMLDivElement>(null);
-  const ytReadyRef = useRef(false);
+  // Audio player — preload on mount, play on Yes click
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Preload the YouTube IFrame API script immediately
   useEffect(() => {
-    if (window.YT && window.YT.Player) {
-      ytReadyRef.current = true;
-      return;
-    }
-    const tag = document.createElement("script");
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(tag);
-    const prev = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-      ytReadyRef.current = true;
-      prev?.();
+    const audio = new Audio("/be-mine-song.mp3");
+    audio.loop = true;
+    audio.preload = "auto";
+    audioRef.current = audio;
+    return () => {
+      audio.pause();
+      audio.src = "";
     };
   }, []);
-
-  // Create the player once accepted and the API is ready
-  useEffect(() => {
-    if (!accepted) return;
-
-    const createPlayer = () => {
-      if (!playerContainerRef.current) return;
-      new window.YT.Player(playerContainerRef.current, {
-        videoId: "RHUUy3acptk",
-        height: "0",
-        width: "0",
-        playerVars: {
-          autoplay: 1,
-          loop: 1,
-          playlist: "RHUUy3acptk",
-        },
-        events: {
-          onStateChange: (event: { data: number }) => {
-            if (event.data === window.YT.PlayerState.PLAYING) {
-              setMusicPlaying(true);
-            }
-          },
-        },
-      });
-    };
-
-    if (ytReadyRef.current) {
-      createPlayer();
-    } else {
-      const prev = window.onYouTubeIframeAPIReady;
-      window.onYouTubeIframeAPIReady = () => {
-        prev?.();
-        ytReadyRef.current = true;
-        createPlayer();
-      };
-    }
-  }, [accepted]);
 
   if (accepted) {
     return (
@@ -336,9 +273,8 @@ export default function ValentineForm() {
           <p className="body text-caption text-balance">
             I knew you&apos;d say yes! Happy Valentine&apos;s Day! 🥰
           </p>
-          <Slideshow playing={musicPlaying} />
+          <Slideshow audioRef={audioRef} />
         </div>
-        <div ref={playerContainerRef} className="hidden" />
       </>
     );
   }
@@ -370,7 +306,10 @@ export default function ValentineForm() {
       <div className="flex gap-4">
         <button
           ref={yesButtonRef}
-          onClick={() => setAccepted(true)}
+          onClick={() => {
+            audioRef.current?.play();
+            setAccepted(true);
+          }}
           style={yesStyle}
           className="bg-primary text-text-on-button hover:bg-primary-hover cursor-pointer rounded-xl px-8 py-3 text-lg font-medium transition-colors"
         >
@@ -390,7 +329,6 @@ export default function ValentineForm() {
           No
         </button>
       </div>
-      <div ref={playerContainerRef} className="hidden" />
     </div>
   );
 }

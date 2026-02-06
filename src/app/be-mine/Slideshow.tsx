@@ -43,27 +43,47 @@ const slides: StaticImageData[] = [
   img18,
 ];
 
-const INTERVAL = Math.round(60000 / 23);
+const BPM = 92;
+const SECONDS_PER_BEAT = 60 / BPM;
+// Change slide every 4 beats
+const BEATS_PER_SLIDE = 4;
+// First slide holds for an extra 2 beats
+const FIRST_SLIDE_EXTRA_BEATS = 2;
 
-export default function Slideshow({ playing = false }: { playing?: boolean }) {
+/** Given the audio's current time, compute which slide index to show. */
+function getSlideIndex(time: number): number {
+  const firstSlideDuration =
+    (BEATS_PER_SLIDE + FIRST_SLIDE_EXTRA_BEATS) * SECONDS_PER_BEAT;
+
+  if (time < firstSlideDuration) return 0;
+
+  const remaining = time - firstSlideDuration;
+  const slideDuration = BEATS_PER_SLIDE * SECONDS_PER_BEAT;
+  // +1 because index 0 is the first slide
+  return (1 + Math.floor(remaining / slideDuration)) % slides.length;
+}
+
+export default function Slideshow({
+  audioRef,
+}: {
+  audioRef: React.RefObject<HTMLAudioElement | null>;
+}) {
   const [current, setCurrent] = useState(0);
-
-  const isFirstSlideRef = useRef(true);
+  const rafRef = useRef<number>(0);
 
   useEffect(() => {
-    if (!playing) return;
+    const tick = () => {
+      const audio = audioRef.current;
+      if (audio && !audio.paused) {
+        const next = getSlideIndex(audio.currentTime);
+        setCurrent((prev) => (prev !== next ? next : prev));
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
 
-    // Extra 2 beats at 92 BPM only on the very first slide
-    const extraHold = isFirstSlideRef.current
-      ? Math.round((60000 / 92) * 2)
-      : 0;
-    isFirstSlideRef.current = false;
-
-    const timer = setTimeout(() => {
-      setCurrent((prev) => (prev + 1) % slides.length);
-    }, INTERVAL + extraHold);
-    return () => clearTimeout(timer);
-  }, [playing, current]);
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [audioRef]);
 
   return (
     <div className="relative aspect-[3/4] w-full max-w-xs overflow-hidden rounded-2xl sm:max-w-sm">
