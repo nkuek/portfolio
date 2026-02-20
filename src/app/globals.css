@@ -270,6 +270,68 @@
       opacity: 0.5;
     }
   }
+
+  @keyframes nameEnter {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes subtitleEnter {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+      filter: blur(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0px);
+    }
+  }
+
+  @keyframes drawHairline {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  @keyframes heroFocusPull {
+    from {
+      opacity: 0;
+      filter: blur(8px);
+    }
+    to {
+      opacity: 1;
+      filter: blur(0px);
+    }
+  }
+
+  @keyframes heroNameReveal {
+    from {
+      opacity: 0;
+      filter: blur(8px);
+      letter-spacing: 0.15em;
+    }
+    to {
+      opacity: 1;
+      filter: blur(0px);
+      letter-spacing: 0.2em;
+    }
+  }
+
+  --animate-name-enter: nameEnter 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s both;
+
+  --animate-subtitle-enter: subtitleEnter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)
+    1.2s both;
 }
 
 html[data-color-scheme="dark"] {
@@ -286,4 +348,745 @@ html[data-color-scheme="dark"] {
 body {
   background: var(--background);
   font-family: var(--font-poppins);
+}
+
+/* ── Scroll-driven keyframes (outside @theme to guarantee emission) ── */
+
+@keyframes scrollFadeBlurInOut {
+  0% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(24px);
+  }
+  30%,
+  70% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(-24px);
+  }
+}
+
+@keyframes scrollSkillReveal {
+  from {
+    opacity: 0.12;
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+@keyframes scrollProjectReveal {
+  from {
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+    opacity: 0;
+  }
+  to {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    opacity: 1;
+  }
+}
+
+@keyframes scrollStaggerIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scrollFocusPull {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0);
+  }
+}
+
+@keyframes scrollProjectRevealLTR {
+  from {
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+    opacity: 0;
+    transform: scale(1.03);
+  }
+  to {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scrollProjectRevealRTL {
+  from {
+    clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
+    opacity: 0;
+    transform: scale(1.03);
+  }
+  to {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scrollPillReveal {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateX(0);
+  }
+}
+
+@keyframes scrollSectionFocusPull {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0);
+  }
+}
+
+.floating-label {
+  --boost: var(--cursor-boost, 0);
+  --base: var(--base-opacity, 0.3);
+  transform: translate(-50%, -50%);
+  opacity: calc(var(--base) + var(--boost) * (1 - var(--base)));
+  color: #2d7d9a;
+  transition: opacity 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  text-shadow:
+    0 0 8px rgb(255 255 255 / 0.9),
+    0 0 20px rgb(255 255 255 / 0.6),
+    0 0 40px rgb(255 255 255 / 0.3);
+}
+
+:root[data-color-scheme="dark"] .floating-label {
+  text-shadow:
+    0 0 8px rgb(0 0 0 / 1),
+    0 0 20px rgb(0 0 0 / 0.8),
+    0 0 40px rgb(0 0 0 / 0.4);
+}
+
+/* ── Section title card — large torn-edge scrapbook fragment ── */
+
+/* Wrapper carries drop-shadow so it follows the torn clip-path shape */
+.section-title-wrapper {
+  position: relative;
+  filter:
+    drop-shadow(0 2px 4px rgb(0 0 0 / 0.06))
+    drop-shadow(0 8px 20px rgb(0 0 0 / 0.1));
+}
+
+:root[data-color-scheme="dark"] .section-title-wrapper {
+  filter:
+    drop-shadow(0 2px 4px rgb(0 0 0 / 0.15))
+    drop-shadow(0 8px 20px rgb(0 0 0 / 0.25));
+}
+
+.section-title-card {
+  background: #fafaf9;
+  border-radius: 3px;
+  /* Torn bottom edge */
+  clip-path: polygon(
+    0% 0%, 100% 0%, 100% calc(100% - 10px),
+    96% 100%, 91% calc(100% - 5px), 86% 100%, 80% calc(100% - 7px),
+    74% 100%, 68% calc(100% - 4px), 62% 100%, 56% calc(100% - 8px),
+    50% 100%, 44% calc(100% - 3px), 38% 100%, 32% calc(100% - 6px),
+    26% 100%, 20% calc(100% - 4px), 14% 100%, 8% calc(100% - 7px),
+    3% 100%, 0% calc(100% - 5px)
+  );
+}
+
+:root[data-color-scheme="dark"] .section-title-card {
+  background: #242424;
+}
+
+.section-title-text {
+  color: var(--text);
+}
+
+.section-title-subtitle {
+  color: #737373;
+}
+
+:root[data-color-scheme="dark"] .section-title-subtitle {
+  color: #a3a3a3;
+}
+
+/* ── Polaroid image cards ── */
+
+.polaroid-card {
+  background: #fafaf9;
+  border-radius: 3px;
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.08),
+    0 6px 20px rgb(0 0 0 / 0.1);
+  transition:
+    transform 500ms cubic-bezier(0.16, 1, 0.3, 1),
+    scale 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+:root[data-color-scheme="dark"] .polaroid-card {
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.2),
+    0 6px 20px rgb(0 0 0 / 0.35);
+}
+
+.polaroid-card:hover {
+  scale: 1.02;
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 0.1),
+    0 12px 32px rgb(0 0 0 / 0.14);
+}
+
+:root[data-color-scheme="dark"] .polaroid-card:hover {
+  scale: 1.02;
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 0.25),
+    0 12px 32px rgb(0 0 0 / 0.4);
+}
+
+.polaroid-title {
+  color: #404040;
+}
+
+/* Tape strip — washi tape, always centered on top edge.
+   Width and rotation randomized via inline styles per project. */
+.polaroid-tape {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  translate: -50% 0;
+  height: 36px;
+  pointer-events: none;
+  z-index: 3;
+  /* Jagged dispenser-cut edges */
+  clip-path: polygon(
+    3px 0%,
+    0px 5%,
+    4px 10%,
+    0px 15%,
+    3px 20%,
+    0px 25%,
+    4px 30%,
+    0px 35%,
+    3px 40%,
+    0px 45%,
+    4px 50%,
+    0px 55%,
+    3px 60%,
+    0px 65%,
+    4px 70%,
+    0px 75%,
+    3px 80%,
+    0px 85%,
+    4px 90%,
+    0px 95%,
+    3px 100%,
+    calc(100% - 3px) 100%,
+    100% 95%,
+    calc(100% - 4px) 90%,
+    100% 85%,
+    calc(100% - 3px) 80%,
+    100% 75%,
+    calc(100% - 4px) 70%,
+    100% 65%,
+    calc(100% - 3px) 60%,
+    100% 55%,
+    calc(100% - 4px) 50%,
+    100% 45%,
+    calc(100% - 3px) 40%,
+    100% 35%,
+    calc(100% - 4px) 30%,
+    100% 25%,
+    calc(100% - 3px) 20%,
+    100% 15%,
+    calc(100% - 4px) 10%,
+    100% 5%,
+    calc(100% - 3px) 0%
+  );
+  transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(2px);
+}
+
+.polaroid-tape-teal {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 3px,
+      rgb(255 255 255 / 0.25) 3px,
+      rgb(255 255 255 / 0.25) 6px
+    ),
+    rgb(45 125 154 / 0.5);
+}
+
+.polaroid-tape-rose {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 4px,
+      rgb(255 255 255 / 0.2) 4px,
+      rgb(255 255 255 / 0.2) 8px
+    ),
+    rgb(196 99 106 / 0.5);
+}
+
+/* ── "In the Wild" horizontal scroll ── */
+
+.wild-progress-track {
+  background: #e5e5e5;
+}
+
+:root[data-color-scheme="dark"] .wild-progress-track {
+  background: #333;
+}
+
+.wild-progress-fill {
+  background: #2d7d9a;
+  transition: transform 50ms linear;
+}
+
+.wild-card {
+  background: #fafaf9;
+  border-radius: 3px;
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.08),
+    0 6px 20px rgb(0 0 0 / 0.1);
+  scroll-snap-align: center;
+  transition:
+    scale 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+:root[data-color-scheme="dark"] .wild-card {
+  background: #242424;
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.2),
+    0 6px 20px rgb(0 0 0 / 0.35);
+}
+
+.wild-card:hover {
+  scale: 1.02;
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 0.1),
+    0 12px 32px rgb(0 0 0 / 0.14);
+}
+
+:root[data-color-scheme="dark"] .wild-card:hover {
+  scale: 1.02;
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 0.25),
+    0 12px 32px rgb(0 0 0 / 0.4);
+}
+
+.wild-company {
+  color: #2d7d9a;
+}
+
+.wild-caption {
+  color: var(--caption);
+}
+
+/* ── Play/Pause floating fragment ── */
+
+.play-pause-fragment {
+  border-radius: 6px;
+  background: #fafaf9;
+  border: 1px solid #e5e5e5;
+  color: #525252;
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.08),
+    0 4px 10px rgb(0 0 0 / 0.06);
+  transition:
+    transform 500ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 200ms,
+    color 200ms;
+}
+
+.play-pause-fragment:hover {
+  background: #2d7d9a;
+  border-color: #2d7d9a;
+  color: white;
+}
+
+:root[data-color-scheme="dark"] .play-pause-fragment {
+  background: #242424;
+  border-color: #333;
+  color: #a3a3a3;
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.2),
+    0 4px 10px rgb(0 0 0 / 0.15);
+}
+
+:root[data-color-scheme="dark"] .play-pause-fragment:hover {
+  background: #2d7d9a;
+  border-color: #2d7d9a;
+  color: white;
+}
+
+/* ── Grid ticks ── */
+
+.grid-tick {
+  background: #a3a3a3;
+  opacity: 0.15;
+}
+
+.grid-tick-label {
+  color: #a3a3a3;
+  opacity: 0.2;
+}
+
+:root[data-color-scheme="dark"] .grid-tick {
+  background: #525252;
+  opacity: 0.2;
+}
+
+:root[data-color-scheme="dark"] .grid-tick-label {
+  color: #525252;
+  opacity: 0.3;
+}
+
+/* Pin — positioned on the info card, scatters via inline transform */
+.info-pin {
+  position: absolute;
+  top: 0px;
+  left: 50%;
+  margin-left: -7px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #c4636a;
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.25),
+    inset 0 1px 2px rgb(255 255 255 / 0.3);
+  z-index: 4;
+  pointer-events: none;
+  transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Info fragment (description card) ── */
+
+.info-fragment {
+  border-radius: 10px;
+  border: 1px solid #e5e5e5;
+  background: rgb(250 250 249 / 0.92);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.04),
+    0 4px 14px rgb(0 0 0 / 0.07);
+  transition:
+    transform 500ms cubic-bezier(0.16, 1, 0.3, 1),
+    scale 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+:root[data-color-scheme="dark"] .info-fragment {
+  border-color: #333;
+  background: rgb(28 28 28 / 0.92);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.15),
+    0 4px 14px rgb(0 0 0 / 0.25);
+}
+
+.info-fragment:hover {
+  scale: 1.015;
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 0.06),
+    0 8px 24px rgb(0 0 0 / 0.1);
+}
+
+:root[data-color-scheme="dark"] .info-fragment:hover {
+  scale: 1.015;
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 0.2),
+    0 8px 24px rgb(0 0 0 / 0.35);
+}
+
+/* Info card inner elements — dark mode via attribute */
+.info-link {
+  color: var(--text);
+  transition: color 200ms;
+}
+.info-link:hover {
+  color: #2d7d9a;
+}
+
+.info-link-secondary {
+  color: var(--caption);
+  transition: color 200ms;
+}
+.info-link-secondary:hover {
+  color: #2d7d9a;
+}
+
+.info-hairline {
+  background: #e5e5e5;
+}
+:root[data-color-scheme="dark"] .info-hairline {
+  background: #333;
+}
+
+.info-desc {
+  color: var(--caption);
+}
+
+.tech-pill {
+  background: #f0f0f0;
+  color: #525252;
+}
+:root[data-color-scheme="dark"] .tech-pill {
+  background: #1a1a2e;
+  color: #c8c4b8;
+}
+
+/* ── Sticky notes ── */
+
+.sticky-note {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  max-width: 360px;
+  width: fit-content;
+  padding: 18px 21px;
+  font-size: 24px;
+  font-style: italic;
+  line-height: 1.4;
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 3;
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 0.08),
+    0 1px 2px rgb(0 0 0 / 0.04);
+  transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-color-scheme="dark"] .sticky-note {
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 0.25),
+    0 1px 2px rgb(0 0 0 / 0.15);
+}
+
+/* Sticky note color variants */
+.sticky-note-amber {
+  background: #fef3c7;
+  color: #78350f;
+}
+:root[data-color-scheme="dark"] .sticky-note-amber {
+  background: #44403c;
+  color: #fef3c7;
+}
+
+.sticky-note-teal {
+  background: #ccfbf1;
+  color: #134e4a;
+}
+:root[data-color-scheme="dark"] .sticky-note-teal {
+  background: #1a3a38;
+  color: #ccfbf1;
+}
+
+.sticky-note-rose {
+  background: #ffe4e6;
+  color: #881337;
+}
+:root[data-color-scheme="dark"] .sticky-note-rose {
+  background: #3b1a24;
+  color: #ffe4e6;
+}
+
+@keyframes labelFloat {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translateY(0px);
+  }
+  33% {
+    transform: translate(-50%, -50%) translateY(-6px) translateX(3px);
+  }
+  66% {
+    transform: translate(-50%, -50%) translateY(4px) translateX(-2px);
+  }
+}
+
+/* ── Scroll-driven view() timeline animations (longhand to avoid shorthand conflicts) ── */
+
+.story-line {
+  animation-name: scrollFadeBlurInOut;
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: view();
+}
+
+.skill-reveal {
+  animation-name: scrollSkillReveal;
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: view();
+  animation-range: entry 0% cover 40%;
+}
+
+.project-reveal {
+  animation-name: scrollProjectReveal;
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: view();
+  animation-range: entry 0% cover 50%;
+}
+
+.scroll-stagger-in {
+  animation-name: scrollStaggerIn;
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: view();
+  animation-range: entry 0% cover 35%;
+}
+
+/* ── ActIII: Choreographed project card reveals ── */
+
+.project-card {
+  view-timeline-name: --card;
+  view-timeline-axis: block;
+}
+
+.project-image-ltr {
+  animation-name: scrollProjectRevealLTR;
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: --card;
+  animation-range: entry 0% cover 40%;
+}
+
+.project-image-rtl {
+  animation-name: scrollProjectRevealRTL;
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: --card;
+  animation-range: entry 0% cover 40%;
+}
+
+.project-title-reveal {
+  animation-name: scrollFocusPull;
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: --card;
+  animation-range: entry 10% cover 35%;
+}
+
+.project-desc-reveal {
+  animation-name: scrollFocusPull;
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: --card;
+  animation-range: entry 15% cover 40%;
+}
+
+.project-pill {
+  animation-name: scrollPillReveal;
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: --card;
+  animation-range-start: entry calc(20% + var(--pill-i, 0) * 2%);
+  animation-range-end: cover calc(45% + var(--pill-i, 0) * 2%);
+}
+
+.project-links-reveal {
+  animation-name: scrollFocusPull;
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: --card;
+  animation-range: entry 25% cover 45%;
+}
+
+.section-header-reveal {
+  animation-name: scrollSectionFocusPull;
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: view();
+  animation-range: entry 0% cover 40%;
+}
+
+/* ── Reduced motion ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .story-line,
+  .skill-reveal,
+  .project-reveal,
+  .scroll-stagger-in,
+  .project-image-ltr,
+  .project-image-rtl,
+  .project-title-reveal,
+  .project-desc-reveal,
+  .project-pill,
+  .project-links-reveal,
+  .section-header-reveal {
+    animation: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+
+  .ascii-cell {
+    transition: none !important;
+  }
+
+  /* Disable floating label drift animation */
+  .floating-label {
+    animation: none !important;
+  }
+
+  /* Disable polaroid/info card transitions (no scatter/converge) */
+  .polaroid-card,
+  .info-fragment,
+  .polaroid-tape,
+  .info-pin,
+  .sticky-note {
+    transition: none !important;
+  }
+}
+
+/* ── Mobile sticky note overrides ── */
+@media (max-width: 767px) {
+  .sticky-note {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: auto;
+    display: inline-block;
+  }
 }

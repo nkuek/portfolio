@@ -1,65 +1,45 @@
-import LinkedInLogo from "~/images/linkedin.svg";
-import GitHubLogo from "~/images/github.svg";
-import Envelope from "~/images/envelope.svg";
-import cn from "~/utils/cn";
-import Link, { LinkProps } from "next/link";
+import Link from "next/link";
 
-function FooterLinkGroup({
-  title,
-  containerClass,
-  children,
-}: React.PropsWithChildren<{ title?: string; containerClass?: string }>) {
-  return (
-    <div className={cn("flex flex-col items-center", containerClass)}>
-      {title && <span>{title}</span>}
-      <ul className="flex gap-[10px]">{children}</ul>
-    </div>
-  );
-}
-
-function FooterLinkItem(
-  props: React.PropsWithChildren<LinkProps & { title?: string }>,
-) {
-  return (
-    <li className="flex items-center">
-      <Link
-        className="title ease *:fill-text *:hover:fill-link-hover h-auto w-8 transition-transform duration-250 *:transition-colors *:duration-250 *:ease-in-out hover:scale-110"
-        target="_blank"
-        rel="noopener"
-        {...props}
-      >
-        {props.children}
-      </Link>
-    </li>
-  );
-}
+const contactLinks = [
+  {
+    label: "GitHub",
+    href: "https://github.com/nkuek/",
+  },
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/in/nick-kuek/",
+  },
+  {
+    label: "Email",
+    href: "mailto:contact@nkuek.dev",
+  },
+];
 
 export default function Footer() {
   return (
-    <footer className="relative top-[70px] mx-auto flex h-[70px] w-full max-w-[1408px] items-center justify-center">
-      <FooterLinkGroup containerClass="justify-end h-full pb-3">
-        <FooterLinkItem
-          href="https://github.com/nkuek/"
-          aria-label="GitHub"
-          title="GitHub"
-        >
-          <GitHubLogo />
-        </FooterLinkItem>
-        <FooterLinkItem
-          href="https://www.linkedin.com/in/nick-kuek/"
-          aria-label="LinkedIn"
-          title="LinkedIn"
-        >
-          <LinkedInLogo />
-        </FooterLinkItem>
-        <FooterLinkItem
-          href="mailto:contact@nkuek.dev"
-          aria-label="Email"
-          title="Email"
-        >
-          <Envelope />
-        </FooterLinkItem>
-      </FooterLinkGroup>
-    </footer>
+    <section
+      id="connect"
+      aria-label="Get in touch"
+      className="flex min-h-screen flex-col items-center justify-center gap-16 px-4 pb-24"
+    >
+      <h2 className="scroll-stagger-in text-text text-center text-[clamp(1.75rem,4vw,3.5rem)] font-[300] tracking-[-0.02em]">
+        Let’s build something beautiful.
+      </h2>
+
+      <nav aria-label="Contact links" className="scroll-stagger-in flex gap-10">
+        {contactLinks.map((link) => (
+          <Link
+            key={link.label}
+            href={link.href}
+            target={link.href.startsWith("mailto:") ? undefined : "_blank"}
+            rel={link.href.startsWith("mailto:") ? undefined : "noopener"}
+            className="contact-link group relative text-[clamp(0.875rem,1.5vw,1.125rem)] font-[300] tracking-[0.05em] text-[#737373] uppercase transition-colors duration-200 hover:text-[#2d7d9a]"
+          >
+            {link.label}
+            <span className="absolute -bottom-1 left-1/2 h-px w-0 -translate-x-1/2 bg-[#2d7d9a] transition-[width] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:w-full" />
+          </Link>
+        ))}
+      </nav>
+    </section>
   );
 }

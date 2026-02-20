@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Poppins, Source_Code_Pro, Fira_Code } from "next/font/google";
 import "./globals.css";
 import Navbar from "~/components/Navbar";
-import Footer from "~/components/Footer";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -23,18 +22,18 @@ const firaCode = Fira_Code({
 });
 
 export const metadata: Metadata = {
-  title: "Nick Kuek's Portfolio",
+  title: "Nick Kuek — Design Engineer",
   description:
-    "Nick Kuek is a frontend engineer with a passion for making the web more beautiful.",
+    "Design Engineer building scroll-driven narratives, WebGPU experiences, and interfaces that make people feel something.",
   alternates: {
     canonical: "https://www.nkuek.dev/",
   },
   openGraph: {
-    title: "Nick Kuek's Portfolio",
+    title: "Nick Kuek — Design Engineer",
     description:
-      "Nick Kuek is a frontend engineer with a passion for making the web more beautiful.",
+      "Design Engineer building scroll-driven narratives, WebGPU experiences, and interfaces that make people feel something.",
     url: "https://www.nkuek.dev/",
-    siteName: "Nick Kuek's Portfolio",
+    siteName: "Nick Kuek",
     locale: "en_US",
     type: "website",
   },
@@ -54,7 +53,6 @@ export default function RootLayout({
         <SpeedInsights />
         <Navbar />
         {children}
-        <Footer />
       </body>
     </html>
   );
