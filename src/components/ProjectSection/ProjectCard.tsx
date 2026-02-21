@@ -276,7 +276,7 @@ function StickyNotes({
       {notes.map((note, i) => {
         const scatterTransform = childScatter(
           [note.offset[0] > 0 ? 100 + i * 30 : -100 - i * 30, -70 - i * 20],
-          note.rotate * 3,
+          note.rotate,
           focus,
           [0.5, 1],
         );
