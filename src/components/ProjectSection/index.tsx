@@ -32,6 +32,7 @@ export default function ProjectSection({
   const [progress, setProgress] = useState(0);
   const [sectionInView, setSectionInView] = useState(false);
   const [viewport, setViewport] = useState({ w: 0, h: 0 });
+  const [scrollYCenter, setScrollYCenter] = useState(0);
 
   useEffect(() => {
     const updateViewport = () =>
@@ -116,6 +117,7 @@ export default function ProjectSection({
       // Section is "in view" when its top is above mid-viewport AND its bottom is below mid-viewport
       const midScreen = viewportH * 0.5;
       setSectionInView(rect.top < midScreen && rect.bottom > midScreen);
+      setScrollYCenter(midScreen);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -154,7 +156,6 @@ export default function ProjectSection({
     intensity: isMobile ? 0 : focusIntensity,
   };
   const crosshairFocused = focusIntensity > 0.8;
-  const scrollYCenter = Math.round(window.scrollY + viewport.h / 2);
   if (!isMobile && sectionInView) {
     crosshairRef.current = {
       label: `${Math.round(camera.x)}, ${scrollYCenter}`,

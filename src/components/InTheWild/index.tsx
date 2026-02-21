@@ -254,6 +254,7 @@ export default function InTheWild({
   const [sectionInView, setSectionInView] = useState(false);
   const [viewport, setViewport] = useState({ w: 0, h: 0 });
   const reducedMotion = useReducedMotion();
+  const [scrollYCenter, setScrollYCenter] = useState(0);
 
   useEffect(() => {
     const update = () =>
@@ -277,6 +278,7 @@ export default function InTheWild({
       setProgress(p);
 
       const midScreen = viewportH * 0.5;
+      setScrollYCenter(midScreen);
       setSectionInView(rect.top < midScreen && rect.bottom > midScreen);
     };
 
@@ -311,7 +313,6 @@ export default function InTheWild({
     text: !isMobile && sectionInView ? closestProject.title : "",
     intensity: isMobile ? 0 : focusIntensity,
   };
-  const scrollYCenter = Math.round(window.scrollY + viewport.h / 2);
   if (!isMobile && sectionInView) {
     crosshairRef.current = {
       label: `${Math.round(cameraX)}, ${scrollYCenter}`,
