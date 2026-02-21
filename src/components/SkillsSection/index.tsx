@@ -21,7 +21,7 @@ export default function SkillsSection() {
     <section
       id="skills"
       aria-label="Technical craft"
-      className="relative scroll-mt-14 py-32"
+      className="relative scroll-mt-14 pt-32"
     >
       {/* Section title — scrapbook card */}
       <div className="flex items-center justify-center overflow-hidden py-20">
