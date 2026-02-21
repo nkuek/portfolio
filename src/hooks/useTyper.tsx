@@ -22,9 +22,25 @@ const defaultOptions: UseTyperOptions = {
 export default function useTyper(items: string[], options?: UseTyperOptions) {
   const [display, setDisplay] = useState(items[0]);
   const [cursorVisible, setCursorVisible] = useState(true);
+  const [inView, setInView] = useState(false);
   const roleIdx = useRef(0);
   const charIdx = useRef(items[0].length);
   const deleting = useRef(true);
+
+  // Attach this ref to the container element to gate the animation on visibility
+  const observerRef = useCallback((node: HTMLElement | null) => {
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry],obs) => {
+        setInView(entry.isIntersecting)
+        if (entry.isIntersecting) obs.disconnect()
+      }
+        ,
+      { threshold: 0 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   const tick = useCallback(() => {
     const role = items[roleIdx.current];
@@ -54,6 +70,7 @@ export default function useTyper(items: string[], options?: UseTyperOptions) {
   ]);
 
   useEffect(() => {
+    if (!inView) return;
     let timeout: NodeJS.Timeout;
     function loop() {
       const delay = tick();
@@ -61,12 +78,13 @@ export default function useTyper(items: string[], options?: UseTyperOptions) {
     }
     timeout = setTimeout(loop, 3000);
     return () => clearTimeout(timeout);
-  }, [tick]);
+  }, [tick, inView]);
 
   useEffect(() => {
+    if (!inView) return;
     const interval = setInterval(() => setCursorVisible((v) => !v), 530);
     return () => clearInterval(interval);
-  }, []);
+  }, [inView]);
 
-  return { display, cursorVisible };
+  return { display, cursorVisible, ref: observerRef };
 }
