@@ -79,6 +79,7 @@ function PolaroidFragment({
       target="_blank"
       rel="noopener"
       className="group block"
+      aria-label={`View ${project.title} on ${project.liveLink ? "live site" : "GitHub"}`}
     >
       <div className="relative aspect-square overflow-hidden bg-[#171717]">
         {isVideo ? (
@@ -216,6 +217,7 @@ function InfoFragment({
             target="_blank"
             rel="noopener"
             className="info-link group relative inline-flex items-center gap-1.5 text-base font-[300] tracking-wide"
+            aria-label={`View ${project.title} on live site`}
           >
             <span>Experience</span>
             <ArrowUpRight className={ARROW_CLASSES} />
@@ -227,6 +229,7 @@ function InfoFragment({
             target="_blank"
             rel="noopener"
             className="info-link-secondary group relative inline-flex items-center gap-1.5 text-base font-[300] tracking-wide"
+            aria-label={`View ${project.title} on GitHub"}`}
           >
             <span>Source</span>
             <ArrowUpRight className={ARROW_CLASSES} />
