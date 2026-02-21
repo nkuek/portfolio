@@ -202,7 +202,7 @@ export default function ProjectSection({
       ref={sectionRef}
       id="work"
       aria-label="Projects"
-      className="relative h-[1050vh] scroll-mt-14"
+      className="relative h-[840vh] scroll-mt-14"
     >
       {/* Section title — static, scrolls away naturally */}
       <div className="flex items-center justify-center pt-24">

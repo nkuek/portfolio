@@ -66,7 +66,7 @@ export const projects: Project[] = [
     isShowcase: true,
     showcaseSlug: "particle-displacement",
     src: "https://res.cloudinary.com/dunbkcyqq/video/upload/f_auto,q_auto,w_800/particle-displacement.mov",
-    position: { x: -450, y: 2700 },
+    position: { x: -450, y: 2000 },
     fragments: {
       imageRotate: -1.3,
       imageOffset: [20, 0],
@@ -97,7 +97,7 @@ export const projects: Project[] = [
     isShowcase: true,
     showcaseSlug: "corne",
     src: "https://res.cloudinary.com/dunbkcyqq/video/upload/f_auto,q_auto,w_800/corne.mov",
-    position: { x: 1350, y: 4200 },
+    position: { x: 1350, y: 4000 },
     fragments: {
       imageRotate: 2.2,
       imageOffset: [-35, 0],
@@ -128,7 +128,7 @@ export const projects: Project[] = [
     isShowcase: true,
     showcaseSlug: "particle-morphing",
     src: "https://res.cloudinary.com/dunbkcyqq/video/upload/f_auto,q_auto,w_800/particle-morphing.mov",
-    position: { x: -300, y: 5700 },
+    position: { x: -300, y: 6000 },
     fragments: {
       imageRotate: -3.0,
       imageOffset: [24, 0],
