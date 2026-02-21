@@ -94,7 +94,7 @@ export default function HeroSection() {
             style={{ opacity: cursorVisible ? 1 : 0 }}
           />
         </p>
-        <p className="mt-4 animate-[heroFocusPull_800ms_cubic-bezier(0.22,0.61,0.36,1)_1000ms_both] font-mono text-[clamp(0.75rem,1.2vw,0.9375rem)] leading-[1.6] text-[#2d7d9a] italic opacity-0">
+        <p className="mt-4 w-fit animate-[heroFocusPull_800ms_cubic-bezier(0.22,0.61,0.36,1)_1000ms_both] font-mono text-[clamp(1rem,1.2vw,1.2375rem)] leading-[1.6] text-[#2d7d9a] italic opacity-0 backdrop-blur-2xl">
           making the web more beautiful
         </p>
         <div
