@@ -22,21 +22,101 @@ const firaCode = Fira_Code({
 });
 
 export const metadata: Metadata = {
-  title: "Nick Kuek — Design Engineer",
+  metadataBase: new URL("https://www.nkuek.dev"),
+  title: {
+    default: "Nick Kuek — Design Engineer",
+    template: "%s | Nick Kuek",
+  },
   description:
-    "Design Engineer building scroll-driven narratives, WebGPU experiences, and interfaces that make people feel something.",
+    "Design Engineer crafting scroll-driven narratives, WebGPU experiences, and creative interfaces with React, TypeScript, Three.js, and Next.js.",
+  keywords: [
+    "Nick Kuek",
+    "Design Engineer",
+    "Creative Developer",
+    "Frontend Developer",
+    "React",
+    "TypeScript",
+    "Next.js",
+    "Three.js",
+    "React Three Fiber",
+    "WebGPU",
+    "GLSL",
+    "TSL",
+    "GSAP",
+    "CSS",
+    "Web Accessibility",
+    "Design Systems",
+    "Creative Coding",
+    "Interactive Web",
+    "Portfolio",
+  ],
+  authors: [{ name: "Nick Kuek", url: "https://www.nkuek.dev" }],
+  creator: "Nick Kuek",
+  publisher: "Nick Kuek",
   alternates: {
-    canonical: "https://www.nkuek.dev/",
+    canonical: "/",
   },
   openGraph: {
     title: "Nick Kuek — Design Engineer",
     description:
-      "Design Engineer building scroll-driven narratives, WebGPU experiences, and interfaces that make people feel something.",
-    url: "https://www.nkuek.dev/",
+      "Design Engineer crafting scroll-driven narratives, WebGPU experiences, and creative interfaces with React, TypeScript, Three.js, and Next.js.",
+    url: "/",
     siteName: "Nick Kuek",
     locale: "en_US",
     type: "website",
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Nick Kuek — Design Engineer",
+      },
+    ],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nick Kuek — Design Engineer",
+    description:
+      "Design Engineer crafting scroll-driven narratives, WebGPU experiences, and creative interfaces with React, TypeScript, Three.js, and Next.js.",
+    images: ["/opengraph-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Nick Kuek",
+  url: "https://www.nkuek.dev",
+  jobTitle: "Design Engineer",
+  description:
+    "Design Engineer crafting scroll-driven narratives, WebGPU experiences, and creative interfaces.",
+  sameAs: [
+    "https://github.com/nkuek/",
+    "https://www.linkedin.com/in/nick-kuek/",
+  ],
+  knowsAbout: [
+    "React",
+    "TypeScript",
+    "Next.js",
+    "Three.js",
+    "WebGPU",
+    "GLSL",
+    "CSS",
+    "Design Systems",
+    "Web Accessibility",
+    "Creative Coding",
+  ],
 };
 
 export default function RootLayout({
@@ -46,6 +126,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body
         className={`${poppins.variable} ${sourceCodePro.variable} ${firaCode.variable} before:grainy-background antialiased before:fixed before:inset-0 before:z-[-1]`}
       >
