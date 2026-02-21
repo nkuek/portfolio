@@ -15,8 +15,16 @@ import XAxisTicks, { type XAxisData } from "~/components/XAxisTicks";
 
 export default function HomeClient() {
   const highlightRef = useRef<HighlightData>({ text: "", intensity: 0 });
-  const crosshairRef = useRef<CrosshairData>({ label: "", focused: false, visible: false });
-  const xAxisRef = useRef<XAxisData>({ cameraX: 0, translateX: 0, visible: false });
+  const crosshairRef = useRef<CrosshairData>({
+    label: "",
+    focused: false,
+    visible: false,
+  });
+  const xAxisRef = useRef<XAxisData>({
+    cameraX: 0,
+    translateX: 0,
+    visible: false,
+  });
 
   return (
     <>
@@ -29,8 +37,16 @@ export default function HomeClient() {
       <XAxisTicks dataRef={xAxisRef} />
       <div className="relative z-1">
         <HeroSection />
-        <ProjectSection highlightRef={highlightRef} crosshairRef={crosshairRef} xAxisRef={xAxisRef} />
-        <InTheWild highlightRef={highlightRef} crosshairRef={crosshairRef} xAxisRef={xAxisRef} />
+        <ProjectSection
+          highlightRef={highlightRef}
+          crosshairRef={crosshairRef}
+          xAxisRef={xAxisRef}
+        />
+        <InTheWild
+          highlightRef={highlightRef}
+          crosshairRef={crosshairRef}
+          xAxisRef={xAxisRef}
+        />
         <SkillsSection />
         <Footer />
       </div>

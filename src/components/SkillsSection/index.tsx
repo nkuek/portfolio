@@ -24,7 +24,7 @@ export default function SkillsSection() {
       className="relative scroll-mt-14 py-32"
     >
       {/* Section title — scrapbook card */}
-      <div className="flex items-center justify-center py-20">
+      <div className="flex items-center justify-center overflow-hidden py-20">
         <SectionTitleCard
           title="Crafting with..."
           rotate={5}

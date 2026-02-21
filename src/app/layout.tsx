@@ -145,7 +145,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${poppins.variable} ${sourceCodePro.variable} ${firaCode.variable} ${libreBaskerville.variable} before:grainy-background antialiased before:fixed before:inset-0 before:z-[-1]`}
+        className={`${poppins.variable} ${sourceCodePro.variable} ${firaCode.variable} ${libreBaskerville.variable} before:grainy-background overflow-x-clip antialiased before:fixed before:inset-0 before:z-[-1]`}
       >
         <ReactLenis root />
         <Analytics />
