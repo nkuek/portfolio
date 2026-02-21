@@ -37,7 +37,7 @@ export default function SkillsSection() {
         {skills.map((skill) => (
           <div
             key={skill.name}
-            className="skill-row scroll-stagger-in flex items-baseline gap-6"
+            className="skill-reveal flex items-baseline gap-6"
           >
             <span className="text-text text-[clamp(2.5rem,8vw,7rem)] leading-[1.15] font-[200] tracking-[-0.02em]">
               {skill.name}
