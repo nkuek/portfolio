@@ -9,6 +9,7 @@ import "./globals.css";
 import Navbar from "~/components/Navbar";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { ReactLenis } from "lenis/react";
 
 const poppins = Poppins({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -146,6 +147,7 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} ${sourceCodePro.variable} ${firaCode.variable} ${libreBaskerville.variable} before:grainy-background antialiased before:fixed before:inset-0 before:z-[-1]`}
       >
+        <ReactLenis root />
         <Analytics />
         <SpeedInsights />
         <Navbar />

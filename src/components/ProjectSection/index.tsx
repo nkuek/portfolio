@@ -205,7 +205,7 @@ export default function ProjectSection({
       className="relative h-[1050vh] scroll-mt-14"
     >
       {/* Section title — static, scrolls away naturally */}
-      <div className="flex items-center justify-center py-24">
+      <div className="flex items-center justify-center pt-24">
         <SectionTitleCard title="Projects" rotate={-2} tapeColor="teal" />
       </div>
 
