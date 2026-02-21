@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
-import { Poppins, Source_Code_Pro, Fira_Code, Libre_Baskerville } from "next/font/google";
+import {
+  Poppins,
+  Source_Code_Pro,
+  Fira_Code,
+  Libre_Baskerville,
+} from "next/font/google";
 import "./globals.css";
 import Navbar from "~/components/Navbar";
 import { Analytics } from "@vercel/analytics/next";
@@ -30,7 +35,7 @@ const libreBaskerville = Libre_Baskerville({
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.nkuek.dev"),
   title: {
-    default: "Nick Kuek — Design Engineer",
+    default: "Nick Kuek | Design Engineer",
     template: "%s | Nick Kuek",
   },
   description:
