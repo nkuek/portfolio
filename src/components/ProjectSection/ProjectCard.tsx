@@ -321,6 +321,7 @@ function MobileProjectCard({
       target="_blank"
       rel="noopener"
       className="group block"
+      aria-label={`View ${project.title} on ${project.liveLink ? "live site" : "GitHub"}`}
     >
       <div className="relative aspect-square overflow-hidden bg-[#171717]">
         {isVideo ? (
@@ -420,6 +421,7 @@ function MobileProjectCard({
               target="_blank"
               rel="noopener"
               className="info-link group font-300 relative inline-flex items-center gap-1.5 text-base tracking-wide"
+              aria-label={`View ${project.title} on "live site"}`}
             >
               <span>Experience</span>
               <ArrowUpRight className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -431,6 +433,7 @@ function MobileProjectCard({
               target="_blank"
               rel="noopener"
               className="info-link-secondary group font-300 relative inline-flex items-center gap-1.5 text-base tracking-wide"
+              aria-label={`View ${project.title} on GitHub`}
             >
               <span>Source</span>
               <ArrowUpRight className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
