@@ -13,7 +13,6 @@ import type { HighlightData } from "../HeroSection/AsciiAmbient";
 import SectionTitleCard from "~/components/SectionTitleCard";
 import type { CrosshairData } from "~/components/Crosshair";
 import type { XAxisData } from "~/components/XAxisTicks";
-import useReducedMotion from "~/hooks/useReducedMotion";
 import { LABEL_SIZES } from "~/utils/scatterTransforms";
 
 const MOBILE_BREAKPOINT = 768;
@@ -167,23 +166,21 @@ export default function ProjectSection({
     crosshairRef.current = { label: "", focused: false, visible: false };
     xAxisRef.current = { cameraX: 0, translateX: 0, visible: false };
   }
-  const prefersReducedMotion = useReducedMotion();
-
-  // ── Mobile or reduced-motion: vertical scrolling list (no parallax, no scatter) ──
-  if (isMobile || prefersReducedMotion) {
-    return (
-      <section
-        ref={sectionRef}
-        id="work"
-        aria-label="Projects"
-        className="relative scroll-mt-14 px-4 py-20"
-      >
+  // ── Render both layouts; CSS picks the right one (zero layout shift) ──
+  return (
+    <section
+      ref={sectionRef}
+      id="work"
+      aria-label="Projects"
+      className="relative scroll-mt-14"
+    >
+      {/* ── Mobile / Reduced-motion: vertical stack ──
+          Visible on < md, or on md+ when user prefers reduced motion */}
+      <div className="px-4 py-20 md:motion-safe:hidden">
         <div className="mb-12 flex justify-center">
           <SectionTitleCard title="Projects" rotate={-2} tapeColor="teal" />
         </div>
-        <div
-          className={`mx-auto flex flex-col gap-36 ${isMobile ? "max-w-[400px]" : "max-w-[500px]"}`}
-        >
+        <div className="mx-auto flex max-w-[400px] flex-col gap-36 md:max-w-[500px]">
           {projects.map((project, i) => (
             <MobileProjectCard
               key={project.title}
@@ -192,214 +189,213 @@ export default function ProjectSection({
             />
           ))}
         </div>
-      </section>
-    );
-  }
-
-  // ── Desktop: 2D panning world ──
-  return (
-    <section
-      ref={sectionRef}
-      id="work"
-      aria-label="Projects"
-      className="relative h-[700vh] scroll-mt-14"
-    >
-      {/* Section title — static, scrolls away naturally */}
-      <div className="flex items-center justify-center pt-24">
-        <SectionTitleCard title="Projects" rotate={-2} tapeColor="teal" />
       </div>
 
-      <div className="sticky top-0 h-svh w-full overflow-x-clip">
-        {/* World container */}
-        <div
-          className="absolute will-change-transform"
-          style={{ transform: `translate(${tx}px, ${ty}px)` }}
-        >
-          {/* Connection lines between related projects */}
-          <svg
-            className="pointer-events-none absolute top-0 left-0"
-            style={{
-              width: 2000,
-              height: 3000,
-              left: -500,
-              top: -500,
-              overflow: "visible",
-            }}
+      {/* ── Desktop: 2D panning world ──
+          Hidden on < md, and hidden when user prefers reduced motion */}
+      <div className="hidden h-[700vh] md:motion-safe:block">
+        {/* Section title — static, scrolls away naturally */}
+        <div className="flex items-center justify-center pt-24">
+          <SectionTitleCard title="Projects" rotate={-2} tapeColor="teal" />
+        </div>
+
+        <div className="sticky top-0 h-svh w-full overflow-clip">
+          {/* Gate on real viewport so the world doesn't flash at (0,0) before
+              useEffect measures dimensions (prevents CLS from hero area) */}
+          {viewport.w > 0 && (
+          <div
+            className="absolute will-change-transform"
+            style={{ transform: `translate(${tx}px, ${ty}px)` }}
           >
-            {connectionLines.map(([a, b], i) => {
-              const pa = projects[a].position;
-              const pb = projects[b].position;
-              const midX = (pa.x + pb.x) / 2;
-              const midY = (pa.y + pb.y) / 2;
-              const dist = Math.sqrt(
-                (midX - camera.x) ** 2 + (midY - camera.y) ** 2,
-              );
-              const baseOpacity = Math.max(0, 1 - dist / 900) * 0.4;
-
-              // Line length for dasharray
-              const dx = pb.x - pa.x;
-              const dy = pb.y - pa.y;
-              const lineLen = Math.sqrt(dx * dx + dy * dy);
-
-              // Fill progress: how much of this line is "completed"
-              // Based on scroll progress relative to the waypoint indices
-              const startIdx = Math.min(a, b);
-              const endIdx = Math.max(a, b);
-              const n = cameraWaypoints.length - 1;
-              const lineStartProgress = startIdx / n;
-              const lineEndProgress = endIdx / n;
-              const lineRange = lineEndProgress - lineStartProgress;
-
-              let fillFraction = 0;
-              if (lineRange > 0) {
-                fillFraction = Math.max(
-                  0,
-                  Math.min(1, (progress - lineStartProgress) / lineRange),
+            {/* Connection lines between related projects */}
+            <svg
+              className="pointer-events-none absolute top-0 left-0"
+              style={{
+                width: 2000,
+                height: 3000,
+                left: -500,
+                top: -500,
+                overflow: "visible",
+              }}
+            >
+              {connectionLines.map(([a, b], i) => {
+                const pa = projects[a].position;
+                const pb = projects[b].position;
+                const midX = (pa.x + pb.x) / 2;
+                const midY = (pa.y + pb.y) / 2;
+                const dist = Math.sqrt(
+                  (midX - camera.x) ** 2 + (midY - camera.y) ** 2,
                 );
-              }
+                const baseOpacity = Math.max(0, 1 - dist / 900) * 0.4;
 
-              const filledLen = fillFraction * lineLen;
-              const unfilledLen = lineLen - filledLen;
+                // Line length for dasharray
+                const dx = pb.x - pa.x;
+                const dy = pb.y - pa.y;
+                const lineLen = Math.sqrt(dx * dx + dy * dy);
 
-              return (
-                <g key={i}>
-                  {/* Background track */}
-                  <line
-                    x1={pa.x + 500}
-                    y1={pa.y + 500}
-                    x2={pb.x + 500}
-                    y2={pb.y + 500}
-                    stroke="currentColor"
-                    strokeWidth="1"
-                    className="text-[#a3a3a3] dark:text-[#525252]"
-                    style={{ opacity: baseOpacity }}
-                  />
-                  {/* Filled portion */}
-                  {filledLen > 0 && (
+                // Fill progress: how much of this line is "completed"
+                // Based on scroll progress relative to the waypoint indices
+                const startIdx = Math.min(a, b);
+                const endIdx = Math.max(a, b);
+                const n = cameraWaypoints.length - 1;
+                const lineStartProgress = startIdx / n;
+                const lineEndProgress = endIdx / n;
+                const lineRange = lineEndProgress - lineStartProgress;
+
+                let fillFraction = 0;
+                if (lineRange > 0) {
+                  fillFraction = Math.max(
+                    0,
+                    Math.min(1, (progress - lineStartProgress) / lineRange),
+                  );
+                }
+
+                const filledLen = fillFraction * lineLen;
+                const unfilledLen = lineLen - filledLen;
+
+                return (
+                  <g key={i}>
+                    {/* Background track */}
                     <line
                       x1={pa.x + 500}
                       y1={pa.y + 500}
                       x2={pb.x + 500}
                       y2={pb.y + 500}
-                      stroke="#2d7d9a"
-                      strokeWidth="2"
-                      strokeDasharray={`${filledLen} ${unfilledLen}`}
-                      strokeLinecap="round"
-                      style={{
-                        opacity: Math.max(baseOpacity, 0.6),
-                      }}
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      className="text-[#a3a3a3] dark:text-[#525252]"
+                      style={{ opacity: baseOpacity }}
                     />
-                  )}
-                </g>
-              );
-            })}
-          </svg>
+                    {/* Filled portion */}
+                    {filledLen > 0 && (
+                      <line
+                        x1={pa.x + 500}
+                        y1={pa.y + 500}
+                        x2={pb.x + 500}
+                        y2={pb.y + 500}
+                        stroke="#2d7d9a"
+                        strokeWidth="2"
+                        strokeDasharray={`${filledLen} ${unfilledLen}`}
+                        strokeLinecap="round"
+                        style={{
+                          opacity: Math.max(baseOpacity, 0.6),
+                        }}
+                      />
+                    )}
+                  </g>
+                );
+              })}
+            </svg>
 
-          {/* Floating labels — skills, annotations, section header */}
-          <div ref={labelsRef}>
-            {floatingLabels.map((label, i) => {
-              const visibility = 0.7;
+            {/* Floating labels — skills, annotations, section header */}
+            <div ref={labelsRef}>
+              {floatingLabels.map((label, i) => {
+                const visibility = 0.7;
 
-              // Deterministic per-label float parameters
-              // Round to 2dp so server HTML survives browser CSS normalisation without hydration drift
-              // This is the classic GLSL pseudo-random hash just ported into JS
-              const seed = Math.sin(i * 73.17 + 3.91) * 43758.5453;
-              const phase = Math.round((seed - Math.floor(seed)) * 1000) / 100;
-              const driftDuration = Math.round((6 + (i % 5) * 1.4) * 100) / 100;
-              const baseOpacity = Math.round(visibility * 0.4 * 100) / 100;
+                // Deterministic per-label float parameters
+                // Round to 2dp so server HTML survives browser CSS normalisation without hydration drift
+                // This is the classic GLSL pseudo-random hash just ported into JS
+                const seed = Math.sin(i * 73.17 + 3.91) * 43758.5453;
+                const phase =
+                  Math.round((seed - Math.floor(seed)) * 1000) / 100;
+                const driftDuration =
+                  Math.round((6 + (i % 5) * 1.4) * 100) / 100;
+                const baseOpacity = Math.round(visibility * 0.4 * 100) / 100;
+
+                return (
+                  <div
+                    key={i}
+                    className={`floating-label pointer-events-none absolute font-mono uppercase ${LABEL_SIZES[label.size]}`}
+                    style={{
+                      ["--cursor-boost" as string]: "0",
+                      ["--base-opacity" as string]: String(baseOpacity),
+                      left: `${label.position.x}px`,
+                      top: `${label.position.y}px`,
+                      animation: `labelFloat ${driftDuration}s ease-in-out ${-phase}s infinite`,
+                    }}
+                  >
+                    {label.text}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Project cards — always visible, no fade */}
+            {projects.map((project, index) => {
+              const dx = project.position.x - camera.x;
+              const dy = project.position.y - camera.y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              const focus = sectionInView ? Math.max(0, 1 - dist / 600) : 0;
 
               return (
                 <div
-                  key={i}
-                  className={`floating-label pointer-events-none absolute font-mono uppercase ${LABEL_SIZES[label.size]}`}
+                  key={project.title}
+                  className="absolute"
                   style={{
-                    ["--cursor-boost" as string]: "0",
-                    ["--base-opacity" as string]: String(baseOpacity),
-                    left: `${label.position.x}px`,
-                    top: `${label.position.y}px`,
-                    animation: `labelFloat ${driftDuration}s ease-in-out ${-phase}s infinite`,
+                    left: project.position.x,
+                    top: project.position.y,
+                    transform: "translate(-50%, -50%)",
                   }}
                 >
-                  {label.text}
+                  <ProjectCard project={project} index={index} focus={focus} />
                 </div>
               );
             })}
           </div>
+          )}
 
-          {/* Project cards — always visible, no fade */}
-          {projects.map((project, index) => {
-            const dx = project.position.x - camera.x;
-            const dy = project.position.y - camera.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const focus = sectionInView ? Math.max(0, 1 - dist / 600) : 0;
+          {/* Progress track — clickable dots */}
+          <div className="absolute top-1/2 right-4 flex -translate-y-1/2 flex-col items-center gap-0">
+            {/* Track line (base + fill) aligned to dot centers */}
+            <div className="absolute top-5 bottom-5 left-1/2 w-px -translate-x-1/2 bg-[#d4d4d4] dark:bg-[#404040]" />
+            <div
+              className="absolute top-5 bottom-5 left-1/2 w-px origin-top -translate-x-1/2 bg-[#2d7d9a]"
+              style={{
+                transform: `translateX(-50%) scaleY(${progress})`,
+                transition: "transform 80ms linear",
+              }}
+            />
 
-            return (
-              <div
-                key={project.title}
-                className="absolute"
-                style={{
-                  left: project.position.x,
-                  top: project.position.y,
-                  transform: "translate(-50%, -50%)",
-                }}
-              >
-                <ProjectCard project={project} index={index} focus={focus} />
-              </div>
-            );
-          })}
-        </div>
+            {projects.map((_, i) => {
+              const dotProgress = i / (cameraWaypoints.length - 1);
+              const isCurrent = i === activeDotIndex;
+              const isPast = i < activeDotIndex;
 
-        {/* Progress track — clickable dots */}
-        <div className="absolute top-1/2 right-4 flex -translate-y-1/2 flex-col items-center gap-0">
-          {/* Track line (base + fill) aligned to dot centers */}
-          <div className="absolute top-5 bottom-5 left-1/2 w-px -translate-x-1/2 bg-[#d4d4d4] dark:bg-[#404040]" />
-          <div
-            className="absolute top-5 bottom-5 left-1/2 w-px origin-top -translate-x-1/2 bg-[#2d7d9a]"
-            style={{
-              transform: `translateX(-50%) scaleY(${progress})`,
-              transition: "transform 80ms linear",
-            }}
-          />
-
-          {projects.map((_, i) => {
-            const dotProgress = i / (cameraWaypoints.length - 1);
-            const isCurrent = i === activeDotIndex;
-            const isPast = i < activeDotIndex;
-
-            return (
-              <button
-                key={i}
-                type="button"
-                aria-label={`Go to project ${projects[i].title}`}
-                className="group relative flex h-10 w-10 cursor-pointer items-center justify-center"
-                onClick={() => {
-                  const section = sectionRef.current;
-                  if (!section) return;
-                  const sectionTop = section.offsetTop;
-                  const sectionHeight = section.offsetHeight;
-                  const viewportH = window.innerHeight;
-                  const scrollableDistance = sectionHeight - viewportH;
-                  const targetScroll =
-                    sectionTop + dotProgress * scrollableDistance;
-                  window.scrollTo({ top: targetScroll, behavior: "smooth" });
-                }}
-              >
-                <span
-                  className="block rounded-full transition-all duration-200 group-hover:scale-150"
-                  style={{
-                    width: isCurrent ? 10 : 6,
-                    height: isCurrent ? 10 : 6,
-                    backgroundColor: isCurrent
-                      ? "#2d7d9a"
-                      : isPast
-                        ? "#2d7d9a"
-                        : "#d4d4d4",
-                    opacity: isCurrent ? 1 : isPast ? 0.5 : 0.6,
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  aria-label={`Go to project ${projects[i].title}`}
+                  className="group relative flex h-10 w-10 cursor-pointer items-center justify-center"
+                  onClick={() => {
+                    const section = sectionRef.current;
+                    if (!section) return;
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.offsetHeight;
+                    const viewportH = window.innerHeight;
+                    const scrollableDistance = sectionHeight - viewportH;
+                    const targetScroll =
+                      sectionTop + dotProgress * scrollableDistance;
+                    window.scrollTo({ top: targetScroll, behavior: "smooth" });
                   }}
-                />
-              </button>
-            );
-          })}
+                >
+                  <span
+                    className="block rounded-full transition-all duration-200 group-hover:scale-150"
+                    style={{
+                      width: isCurrent ? 10 : 6,
+                      height: isCurrent ? 10 : 6,
+                      backgroundColor: isCurrent
+                        ? "#2d7d9a"
+                        : isPast
+                          ? "#2d7d9a"
+                          : "#d4d4d4",
+                      opacity: isCurrent ? 1 : isPast ? 0.5 : 0.6,
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

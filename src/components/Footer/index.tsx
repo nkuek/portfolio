@@ -28,12 +28,13 @@ const buzzwords = [
 ];
 
 export default function Footer() {
-  const { display, cursorVisible } = useTyper(buzzwords, {
+  const { display, cursorVisible, ref } = useTyper(buzzwords, {
     deleteSpeed: 100,
     pauseAfterType: 3000,
   });
   return (
     <section
+      ref={ref}
       id="contact"
       aria-label="Get in touch"
       className="flex min-h-screen flex-col items-center justify-center gap-16 px-4 pb-24"
