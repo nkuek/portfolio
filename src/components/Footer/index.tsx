@@ -1,4 +1,6 @@
+"use client";
 import Link from "next/link";
+import useTyper from "~/hooks/useTyper";
 
 const contactLinks = [
   {
@@ -15,7 +17,17 @@ const contactLinks = [
   },
 ];
 
+const buzzwords = [
+  "beautiful.",
+  "magical.",
+  "memorable.",
+  "successful.",
+  "innovative.",
+  "accessible.",
+];
+
 export default function Footer() {
+  const { display, cursorVisible } = useTyper(buzzwords);
   return (
     <section
       id="connect"
@@ -23,7 +35,12 @@ export default function Footer() {
       className="flex min-h-screen flex-col items-center justify-center gap-16 px-4 pb-24"
     >
       <h2 className="scroll-stagger-in text-text text-center text-[clamp(1.75rem,4vw,3.5rem)] font-[300] tracking-[-0.02em]">
-        Let’s build something beautiful.
+        Let’s build something <br />
+        {display}
+        <span
+          className="bg-primary ml-1 inline-block h-[1.1em] w-[6px] translate-y-[0.15em]"
+          style={{ opacity: cursorVisible ? 1 : 0 }}
+        />
       </h2>
 
       <nav aria-label="Contact links" className="scroll-stagger-in flex gap-10">

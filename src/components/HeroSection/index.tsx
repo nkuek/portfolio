@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import useTyper from "~/hooks/useTyper";
 
 const roles = [
   "Design Engineer",
@@ -12,60 +12,8 @@ const roles = [
   "Pickleball Noob",
 ];
 
-const TYPE_SPEED = 80;
-const DELETE_SPEED = 40;
-const PAUSE_AFTER_TYPE = 2000;
-const PAUSE_AFTER_DELETE = 400;
-
-function useTyper() {
-  const [display, setDisplay] = useState(roles[0]);
-  const [cursorVisible, setCursorVisible] = useState(true);
-  const roleIdx = useRef(0);
-  const charIdx = useRef(roles[0].length);
-  const deleting = useRef(true);
-
-  const tick = useCallback(() => {
-    const role = roles[roleIdx.current];
-    if (!deleting.current) {
-      charIdx.current++;
-      setDisplay(role.slice(0, charIdx.current));
-      if (charIdx.current === role.length) {
-        deleting.current = true;
-        return PAUSE_AFTER_TYPE;
-      }
-      return TYPE_SPEED + Math.random() * 40;
-    } else {
-      charIdx.current--;
-      setDisplay(role.slice(0, charIdx.current));
-      if (charIdx.current === 0) {
-        deleting.current = false;
-        roleIdx.current = (roleIdx.current + 1) % roles.length;
-        return PAUSE_AFTER_DELETE;
-      }
-      return DELETE_SPEED;
-    }
-  }, []);
-
-  useEffect(() => {
-    let timeout: NodeJS.Timeout;
-    function loop() {
-      const delay = tick();
-      timeout = setTimeout(loop, delay);
-    }
-    timeout = setTimeout(loop, 3000);
-    return () => clearTimeout(timeout);
-  }, [tick]);
-
-  useEffect(() => {
-    const interval = setInterval(() => setCursorVisible((v) => !v), 530);
-    return () => clearInterval(interval);
-  }, []);
-
-  return { display, cursorVisible };
-}
-
 export default function HeroSection() {
-  const { display, cursorVisible } = useTyper();
+  const { display, cursorVisible } = useTyper(roles);
 
   return (
     <section
