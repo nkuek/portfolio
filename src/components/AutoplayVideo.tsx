@@ -1,9 +1,25 @@
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import useReducedMotion from "~/hooks/useReducedMotion";
 
 /**
+ * Converts a Cloudinary video URL into a tiny, heavily-blurred JPG thumbnail.
+ * Cloudinary generates this from the first frame of the video — typically <2 KB.
+ */
+function getBlurredPoster(videoSrc: string): string | null {
+  if (!videoSrc.includes("res.cloudinary.com")) return null;
+  return videoSrc
+    .replace(
+      /\/video\/upload\/[^/]+\//,
+      "/video/upload/e_blur:2000,q_1,w_40,f_jpg/",
+    )
+    .replace(/\.\w+$/, ".jpg");
+}
+
+/**
  * Video that auto-plays/pauses based on IntersectionObserver visibility
  * and a `paused` prop. Respects prefers-reduced-motion.
+ * Shows a blurred Cloudinary thumbnail as a placeholder until loaded.
  */
 export default function AutoplayVideo({
   src,
@@ -20,7 +36,10 @@ export default function AutoplayVideo({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [visible, setVisible] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const reducedMotion = useReducedMotion();
+
+  const blurSrc = getBlurredPoster(src);
 
   const observerRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -45,16 +64,29 @@ export default function AutoplayVideo({
     }
   }, [visible, paused, reducedMotion]);
 
+  const handleCanPlay = useCallback(() => setLoaded(true), []);
+
   return (
-    <div ref={observerRef} className="h-full w-full">
+    <div ref={observerRef} className="relative h-full w-full">
       <video
         ref={videoRef}
         src={src}
         muted
         loop
         playsInline
+        onCanPlay={handleCanPlay}
         className={`h-full w-full ${className}`}
       />
+      {blurSrc && (
+        <Image
+          src={blurSrc}
+          alt=""
+          aria-hidden
+          width={40}
+          height={40}
+          className={`pointer-events-none absolute inset-0 h-full w-full ${className} transition-opacity duration-700 ease-out ${loaded ? "opacity-0" : "opacity-100"}`}
+        />
+      )}
     </div>
   );
 }

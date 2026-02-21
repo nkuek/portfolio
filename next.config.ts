@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/dunbkcyqq/image/upload/**",
       },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        port: "",
+        pathname: "/dunbkcyqq/video/upload/**",
+      },
     ],
   },
   turbopack: {
