@@ -170,7 +170,9 @@ export default function AsciiAmbient({
         const row = Math.floor(i / cols);
         ctx.globalAlpha = brightness[i] * leafMask;
 
-        if (accentCells.has(i)) {
+        // Accent colors from spotlight — but never inside highlight text region
+        const inHighlight = hlMask && hlMask[i] > 20;
+        if (accentCells.has(i) && !inHighlight) {
           ctx.fillStyle = i % 3 === 0 ? accentColor2 : accentColor;
         } else {
           ctx.fillStyle = baseColor;
@@ -186,6 +188,7 @@ export default function AsciiAmbient({
     const hlCanvas = document.createElement("canvas");
     const hlCtx = hlCanvas.getContext("2d")!;
     let hlMask: Uint8Array | null = null;
+    let hlRevealThreshold: Float32Array | null = null; // per-cell random reveal order
     let hlMaskText = "";
 
 
@@ -225,11 +228,16 @@ export default function AsciiAmbient({
         hlCtx.fillText(text[i], x, centerY);
       }
 
-      // Read pixels as mask
+      // Read pixels as mask + generate per-cell random reveal order
       const imgData = hlCtx.getImageData(0, 0, cols, rows);
-      hlMask = new Uint8Array(cols * rows);
-      for (let i = 0; i < cols * rows; i++) {
+      const total = cols * rows;
+      hlMask = new Uint8Array(total);
+      hlRevealThreshold = new Float32Array(total);
+      for (let i = 0; i < total; i++) {
         hlMask[i] = imgData.data[i * 4 + 3]; // alpha channel
+        // Deterministic hash per cell position
+        const h = Math.sin(i * 127.1 + 311.7) * 43758.5453;
+        hlRevealThreshold[i] = h - Math.floor(h); // 0–1
       }
     }
 
@@ -237,6 +245,9 @@ export default function AsciiAmbient({
     let mouseX = -9999;
     let mouseY = -9999;
     let hovering = false;
+    let cursorIdle = false;
+    let lastMoveTime = 0;
+    const IDLE_THRESHOLD = 1000; // ms before spotlight fades
     let activeCells = new Set<number>();
 
     function computeActiveCells(): Set<number> {
@@ -295,8 +306,9 @@ export default function AsciiAmbient({
     let hlPrevText = "";
     const HL_REVEAL_SPEED = 0.025;
 
-    // Old text fade-out — sweeps right to left
+    // Old text fade-out — cells disappear in pseudo-random order
     let fadingMask: Uint8Array | null = null;
+    let fadingThresholds: Float32Array | null = null;
     let fadeOutProgress = 0; // 0 = fully visible, advances to 1 = fully gone
     const FADE_OUT_SWEEP_SPEED = 0.035;
 
@@ -306,7 +318,15 @@ export default function AsciiAmbient({
 
       updateLeaves(t);
 
-      if (hovering) {
+      // Treat an idle cursor as "not hovering" — fade spotlight, restore dapple
+      if (hovering && !cursorIdle && now - lastMoveTime > IDLE_THRESHOLD) {
+        cursorIdle = true;
+        activeCells = new Set();
+      }
+
+      const effectiveHover = hovering && !cursorIdle;
+
+      if (effectiveHover) {
         dappleIntensity += (0 - dappleIntensity) * DAPPLE_FADE_SPEED;
         hoverEndTime = now;
       } else if (now - hoverEndTime > DAPPLE_RETURN_DELAY) {
@@ -325,6 +345,7 @@ export default function AsciiAmbient({
       const textChanging = hlText !== hlPrevText;
       if (textChanging && hlMask) {
         fadingMask = new Uint8Array(hlMask);
+        fadingThresholds = hlRevealThreshold ? new Float32Array(hlRevealThreshold) : null;
         fadeOutProgress = 0;
       }
 
@@ -337,22 +358,15 @@ export default function AsciiAmbient({
         hlPrevText = hlText;
       }
 
-      // Drain old text brightness with right-to-left sweep
+      // Drain old text brightness — cells disappear in pseudo-random order
       if (fadingMask) {
         fadeOutProgress = Math.min(1, fadeOutProgress + FADE_OUT_SWEEP_SPEED);
-
-        // Sweep front moves from right (1.0) to left (0.0)
-        const sweepFront = 1 - fadeOutProgress * 1.2;
         let anyLeft = false;
 
         for (let i = 0; i < brightness.length; i++) {
           if (fadingMask[i] > 20 && brightness[i] > 0) {
-            const col = i % cols;
-            const colNorm = col / cols;
-
-            // Cells to the RIGHT of the sweep front get cleared
-            // Soft edge over 5 cells
-            const clearAmount = Math.max(0, Math.min(1, (colNorm - sweepFront) * 5));
+            const threshold = fadingThresholds ? fadingThresholds[i] : 0;
+            const clearAmount = Math.max(0, Math.min(1, (fadeOutProgress * 1.3 - threshold) * 4));
 
             if (clearAmount > 0) {
               brightness[i] = Math.max(0, brightness[i] * (1 - clearAmount));
@@ -362,7 +376,10 @@ export default function AsciiAmbient({
           }
         }
 
-        if (!anyLeft || fadeOutProgress >= 1) fadingMask = null;
+        if (!anyLeft || fadeOutProgress >= 1) {
+          fadingMask = null;
+          fadingThresholds = null;
+        }
       }
 
       // Don't start new reveal until old text is gone AND camera is close
@@ -400,19 +417,19 @@ export default function AsciiAmbient({
             const combined = n1 + n2 + shimmer;
             const edge = Math.max(0, Math.min(1, combined * 2.0 + 0.3));
 
-            // Highlight mask with left-to-right reveal sweep
+            // Highlight mask with pseudo-random reveal
             const maskVal = (hlMask && hlIntensity > 0.01 && hlRevealProgress > 0)
               ? (hlMask[idx] ?? 0)
               : 0;
 
-            const colNorm = col / cols;
-            const sweepFront = hlRevealProgress * 1.2;
-            const cellReveal = Math.max(0, Math.min(1, (sweepFront - colNorm) * 5));
+            const threshold = hlRevealThreshold ? hlRevealThreshold[idx] : 0;
+            // Expand progress past 1.0 so all cells fully resolve before progress caps
+            const cellReveal = Math.max(0, Math.min(1, (hlRevealProgress * 1.3 - threshold) * 4));
 
             const inTextRegion = maskVal > 20 && cellReveal > 0.01;
 
             if (inTextRegion) {
-              const hlAlphaBase = isDark() ? 0.6 : 0.85;
+              const hlAlphaBase = isDark() ? 0.82 : 0.85;
               const hlAlpha = (maskVal / 255) * hlIntensity * cellReveal * hlAlphaBase;
               if (hlAlpha > brightness[idx]) brightness[idx] = hlAlpha;
             } else {
@@ -436,8 +453,15 @@ export default function AsciiAmbient({
     );
 
     const onPointerMove = (e: PointerEvent) => {
+      const moved = e.clientX !== mouseX || e.clientY !== mouseY;
       mouseX = e.clientX;
       mouseY = e.clientY;
+
+      if (moved) {
+        lastMoveTime = performance.now();
+        cursorIdle = false;
+      }
+
       hovering = false;
       for (const section of spotlightSections) {
         const rect = section.getBoundingClientRect();
@@ -449,7 +473,7 @@ export default function AsciiAmbient({
           break;
         }
       }
-      if (hovering) brightenNearMouse();
+      if (hovering && !cursorIdle) brightenNearMouse();
       else activeCells = new Set();
     };
 

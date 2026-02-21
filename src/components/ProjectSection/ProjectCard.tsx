@@ -1,61 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Project, FragmentLayout, StickyNote } from "./constants";
 import PlayPauseButton from "~/components/PlayPauseButton";
+import AutoplayVideo from "~/components/AutoplayVideo";
+import ArrowUpRight from "~/components/ArrowUpRight";
+import useReducedMotion from "~/hooks/useReducedMotion";
+import {
+  FOCUS_SNAP,
+  fragmentTransform,
+  childScatter,
+} from "~/utils/scatterTransforms";
 
-/* ── Video player with IntersectionObserver ── */
-
-function VideoPlayer({
-  src,
-  paused,
-}: {
-  src: string;
-  paused: boolean;
-}) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [visible, setVisible] = useState(false);
-  const reducedMotion = typeof window !== "undefined"
-    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  const observerRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (!node) return;
-      const observer = new IntersectionObserver(
-        ([entry]) => setVisible(entry.isIntersecting),
-        { threshold: 0.3 },
-      );
-      observer.observe(node);
-      return () => observer.disconnect();
-    },
-    [],
-  );
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || reducedMotion) return;
-    if (visible && !paused) {
-      video.play().catch(() => {});
-    } else {
-      video.pause();
-    }
-  }, [visible, paused, reducedMotion]);
-
-  return (
-    <div ref={observerRef} className="h-full w-full">
-      <video
-        ref={videoRef}
-        src={src}
-        muted
-        loop
-        playsInline
-        className="h-full w-full object-cover"
-      />
-    </div>
-  );
-}
-
-const SCATTER_SCALE = 1.5;
 /** How much extra spread when the group is hovered (1.0 = no change) */
 const HOVER_SPREAD = 1.25;
 
@@ -83,45 +39,6 @@ function computeTapePlacement(seed: number): TapePlacement {
   return { width, rotate: `${rotate.toFixed(1)}deg`, color };
 }
 
-/** Snap threshold — below this focus value, elements are fully scattered */
-const FOCUS_SNAP = 0.5;
-
-function fragmentTransform(
-  offset: [number, number],
-  rotate: number,
-  focus: number,
-  hovered: boolean,
-) {
-  const landed = focus > FOCUS_SNAP;
-  let ox = landed ? offset[0] : offset[0] * SCATTER_SCALE;
-  let oy = landed ? offset[1] : offset[1] * SCATTER_SCALE;
-  const r = landed ? rotate * 0.35 : rotate;
-  // When hovered and landed, push elements further out for breathing room
-  if (hovered && landed) {
-    ox *= HOVER_SPREAD;
-    oy *= HOVER_SPREAD;
-  }
-  return `translate(calc(-50% + ${ox}px), calc(-50% + ${oy}px)) rotate(${r}deg)`;
-}
-
-/**
- * Scatter transform for child elements (tape/pin).
- * Snaps between scattered and landed at FOCUS_SNAP threshold.
- */
-function childScatter(
-  scatterOffset: [number, number],
-  scatterRotate: number,
-  focus: number,
-  scaleRange?: [number, number],
-) {
-  const landed = focus > FOCUS_SNAP;
-  const ox = landed ? 0 : scatterOffset[0];
-  const oy = landed ? 0 : scatterOffset[1];
-  const r = landed ? 0 : scatterRotate;
-  const s = landed ? 1 : (scaleRange ? scaleRange[0] : 1);
-  return `translate(${ox}px, ${oy}px) rotate(${r}deg) scale(${s})`;
-}
-
 /* ── Polaroid Image Fragment ── */
 
 function PolaroidFragment({
@@ -132,6 +49,7 @@ function PolaroidFragment({
   tapePlacement,
   videoPaused,
   onTogglePause,
+  reducedMotion,
 }: {
   project: Project;
   layout: FragmentLayout;
@@ -140,12 +58,14 @@ function PolaroidFragment({
   tapePlacement: TapePlacement;
   videoPaused: boolean;
   onTogglePause: () => void;
+  reducedMotion: boolean;
 }) {
   const transform = fragmentTransform(
-    layout.imageOffset,
+    layout.imageOffset[0],
+    layout.imageOffset[1],
     layout.imageRotate,
     focus,
-    hovered,
+    hovered ? HOVER_SPREAD : 1,
   );
 
   // Tape scatters upward from its CSS position when unfocused
@@ -162,7 +82,11 @@ function PolaroidFragment({
     >
       <div className="relative aspect-square overflow-hidden bg-[#171717]">
         {isVideo ? (
-          <VideoPlayer src={project.src} paused={videoPaused} />
+          <AutoplayVideo
+            src={project.src}
+            paused={videoPaused}
+            threshold={0.9}
+          />
         ) : (
           <Image
             src={project.src}
@@ -209,8 +133,6 @@ function PolaroidFragment({
   ) : null;
 
   const tapeClass = `polaroid-tape polaroid-tape-${tapePlacement.color}`;
-  const reducedMotion = typeof window !== "undefined"
-    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   // Play/pause scatters to the right when unfocused
   const playPauseScatter = childScatter([80, 40], -10, focus);
 
@@ -232,14 +154,18 @@ function PolaroidFragment({
       {isVideo && !reducedMotion && (
         <PlayPauseButton
           paused={videoPaused}
-          onToggle={(e) => { e.preventDefault(); e.stopPropagation(); onTogglePause(); }}
+          onToggle={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onTogglePause();
+          }}
           className="absolute right-6 bottom-20 z-[3]"
           style={{ transform: playPauseScatter, rotate: "-3deg" }}
         />
       )}
       <div className="p-3 pb-0">{polaroidContent}</div>
       <div className="px-4 pt-3 pb-5">
-        <p className="polaroid-title text-center font-(family-name:--font-source-code-pro) text-xl tracking-[0.02em]">
+        <p className="polaroid-title text-center font-mono text-xl tracking-[0.02em]">
           {project.title}
         </p>
       </div>
@@ -248,6 +174,9 @@ function PolaroidFragment({
 }
 
 /* ── Info Fragment (description + links + pills) ── */
+
+const ARROW_CLASSES =
+  "transition-transform duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5";
 
 function InfoFragment({
   project,
@@ -261,10 +190,11 @@ function InfoFragment({
   hovered: boolean;
 }) {
   const transform = fragmentTransform(
-    layout.infoOffset,
+    layout.infoOffset[0],
+    layout.infoOffset[1],
     layout.infoRotate,
     focus,
-    hovered,
+    hovered ? HOVER_SPREAD : 1,
   );
 
   // Pin scatters up and away, scales down when unfocused
@@ -288,21 +218,7 @@ function InfoFragment({
             className="info-link group relative inline-flex items-center gap-1.5 text-base font-[300] tracking-wide"
           >
             <span>Experience</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="transition-transform duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            >
-              <line x1="7" x2="17" y1="17" y2="7" />
-              <polyline points="7 7 17 7 17 17" />
-            </svg>
+            <ArrowUpRight className={ARROW_CLASSES} />
           </Link>
         )}
         {project.githubLink && (
@@ -313,21 +229,7 @@ function InfoFragment({
             className="info-link-secondary group relative inline-flex items-center gap-1.5 text-base font-[300] tracking-wide"
           >
             <span>Source</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="transition-transform duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            >
-              <line x1="7" x2="17" y1="17" y2="7" />
-              <polyline points="7 7 17 7 17 17" />
-            </svg>
+            <ArrowUpRight className={ARROW_CLASSES} />
           </Link>
         )}
       </div>
@@ -336,7 +238,7 @@ function InfoFragment({
       <div className="info-hairline h-px" />
 
       {/* Description */}
-      <p className="info-desc text-[clamp(1rem,1.2vw,1.1rem)] leading-[1.7] font-[300]">
+      <p className="info-desc font-300 text-[clamp(1rem,1.2vw,1.1rem)] leading-[1.7]">
         {project.description}
       </p>
 
@@ -345,7 +247,7 @@ function InfoFragment({
         {project.technologies.map((tech) => (
           <span
             key={tech}
-            className="tech-pill rounded px-2.5 py-1 text-[16px] font-[300]"
+            className="tech-pill font-300 rounded px-2.5 py-1 text-[16px]"
           >
             {tech}
           </span>
@@ -384,7 +286,7 @@ function StickyNotes({
         return (
           <div
             key={i}
-            className={`sticky-note sticky-note-${note.color} absolute top-1/2 left-1/2 p-12 font-(family-name:--font-source-code-pro)`}
+            className={`sticky-note sticky-note-${note.color} absolute top-1/2 left-1/2 p-12 font-mono`}
             style={{ transform: `${landedTransform} ${scatterTransform}` }}
           >
             {note.text}
@@ -397,13 +299,18 @@ function StickyNotes({
 
 /* ── Mobile Card — clean vertical stack ── */
 
-function MobileProjectCard({ project, index }: { project: Project; index: number }) {
+function MobileProjectCard({
+  project,
+  index,
+}: {
+  project: Project;
+  index: number;
+}) {
   const [videoPaused, setVideoPaused] = useState(false);
   const tape = computeTapePlacement(index * 7 + 13);
   const tapeClass = `polaroid-tape polaroid-tape-${tape.color}`;
   const isVideo = project.src?.includes("/video/");
-  const reducedMotion = typeof window !== "undefined"
-    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reducedMotion = useReducedMotion();
 
   const polaroidContent = project.src ? (
     <Link
@@ -414,7 +321,11 @@ function MobileProjectCard({ project, index }: { project: Project; index: number
     >
       <div className="relative aspect-square overflow-hidden bg-[#171717]">
         {isVideo ? (
-          <VideoPlayer src={project.src} paused={videoPaused} />
+          <AutoplayVideo
+            src={project.src}
+            paused={videoPaused}
+            threshold={0.9}
+          />
         ) : (
           <Image
             src={project.src}
@@ -476,7 +387,7 @@ function MobileProjectCard({ project, index }: { project: Project; index: number
         />
         <div className="p-2.5 pb-0">{polaroidContent}</div>
         <div className="px-3 pt-2.5 pb-4">
-          <p className="polaroid-title text-center font-(family-name:--font-source-code-pro) text-xl tracking-[0.02em]">
+          <p className="polaroid-title text-center font-mono text-xl tracking-[0.02em]">
             {project.title}
           </p>
         </div>
@@ -493,24 +404,6 @@ function MobileProjectCard({ project, index }: { project: Project; index: number
         </div>
       )}
 
-      {/* Sticky notes row */}
-      <div className="flex flex-wrap justify-center gap-2 px-4">
-        {project.stickyNotes.map((note, i) => (
-          <div
-            key={i}
-            className={`sticky-note sticky-note-${note.color} font-(family-name:--font-source-code-pro)`}
-            style={{
-              rotate: `${note.rotate * 0.5}deg`,
-              position: "relative",
-              left: "auto",
-              top: "auto",
-            }}
-          >
-            {note.text}
-          </div>
-        ))}
-      </div>
-
       {/* Info card */}
       <div
         className="info-fragment relative mx-auto flex w-full max-w-[360px] flex-col gap-3 px-5 py-4"
@@ -523,24 +416,10 @@ function MobileProjectCard({ project, index }: { project: Project; index: number
               href={project.liveLink}
               target="_blank"
               rel="noopener"
-              className="info-link group relative inline-flex items-center gap-1.5 text-base font-[300] tracking-wide"
+              className="info-link group font-300 relative inline-flex items-center gap-1.5 text-base tracking-wide"
             >
               <span>Experience</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-              >
-                <line x1="7" x2="17" y1="17" y2="7" />
-                <polyline points="7 7 17 7 17 17" />
-              </svg>
+              <ArrowUpRight className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Link>
           )}
           {project.githubLink && (
@@ -548,41 +427,44 @@ function MobileProjectCard({ project, index }: { project: Project; index: number
               href={project.githubLink}
               target="_blank"
               rel="noopener"
-              className="info-link-secondary group relative inline-flex items-center gap-1.5 text-base font-[300] tracking-wide"
+              className="info-link-secondary group font-300 relative inline-flex items-center gap-1.5 text-base tracking-wide"
             >
               <span>Source</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-              >
-                <line x1="7" x2="17" y1="17" y2="7" />
-                <polyline points="7 7 17 7 17 17" />
-              </svg>
+              <ArrowUpRight className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Link>
           )}
         </div>
         <div className="info-hairline h-px" />
-        <p className="info-desc text-base leading-[1.7] font-[300]">
+        <p className="info-desc font-300 text-base leading-[1.7]">
           {project.description}
         </p>
         <div className="flex flex-wrap gap-1.5">
           {project.technologies.map((tech) => (
             <span
               key={tech}
-              className="tech-pill rounded px-2.5 py-1 text-[16px] font-[300]"
+              className="tech-pill font-300 rounded px-2.5 py-1 text-[16px]"
             >
               {tech}
             </span>
           ))}
         </div>
+      </div>
+      {/* Sticky notes row */}
+      <div className="flex flex-wrap justify-center gap-2 px-4">
+        {project.stickyNotes.map((note, i) => (
+          <div
+            key={i}
+            className={`sticky-note sticky-note-${note.color} font-mono`}
+            style={{
+              rotate: `${note.rotate * 0.5}deg`,
+              position: "relative",
+              left: "auto",
+              top: "auto",
+            }}
+          >
+            {note.text}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -604,6 +486,7 @@ export default function ProjectCard({
   const containerRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
   const [videoPaused, setVideoPaused] = useState(false);
+  const reducedMotion = useReducedMotion();
   const layout = project.fragments;
   const tapePlacement = computeTapePlacement(index * 7 + 13);
   const isLanded = focus > FOCUS_SNAP;
@@ -633,6 +516,7 @@ export default function ProjectCard({
         tapePlacement={tapePlacement}
         videoPaused={videoPaused}
         onTogglePause={() => setVideoPaused((p) => !p)}
+        reducedMotion={reducedMotion}
       />
       <StickyNotes
         notes={project.stickyNotes}

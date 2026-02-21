@@ -1,14 +1,17 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type RefObject,
-} from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import PlayPauseButton from "~/components/PlayPauseButton";
+import AutoplayVideo from "~/components/AutoplayVideo";
 import SectionTitleCard from "~/components/SectionTitleCard";
+import type { CrosshairData } from "~/components/Crosshair";
+import type { XAxisData } from "~/components/XAxisTicks";
+import useReducedMotion from "~/hooks/useReducedMotion";
+import {
+  fragmentTransform,
+  childScatter,
+  LABEL_SIZES,
+} from "~/utils/scatterTransforms";
 import type { HighlightData } from "~/components/HeroSection/AsciiAmbient";
 
 type WildProject = {
@@ -25,7 +28,7 @@ const wildProjects: WildProject[] = [
   {
     title: "Immersive Hero",
     company: "Mercury",
-    caption: "Video scrub animation with a seamless transition.",
+    caption: "A scroll-driven video experience that dissolves into the page.",
     videoSrc:
       "https://res.cloudinary.com/dunbkcyqq/video/upload/f_auto,q_auto,ac_none,dpr_auto/immersize-hero.mov",
     rotate: -2,
@@ -35,7 +38,7 @@ const wildProjects: WildProject[] = [
     title: "Gamified 404 Page",
     company: "Mercury",
     caption:
-      "Sliding puzzle easter egg to ease the tension of possible broken links.",
+      "A 404 page you actually want to find. Sliding puzzle easter egg turns a dead-end into a moment of delight.",
     videoSrc:
       "https://res.cloudinary.com/dunbkcyqq/video/upload/f_auto,q_auto,w_1184,h_646,ac_none,dpr_auto/404-puzzle.mov",
     rotate: 1.5,
@@ -44,7 +47,8 @@ const wildProjects: WildProject[] = [
   {
     title: "Fluid Simulation Button",
     company: "Mercury",
-    caption: "Delightful hover interaction inviting the user to click.",
+    caption:
+      "Fluid simulation trapped inside a button. A microinteraction that packs a big punch.",
     videoSrc:
       "https://res.cloudinary.com/dunbkcyqq/video/upload/f_auto,q_auto,ac_none,dpr_auto/fluid-button.mov",
     rotate: -1,
@@ -53,80 +57,6 @@ const wildProjects: WildProject[] = [
 ];
 
 const FOCUS_RADIUS = 1400;
-const SCATTER_SCALE = 1.5;
-
-/* ── Helpers ── */
-
-const FOCUS_SNAP = 0.5;
-
-function fragmentTransform(
-  offsetX: number,
-  offsetY: number,
-  rotate: number,
-  focus: number,
-) {
-  const landed = focus > FOCUS_SNAP;
-  const ox = landed ? offsetX : offsetX * SCATTER_SCALE;
-  const oy = landed ? offsetY : offsetY * SCATTER_SCALE;
-  const r = landed ? rotate * 0.35 : rotate;
-  return `translate(calc(-50% + ${ox}px), calc(-50% + ${oy}px)) rotate(${r}deg)`;
-}
-
-function childScatter(
-  scatterX: number,
-  scatterY: number,
-  scatterRotate: number,
-  focus: number,
-) {
-  const landed = focus > FOCUS_SNAP;
-  const ox = landed ? 0 : scatterX;
-  const oy = landed ? 0 : scatterY;
-  const r = landed ? 0 : scatterRotate;
-  return `translate(${ox}px, ${oy}px) rotate(${r}deg)`;
-}
-
-/* ── Video with intersection-based autoplay ── */
-
-function WildVideo({ src, paused }: { src: string; paused: boolean }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [visible, setVisible] = useState(false);
-  const reducedMotion =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  const observerRef = useCallback((node: HTMLDivElement | null) => {
-    if (!node) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setVisible(entry.isIntersecting),
-      { threshold: 0.3 },
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || reducedMotion) return;
-    if (visible && !paused) {
-      video.play().catch(() => {});
-    } else {
-      video.pause();
-    }
-  }, [visible, paused, reducedMotion]);
-
-  return (
-    <div ref={observerRef} className="h-full w-full">
-      <video
-        ref={videoRef}
-        src={src}
-        muted
-        loop
-        playsInline
-        className="h-full w-full object-contain"
-      />
-    </div>
-  );
-}
 
 /* ── Wild card — polaroid + info fragments that scatter/converge ── */
 
@@ -138,9 +68,7 @@ function WildCardFragments({
   focus: number;
 }) {
   const [paused, setPaused] = useState(false);
-  const reducedMotion =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reducedMotion = useReducedMotion();
 
   const imageTransform = fragmentTransform(-20, -40, project.rotate, focus);
   const infoTransform = fragmentTransform(
@@ -149,8 +77,8 @@ function WildCardFragments({
     -project.rotate * 0.5,
     focus,
   );
-  const tapeScatter = childScatter(0, -70, 12, focus);
-  const playPauseScatter = childScatter(70, 30, -8, focus);
+  const tapeScatter = childScatter([0, -70], 12, focus);
+  const playPauseScatter = childScatter([70, 30], -8, focus);
 
   const isVideo = !!project.videoSrc;
 
@@ -182,11 +110,16 @@ function WildCardFragments({
         <div className="p-3 pb-0">
           {isVideo ? (
             <div className="relative aspect-16/10 overflow-hidden bg-[#171717]">
-              <WildVideo src={project.videoSrc} paused={paused} />
+              <AutoplayVideo
+                src={project.videoSrc}
+                paused={paused}
+                threshold={0.9}
+                className="object-contain"
+              />
             </div>
           ) : (
             <div className="flex aspect-16/10 items-center justify-center bg-[#171717]">
-              <span className="font-(family-name:--font-source-code-pro) text-base text-[#525252]">
+              <span className="font-mono text-base text-[#525252]">
                 Coming soon
               </span>
             </div>
@@ -194,10 +127,10 @@ function WildCardFragments({
         </div>
         <div className="px-4 pt-3 pb-5">
           <div className="flex items-baseline justify-between gap-3">
-            <p className="polaroid-title font-(family-name:--font-source-code-pro) text-[17px] tracking-[0.01em]">
+            <p className="polaroid-title font-mono text-[17px] tracking-[0.01em]">
               {project.title}
             </p>
-            <span className="wild-company shrink-0 font-(family-name:--font-source-code-pro) text-[12px] tracking-[0.08em] uppercase">
+            <span className="wild-company shrink-0 font-mono text-[12px] tracking-[0.08em] uppercase">
               {project.company}
             </span>
           </div>
@@ -211,7 +144,7 @@ function WildCardFragments({
       >
         <div
           className="info-pin"
-          style={{ transform: childScatter(0, -50, 16, focus) }}
+          style={{ transform: childScatter([0, -50], 16, focus) }}
         />
         <p className="info-desc text-[clamp(1rem,1.2vw,1.1rem)] leading-[1.7] font-light">
           {project.caption}
@@ -225,9 +158,7 @@ function WildCardFragments({
 
 function MobileWildCard({ project }: { project: WildProject }) {
   const [paused, setPaused] = useState(false);
-  const reducedMotion =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reducedMotion = useReducedMotion();
   const isVideo = !!project.videoSrc;
 
   return (
@@ -244,11 +175,16 @@ function MobileWildCard({ project }: { project: WildProject }) {
         <div className="p-2.5 pb-0">
           {isVideo ? (
             <div className="relative aspect-16/10 overflow-hidden bg-[#171717]">
-              <WildVideo src={project.videoSrc} paused={paused} />
+              <AutoplayVideo
+                src={project.videoSrc}
+                paused={paused}
+                threshold={0.9}
+                className="object-contain"
+              />
             </div>
           ) : (
             <div className="flex aspect-16/10 items-center justify-center bg-[#171717]">
-              <span className="font-(family-name:--font-source-code-pro) text-base text-[#525252]">
+              <span className="font-mono text-base text-[#525252]">
                 Coming soon
               </span>
             </div>
@@ -256,10 +192,10 @@ function MobileWildCard({ project }: { project: WildProject }) {
         </div>
         <div className="px-3 pt-2.5 pb-4">
           <div className="flex items-baseline justify-between gap-3">
-            <p className="polaroid-title font-(family-name:--font-source-code-pro) text-xl tracking-[0.01em]">
+            <p className="polaroid-title font-mono text-xl tracking-[0.01em]">
               {project.title}
             </p>
-            <span className="wild-company shrink-0 font-(family-name:--font-source-code-pro) text-[14px] tracking-[0.08em] uppercase">
+            <span className="wild-company shrink-0 font-mono text-[14px] tracking-[0.08em] uppercase">
               {project.company}
             </span>
           </div>
@@ -302,23 +238,22 @@ const wildLabels = [
   { text: "interaction design", x: 6000, y: -200, size: "lg" as const },
 ];
 
-const LABEL_SIZES = {
-  sm: "text-[16px] tracking-[0.1em]",
-  md: "text-[20px] tracking-[0.06em]",
-  lg: "text-[28px] tracking-[0.04em] font-light",
-} as const;
-
 /* ── Main section ── */
 
 export default function InTheWild({
   highlightRef,
+  crosshairRef,
+  xAxisRef,
 }: {
   highlightRef: RefObject<HighlightData>;
+  crosshairRef: RefObject<CrosshairData>;
+  xAxisRef: RefObject<XAxisData>;
 }) {
   const sectionRef = useRef<HTMLElement>(null);
   const [progress, setProgress] = useState(0);
   const [sectionInView, setSectionInView] = useState(false);
   const [viewport, setViewport] = useState({ w: 0, h: 0 });
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     const update = () =>
@@ -350,10 +285,6 @@ export default function InTheWild({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const reducedMotion =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
   // Camera position: dwell on first project, then lerp across the rest
   const DWELL = 0.15; // first 15% of scroll stays parked on project 1
   const firstX = wildProjects[0].x;
@@ -375,13 +306,26 @@ export default function InTheWild({
   const focusIntensity = sectionInView
     ? Math.max(0, 1 - closestDist / FOCUS_RADIUS)
     : 0;
+  const isMobile = viewport.w > 0 && viewport.w < 768;
   highlightRef.current = {
-    text: sectionInView ? closestProject.title : "",
-    intensity: focusIntensity,
+    text: !isMobile && sectionInView ? closestProject.title : "",
+    intensity: isMobile ? 0 : focusIntensity,
   };
+  const scrollYCenter = Math.round(window.scrollY + viewport.h / 2);
+  if (!isMobile && sectionInView) {
+    crosshairRef.current = {
+      label: `${Math.round(cameraX)}, ${scrollYCenter}`,
+      focused: false,
+      visible: true,
+    };
+    xAxisRef.current = { cameraX, translateX: tx, visible: true };
+  } else if (!isMobile && !sectionInView && crosshairRef.current.visible) {
+    crosshairRef.current = { label: "", focused: false, visible: false };
+    xAxisRef.current = { cameraX: 0, translateX: 0, visible: false };
+  }
 
   // Reduced motion: vertical stack
-  if (reducedMotion || (viewport.w > 0 && viewport.w < 768)) {
+  if (reducedMotion || isMobile) {
     return (
       <section
         id="wild"
@@ -389,14 +333,9 @@ export default function InTheWild({
         className="relative scroll-mt-14 px-4 py-24"
       >
         <div className="mb-12 flex justify-center">
-          <SectionTitleCard
-            title="In the Wild"
-            subtitle="Built professionally"
-            rotate={1.5}
-            tapeColor="rose"
-          />
+          <SectionTitleCard title="In the Wild" rotate={1.5} tapeColor="rose" />
         </div>
-        <div className="mx-auto flex max-w-[420px] flex-col gap-16">
+        <div className="mx-auto flex max-w-[420px] flex-col gap-36">
           {wildProjects.map((project) => (
             <MobileWildCard key={project.title} project={project} />
           ))}
@@ -413,13 +352,8 @@ export default function InTheWild({
       className="relative h-[400vh] scroll-mt-14"
     >
       {/* Section title — static, scrolls away naturally */}
-      <div className="flex items-center justify-center py-24">
-        <SectionTitleCard
-          title="In the Wild"
-          subtitle="Built professionally"
-          rotate={1.5}
-          tapeColor="rose"
-        />
+      <div className="flex items-center justify-center pt-24">
+        <SectionTitleCard title="In the Wild" rotate={1.5} tapeColor="rose" />
       </div>
 
       <div className="sticky top-0 h-svh w-full overflow-hidden">
@@ -437,7 +371,7 @@ export default function InTheWild({
             return (
               <div
                 key={i}
-                className={`floating-label pointer-events-none absolute font-(family-name:--font-source-code-pro) uppercase ${LABEL_SIZES[label.size]}`}
+                className={`floating-label pointer-events-none absolute font-mono uppercase ${LABEL_SIZES[label.size]}`}
                 style={{
                   ["--cursor-boost" as string]: "0",
                   ["--base-opacity" as string]: "0.28",
@@ -528,25 +462,6 @@ export default function InTheWild({
               </div>
             );
           })}
-        </div>
-
-
-        {/* Crosshair */}
-        <div className="pointer-events-none absolute inset-0">
-          <div
-            className="absolute top-0 left-1/2 h-full w-px"
-            style={{ background: "#737373", opacity: 0.1 }}
-          />
-          <div
-            className="absolute top-1/2 left-0 h-px w-full"
-            style={{ background: "#737373", opacity: 0.1 }}
-          />
-          <div
-            className="absolute top-1/2 left-1/2 translate-x-2 -translate-y-5 font-(family-name:--font-source-code-pro) text-[10px] text-[#737373]"
-            style={{ opacity: 0.35 }}
-          >
-            {Math.round(cameraX)}
-          </div>
         </div>
       </div>
     </section>

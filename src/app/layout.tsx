@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins, Source_Code_Pro, Fira_Code } from "next/font/google";
+import { Poppins, Source_Code_Pro, Fira_Code, Libre_Baskerville } from "next/font/google";
 import "./globals.css";
 import Navbar from "~/components/Navbar";
 import { Analytics } from "@vercel/analytics/next";
@@ -18,6 +18,12 @@ const sourceCodePro = Source_Code_Pro({
 
 const firaCode = Fira_Code({
   variable: "--font-fira-code",
+  subsets: ["latin"],
+});
+
+const libreBaskerville = Libre_Baskerville({
+  weight: ["400", "700"],
+  variable: "--font-libre-baskerville",
   subsets: ["latin"],
 });
 
@@ -133,7 +139,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${poppins.variable} ${sourceCodePro.variable} ${firaCode.variable} before:grainy-background antialiased before:fixed before:inset-0 before:z-[-1]`}
+        className={`${poppins.variable} ${sourceCodePro.variable} ${firaCode.variable} ${libreBaskerville.variable} before:grainy-background antialiased before:fixed before:inset-0 before:z-[-1]`}
       >
         <Analytics />
         <SpeedInsights />

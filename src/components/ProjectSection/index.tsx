@@ -7,23 +7,25 @@ import {
   floatingLabels,
   connectionLines,
 } from "./constants";
-import { interpolatePath, getSegmentInfo } from "./cameraPath";
+import { interpolatePath } from "./cameraPath";
 import ProjectCard, { MobileProjectCard } from "./ProjectCard";
 import type { HighlightData } from "../HeroSection/AsciiAmbient";
 import SectionTitleCard from "~/components/SectionTitleCard";
+import type { CrosshairData } from "~/components/Crosshair";
+import type { XAxisData } from "~/components/XAxisTicks";
+import useReducedMotion from "~/hooks/useReducedMotion";
+import { LABEL_SIZES } from "~/utils/scatterTransforms";
 
 const MOBILE_BREAKPOINT = 768;
 
-const LABEL_SIZES = {
-  sm: "text-[16px] tracking-[0.1em]",
-  md: "text-[24px] tracking-[0.06em]",
-  lg: "text-[34px] tracking-[0.04em] font-[300]",
-} as const;
-
 export default function ProjectSection({
   highlightRef,
+  crosshairRef,
+  xAxisRef,
 }: {
   highlightRef: RefObject<HighlightData>;
+  crosshairRef: RefObject<CrosshairData>;
+  xAxisRef: RefObject<XAxisData>;
 }) {
   const sectionRef = useRef<HTMLElement>(null);
   const labelsRef = useRef<HTMLDivElement>(null);
@@ -40,21 +42,36 @@ export default function ProjectSection({
   }, []);
 
   // Imperative cursor proximity — updates label DOM directly, no re-renders
+  // Fades spotlight out after cursor goes idle, returning to dappled-sunlight base
   useEffect(() => {
     let mouseX = -9999;
     let mouseY = -9999;
+    let lastMoveTime = 0;
     let raf = 0;
 
+    const PROXIMITY_RADIUS = 280;
+    const IDLE_THRESHOLD = 2000; // ms before spotlight starts fading
+    const FADE_DURATION = 800; // ms to fully dissolve
+
     const onPointerMove = (e: PointerEvent) => {
+      // Only reset idle timer if cursor actually moved (scroll shifts elements
+      // under a stationary cursor, firing pointermove without real movement)
+      if (e.clientX !== mouseX || e.clientY !== mouseY) {
+        lastMoveTime = performance.now();
+      }
       mouseX = e.clientX;
       mouseY = e.clientY;
     };
 
-    const PROXIMITY_RADIUS = 280;
-
     function tick() {
       const container = labelsRef.current;
       if (container) {
+        const idle = performance.now() - lastMoveTime;
+        const fadeFactor =
+          idle < IDLE_THRESHOLD
+            ? 1
+            : Math.max(0, 1 - (idle - IDLE_THRESHOLD) / FADE_DURATION);
+
         const labels = container.children as HTMLCollectionOf<HTMLElement>;
         for (let i = 0; i < labels.length; i++) {
           const el = labels[i];
@@ -64,7 +81,7 @@ export default function ProjectSection({
           const dx = cx - mouseX;
           const dy = cy - mouseY;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          const boost = Math.max(0, 1 - dist / PROXIMITY_RADIUS);
+          const boost = Math.max(0, 1 - dist / PROXIMITY_RADIUS) * fadeFactor;
 
           el.style.setProperty("--cursor-boost", String(boost));
         }
@@ -91,9 +108,11 @@ export default function ProjectSection({
       const viewportH = window.innerHeight;
       const scrolled = -rect.top;
       const scrollableDistance = sectionHeight - viewportH;
-      const p = Math.min(Math.max(scrolled / scrollableDistance, 0), 1);
+      const p =
+        scrollableDistance <= 0
+          ? 1
+          : Math.min(Math.max(scrolled / scrollableDistance, 0), 1);
       setProgress(p);
-
       // Section is "in view" when its top is above mid-viewport AND its bottom is below mid-viewport
       const midScreen = viewportH * 0.5;
       setSectionInView(rect.top < midScreen && rect.bottom > midScreen);
@@ -104,30 +123,50 @@ export default function ProjectSection({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const dotCount = projects.length;
+  const last = dotCount - 1;
+
+  // Track progress already equals section progress, but the *dot centers* start/end
+  // are inset by half a button (20px). Since we visually inset the bar, we should
+  // also compute the active dot from the same track-space progress.
+  //
+  // Easiest: map progress to a continuous dot index, then round to nearest dot.
+  const dotFloat = progress * last;
+  const activeDotIndex = Math.round(dotFloat);
+  const activeIndex = Math.max(
+    0,
+    Math.min(projects.length - 1, activeDotIndex),
+  );
+
   const camera = interpolatePath(cameraWaypoints, progress);
-  const { index: rawIndex } = getSegmentInfo(cameraWaypoints.length, progress);
-  const activeIndex = Math.max(0, Math.min(projects.length - 1, rawIndex));
 
   const tx = -camera.x + viewport.w / 2;
   const ty = -camera.y + viewport.h / 2;
 
-  const sectionVisible = sectionInView;
   const activeProject = projects[activeIndex];
   const activeDx = activeProject.position.x - camera.x;
   const activeDy = activeProject.position.y - camera.y;
   const activeDist = Math.sqrt(activeDx * activeDx + activeDy * activeDy);
-  const focusIntensity = sectionVisible ? Math.max(0, 1 - activeDist / 400) : 0;
-  highlightRef.current = {
-    text: sectionVisible ? activeProject.title : "",
-    intensity: focusIntensity,
-  };
-
   const isMobile = viewport.w > 0 && viewport.w < MOBILE_BREAKPOINT;
-  const [prefersReducedMotion] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-  );
+  const focusIntensity = sectionInView ? Math.max(0, 1 - activeDist / 400) : 0;
+  highlightRef.current = {
+    text: !isMobile && sectionInView ? activeProject.title : "",
+    intensity: isMobile ? 0 : focusIntensity,
+  };
+  const crosshairFocused = focusIntensity > 0.8;
+  const scrollYCenter = Math.round(window.scrollY + viewport.h / 2);
+  if (!isMobile && sectionInView) {
+    crosshairRef.current = {
+      label: `${Math.round(camera.x)}, ${scrollYCenter}`,
+      focused: crosshairFocused,
+      visible: true,
+    };
+    xAxisRef.current = { cameraX: camera.x, translateX: tx, visible: true };
+  } else if (!isMobile && !sectionInView && crosshairRef.current.visible) {
+    crosshairRef.current = { label: "", focused: false, visible: false };
+    xAxisRef.current = { cameraX: 0, translateX: 0, visible: false };
+  }
+  const prefersReducedMotion = useReducedMotion();
 
   // ── Mobile or reduced-motion: vertical scrolling list (no parallax, no scatter) ──
   if (isMobile || prefersReducedMotion) {
@@ -142,7 +181,7 @@ export default function ProjectSection({
           <SectionTitleCard title="Projects" rotate={-2} tapeColor="teal" />
         </div>
         <div
-          className={`mx-auto flex flex-col gap-16 ${isMobile ? "max-w-[400px]" : "max-w-[500px]"}`}
+          className={`mx-auto flex flex-col gap-36 ${isMobile ? "max-w-[400px]" : "max-w-[500px]"}`}
         >
           {projects.map((project, i) => (
             <MobileProjectCard
@@ -155,10 +194,6 @@ export default function ProjectSection({
       </section>
     );
   }
-
-  // Crosshair intensity
-  const crosshairFocused = focusIntensity > 0.8;
-  const crosshairOpacity = crosshairFocused ? 0.25 : 0.12;
 
   // ── Desktop: 2D panning world ──
   return (
@@ -173,7 +208,7 @@ export default function ProjectSection({
         <SectionTitleCard title="Projects" rotate={-2} tapeColor="teal" />
       </div>
 
-      <div className="sticky top-0 h-svh w-full overflow-hidden">
+      <div className="sticky top-0 h-svh w-full overflow-x-clip">
         {/* World container */}
         <div
           className="absolute will-change-transform"
@@ -265,19 +300,22 @@ export default function ProjectSection({
               const visibility = 0.7;
 
               // Deterministic per-label float parameters
+              // Round to 2dp so server HTML survives browser CSS normalisation without hydration drift
+              // This is the classic GLSL pseudo-random hash just ported into JS
               const seed = Math.sin(i * 73.17 + 3.91) * 43758.5453;
-              const phase = (seed - Math.floor(seed)) * 10;
-              const driftDuration = 6 + (i % 5) * 1.4;
+              const phase = Math.round((seed - Math.floor(seed)) * 1000) / 100;
+              const driftDuration = Math.round((6 + (i % 5) * 1.4) * 100) / 100;
+              const baseOpacity = Math.round(visibility * 0.4 * 100) / 100;
 
               return (
                 <div
                   key={i}
-                  className={`floating-label pointer-events-none absolute font-(family-name:--font-source-code-pro) uppercase ${LABEL_SIZES[label.size]}`}
+                  className={`floating-label pointer-events-none absolute font-mono uppercase ${LABEL_SIZES[label.size]}`}
                   style={{
                     ["--cursor-boost" as string]: "0",
-                    ["--base-opacity" as string]: String(visibility * 0.4),
-                    left: label.position.x,
-                    top: label.position.y,
+                    ["--base-opacity" as string]: String(baseOpacity),
+                    left: `${label.position.x}px`,
+                    top: `${label.position.y}px`,
                     animation: `labelFloat ${driftDuration}s ease-in-out ${-phase}s infinite`,
                   }}
                 >
@@ -292,7 +330,7 @@ export default function ProjectSection({
             const dx = project.position.x - camera.x;
             const dy = project.position.y - camera.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            const focus = sectionVisible ? Math.max(0, 1 - dist / 600) : 0;
+            const focus = sectionInView ? Math.max(0, 1 - dist / 600) : 0;
 
             return (
               <div
@@ -310,111 +348,22 @@ export default function ProjectSection({
           })}
         </div>
 
-        {/* Crosshair overlay */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{ transition: "opacity 300ms" }}
-        >
-          <div
-            className="absolute top-1/2 left-0 h-px w-full"
-            style={{
-              background: "#737373",
-              opacity: crosshairOpacity,
-              transition: "opacity 300ms",
-            }}
-          />
-          <div
-            className="absolute top-0 left-1/2 h-full w-px"
-            style={{
-              background: "#737373",
-              opacity: crosshairOpacity,
-              transition: "opacity 300ms",
-            }}
-          />
-          <div
-            className="absolute top-1/2 left-1/2 translate-x-2 -translate-y-5 font-(family-name:--font-source-code-pro) text-[10px] text-[#737373]"
-            style={{
-              opacity: crosshairFocused ? 0.6 : 0.35,
-              transition: "opacity 300ms",
-            }}
-          >
-            {Math.round(camera.x)}, {Math.round(camera.y)}
-          </div>
-        </div>
-
-        {/* ── Grid ticks along edges ── */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          {/* Top edge — X axis ticks */}
-          {(() => {
-            const TICK_INTERVAL = 200;
-            const startX =
-              Math.floor(
-                camera.x / TICK_INTERVAL - viewport.w / (2 * TICK_INTERVAL) - 1,
-              ) * TICK_INTERVAL;
-            const endX =
-              Math.ceil(
-                camera.x / TICK_INTERVAL + viewport.w / (2 * TICK_INTERVAL) + 1,
-              ) * TICK_INTERVAL;
-            const ticks = [];
-            for (let wx = startX; wx <= endX; wx += TICK_INTERVAL) {
-              const screenX = wx + tx;
-              if (screenX < -20 || screenX > viewport.w + 20) continue;
-              ticks.push(
-                <div
-                  key={`tx-${wx}`}
-                  className="absolute top-0"
-                  style={{ left: screenX }}
-                >
-                  <div className="grid-tick h-[8px] w-px" />
-                  <span className="grid-tick-label absolute top-[10px] left-1 font-(family-name:--font-source-code-pro) text-[9px]">
-                    {wx}
-                  </span>
-                </div>,
-              );
-            }
-            return ticks;
-          })()}
-          {/* Left edge — Y axis ticks */}
-          {(() => {
-            const TICK_INTERVAL = 200;
-            const startY =
-              Math.floor(
-                camera.y / TICK_INTERVAL - viewport.h / (2 * TICK_INTERVAL) - 1,
-              ) * TICK_INTERVAL;
-            const endY =
-              Math.ceil(
-                camera.y / TICK_INTERVAL + viewport.h / (2 * TICK_INTERVAL) + 1,
-              ) * TICK_INTERVAL;
-            const ticks = [];
-            for (let wy = startY; wy <= endY; wy += TICK_INTERVAL) {
-              const screenY = wy + ty;
-              if (screenY < -20 || screenY > viewport.h + 20) continue;
-              ticks.push(
-                <div
-                  key={`ty-${wy}`}
-                  className="absolute left-0"
-                  style={{ top: screenY }}
-                >
-                  <div className="grid-tick h-px w-[8px]" />
-                  <span className="grid-tick-label absolute top-0.5 left-[10px] font-(family-name:--font-source-code-pro) text-[9px]">
-                    {wy}
-                  </span>
-                </div>,
-              );
-            }
-            return ticks;
-          })()}
-        </div>
-
         {/* Progress track — clickable dots */}
         <div className="absolute top-1/2 right-4 flex -translate-y-1/2 flex-col items-center gap-0">
-          {/* Track line */}
-          <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-[#d4d4d4] dark:bg-[#404040]" />
+          {/* Track line (base + fill) aligned to dot centers */}
+          <div className="absolute top-5 bottom-5 left-1/2 w-px -translate-x-1/2 bg-[#d4d4d4] dark:bg-[#404040]" />
+          <div
+            className="absolute top-5 bottom-5 left-1/2 w-px origin-top -translate-x-1/2 bg-[#2d7d9a]"
+            style={{
+              transform: `translateX(-50%) scaleY(${progress})`,
+              transition: "transform 80ms linear",
+            }}
+          />
 
           {projects.map((_, i) => {
             const dotProgress = i / (cameraWaypoints.length - 1);
-            const isCurrent = i === activeIndex;
-            const isPast = i < activeIndex;
+            const isCurrent = i === activeDotIndex;
+            const isPast = i < activeDotIndex;
 
             return (
               <button

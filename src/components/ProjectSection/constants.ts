@@ -43,7 +43,7 @@ export const projects: Project[] = [
     position: { x: 0, y: 0 },
     fragments: {
       imageRotate: -2.5,
-      imageOffset: [-30, -200],
+      imageOffset: [-30, 0],
       infoRotate: 1.2,
       infoOffset: [-320, 200],
     },
@@ -69,21 +69,21 @@ export const projects: Project[] = [
     position: { x: -450, y: 2700 },
     fragments: {
       imageRotate: -1.3,
-      imageOffset: [20, -200],
+      imageOffset: [20, 0],
       infoRotate: 1.8,
-      infoOffset: [-280, 180],
+      infoOffset: [-320, 380],
     },
     stickyNotes: [
       {
         text: "as seen on Mercury Spheres",
         color: "rose",
         offset: [-440, -50],
-        rotate: -8,
+        rotate: -30,
       },
       {
         text: "now built with TSL",
         color: "teal",
-        offset: [450, 300],
+        offset: [330, 380],
         rotate: -3,
       },
     ],
@@ -100,13 +100,13 @@ export const projects: Project[] = [
     position: { x: 1350, y: 4200 },
     fragments: {
       imageRotate: 2.2,
-      imageOffset: [-35, -195],
-      infoRotate: -1.5,
-      infoOffset: [-410, 100],
+      imageOffset: [-35, 0],
+      infoRotate: -20,
+      infoOffset: [-310, 300],
     },
     stickyNotes: [
       {
-        text: "modeled after my actual keyboard I built!",
+        text: "modeled after my trusty daily driver keyboard",
         color: "amber",
         offset: [450, -110],
         rotate: -5,
@@ -114,8 +114,8 @@ export const projects: Project[] = [
       {
         text: "hardware meets web",
         color: "teal",
-        offset: [-450, 340],
-        rotate: 4,
+        offset: [-400, -200],
+        rotate: -30,
       },
     ],
   },
@@ -131,7 +131,7 @@ export const projects: Project[] = [
     position: { x: -300, y: 5700 },
     fragments: {
       imageRotate: -3.0,
-      imageOffset: [24, -200],
+      imageOffset: [24, 0],
       infoRotate: 5.4,
       infoOffset: [-280, 185],
     },
