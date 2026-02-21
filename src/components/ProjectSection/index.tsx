@@ -135,12 +135,12 @@ export default function ProjectSection({
       <section
         ref={sectionRef}
         id="work"
-        aria-label="Selected work"
+        aria-label="Projects"
         className="relative scroll-mt-14 px-4 py-20"
       >
-        <h2 className="mb-12 text-center font-(family-name:--font-source-code-pro) text-base tracking-[0.15em] text-[#737373] uppercase">
-          Selected Work
-        </h2>
+        <div className="mb-12 flex justify-center">
+          <SectionTitleCard title="Projects" rotate={-2} tapeColor="teal" />
+        </div>
         <div
           className={`mx-auto flex flex-col gap-16 ${isMobile ? "max-w-[400px]" : "max-w-[500px]"}`}
         >
@@ -165,7 +165,7 @@ export default function ProjectSection({
     <section
       ref={sectionRef}
       id="work"
-      aria-label="Selected work"
+      aria-label="Projects"
       className="relative h-[1050vh] scroll-mt-14"
     >
       {/* Section title — static, scrolls away naturally */}

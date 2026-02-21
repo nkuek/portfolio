@@ -388,14 +388,13 @@ export default function InTheWild({
         aria-label="Professional work"
         className="relative scroll-mt-14 px-4 py-24"
       >
-        <div className="mb-12 md:px-4 lg:px-12">
-          <h2 className="text-text text-[clamp(2rem,5vw,4rem)] font-light tracking-[-0.02em]">
-            In the wild
-          </h2>
-          <p className="wild-caption mt-3 max-w-[500px] text-base leading-[1.6] font-light">
-            A few things I&apos;ve built professionally. Videos only — no source
-            code.
-          </p>
+        <div className="mb-12 flex justify-center">
+          <SectionTitleCard
+            title="In the Wild"
+            subtitle="Built professionally"
+            rotate={1.5}
+            tapeColor="rose"
+          />
         </div>
         <div className="mx-auto flex max-w-[420px] flex-col gap-16">
           {wildProjects.map((project) => (
