@@ -19,7 +19,7 @@ const skills: { name: string; note: string }[] = [
 export default function SkillsSection() {
   return (
     <section
-      id="craft"
+      id="skills"
       aria-label="Technical craft"
       className="relative scroll-mt-14 py-32"
     >
