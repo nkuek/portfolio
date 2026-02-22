@@ -50,6 +50,8 @@ function PolaroidFragment({
   videoPaused,
   onTogglePause,
   reducedMotion,
+  scale,
+  hoverSpread,
 }: {
   project: Project;
   layout: FragmentLayout;
@@ -59,17 +61,20 @@ function PolaroidFragment({
   videoPaused: boolean;
   onTogglePause: () => void;
   reducedMotion: boolean;
+  scale: number;
+  hoverSpread: number;
 }) {
+  const s = scale;
   const transform = fragmentTransform(
-    layout.imageOffset[0],
-    layout.imageOffset[1],
+    layout.imageOffset[0] * s,
+    layout.imageOffset[1] * s,
     layout.imageRotate,
     focus,
-    hovered ? HOVER_SPREAD : 1,
+    hovered ? hoverSpread : 1,
   );
 
   // Tape scatters upward from its CSS position when unfocused
-  const tapeScatter = childScatter([0, -80], 14, focus);
+  const tapeScatter = childScatter([0, -80 * s], 14, focus);
 
   const isVideo = project.src?.includes("/video/");
 
@@ -135,11 +140,11 @@ function PolaroidFragment({
 
   const tapeClass = `polaroid-tape polaroid-tape-${tapePlacement.color}`;
   // Play/pause scatters to the right when unfocused
-  const playPauseScatter = childScatter([80, 40], -10, focus);
+  const playPauseScatter = childScatter([80 * s, 40 * s], -10, focus);
 
   return (
     <div
-      className="polaroid-card absolute top-1/2 left-1/2 w-[min(760px,85vw)]"
+      className="polaroid-card absolute top-1/2 left-1/2 w-[min(760px,60vw)]"
       style={{ transform }}
     >
       {/* Tape — centered on top edge, width/rotation randomized per project */}
@@ -184,27 +189,32 @@ function InfoFragment({
   layout,
   focus,
   hovered,
+  scale,
+  hoverSpread,
 }: {
   project: Project;
   layout: FragmentLayout;
   focus: number;
   hovered: boolean;
+  scale: number;
+  hoverSpread: number;
 }) {
+  const s = scale;
   const transform = fragmentTransform(
-    layout.infoOffset[0],
-    layout.infoOffset[1],
+    layout.infoOffset[0] * s,
+    layout.infoOffset[1] * s,
     layout.infoRotate,
     focus,
-    hovered ? HOVER_SPREAD : 1,
+    hovered ? hoverSpread : 1,
   );
 
   // Pin scatters up and away, scales down when unfocused
-  const pinScatter = childScatter([0, -60], 20, focus, [0.4, 1]);
+  const pinScatter = childScatter([0, -60 * s], 20, focus, [0.4, 1]);
 
   return (
     <div
-      className="info-fragment absolute top-1/2 left-1/2 z-[2] flex w-[min(400px,72vw)] flex-col gap-3 px-6 py-5"
-      style={{ transform }}
+      className="info-fragment absolute top-1/2 left-1/2 z-[2] flex flex-col gap-3 px-6 py-5"
+      style={{ transform, width: `min(${Math.round(400 * s)}px, 72vw)` }}
     >
       {/* Pin — CSS positioned on the card, scatters via its own transform */}
       <div className="info-pin" style={{ transform: pinScatter }} />
@@ -266,30 +276,38 @@ function StickyNotes({
   notes,
   focus,
   hovered,
+  scale,
+  hoverSpread,
 }: {
   notes: StickyNote[];
   focus: number;
   hovered: boolean;
+  scale: number;
+  hoverSpread: number;
 }) {
+  const s = scale;
   return (
     <>
       {notes.map((note, i) => {
         const scatterTransform = childScatter(
-          [note.offset[0] > 0 ? 100 + i * 30 : -100 - i * 30, -70 - i * 20],
+          [
+            (note.offset[0] > 0 ? 100 + i * 30 : -100 - i * 30) * s,
+            (-70 - i * 20) * s,
+          ],
           note.rotate,
           focus,
           [0.5, 1],
         );
 
-        const spread = hovered && focus > FOCUS_SNAP ? HOVER_SPREAD : 1;
-        const ox = note.offset[0] * spread;
-        const oy = note.offset[1] * spread;
+        const spread = hovered && focus > FOCUS_SNAP ? hoverSpread : 1;
+        const ox = note.offset[0] * spread * s;
+        const oy = note.offset[1] * spread * s;
         const landedTransform = `translate(calc(-50% + ${ox}px), calc(-50% + ${oy}px)) rotate(${note.rotate}deg)`;
 
         return (
           <div
             key={i}
-            className={`sticky-note sticky-note-${note.color} absolute top-1/2 left-1/2 p-12 font-mono`}
+            className={`sticky-note sticky-note-${note.color} absolute top-1/2 left-1/2 p-12 font-mono text-[clamp(1rem,1.2vw,1.5rem)]`}
             style={{ transform: `${landedTransform} ${scatterTransform}` }}
           >
             {note.text}
@@ -380,7 +398,9 @@ function MobileProjectCard({
       {/* Polaroid */}
       <div
         className="polaroid-card relative mx-auto w-full max-w-[680px]"
-        style={{ rotate: `${project.fragments.imageRotate * 0.4}deg` }}
+        style={{
+          rotate: `${project.fragments.mobileImageRotate ?? project.fragments.imageRotate * 0.4}deg`,
+        }}
       >
         <div
           className={tapeClass}
@@ -411,7 +431,9 @@ function MobileProjectCard({
       {/* Info card */}
       <div
         className="info-fragment relative mx-auto flex w-full max-w-[360px] flex-col gap-3 px-5 py-4"
-        style={{ rotate: `${project.fragments.infoRotate * 0.3}deg` }}
+        style={{
+          rotate: `${project.fragments.mobileInfoRotate ?? project.fragments.infoRotate * 0.3}deg`,
+        }}
       >
         <div className="info-pin" />
         <div className="flex gap-5">
@@ -462,7 +484,7 @@ function MobileProjectCard({
             key={i}
             className={`sticky-note sticky-note-${note.color} font-mono`}
             style={{
-              rotate: `${note.rotate * 0.5}deg`,
+              rotate: `${note.mobileRotate ?? note.rotate * 0.5}deg`,
               position: "relative",
               left: "auto",
               top: "auto",
@@ -484,10 +506,13 @@ export default function ProjectCard({
   project,
   index,
   focus,
+  scale = 1,
 }: {
   project: Project;
   index: number;
   focus: number;
+  /** Responsive scale factor — offsets shrink proportionally with the polaroid */
+  scale?: number;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
@@ -495,6 +520,8 @@ export default function ProjectCard({
   const reducedMotion = useReducedMotion();
   const layout = project.fragments;
   const tapePlacement = computeTapePlacement(index * 7 + 13);
+  // Scale the hover spread so fragments don't fly off-edge on smaller screens
+  const hoverSpread = 1 + (HOVER_SPREAD - 1) * scale;
   const isLanded = focus > FOCUS_SNAP;
 
   // Clear hover if project scrolls out of focus
@@ -510,7 +537,7 @@ export default function ProjectCard({
   return (
     <div
       ref={containerRef}
-      className="relative h-[900px] w-[min(1100px,95vw)]"
+      className="relative -m-24 h-[90vh] w-[min(1600px,95vw)] p-24"
       onPointerEnter={() => isLanded && setHovered(true)}
       onPointerLeave={() => setHovered(false)}
     >
@@ -523,17 +550,23 @@ export default function ProjectCard({
         videoPaused={videoPaused}
         onTogglePause={() => setVideoPaused((p) => !p)}
         reducedMotion={reducedMotion}
+        scale={scale}
+        hoverSpread={hoverSpread}
       />
       <StickyNotes
         notes={project.stickyNotes}
         focus={focus}
         hovered={hovered}
+        scale={scale}
+        hoverSpread={hoverSpread}
       />
       <InfoFragment
         project={project}
         layout={layout}
         focus={focus}
         hovered={hovered}
+        hoverSpread={hoverSpread}
+        scale={scale}
       />
     </div>
   );

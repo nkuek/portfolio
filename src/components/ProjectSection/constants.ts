@@ -5,6 +5,10 @@ export type FragmentLayout = {
   imageOffset: [number, number];
   infoRotate: number;
   infoOffset: [number, number];
+  /** Override polaroid rotation on mobile (defaults to imageRotate × 0.4) */
+  mobileImageRotate?: number;
+  /** Override info card rotation on mobile (defaults to infoRotate × 0.3) */
+  mobileInfoRotate?: number;
 };
 
 export type StickyNote = {
@@ -12,6 +16,8 @@ export type StickyNote = {
   color: "teal" | "rose" | "amber";
   offset: [number, number];
   rotate: number;
+  /** Override rotation on mobile (defaults to rotate × 0.5) */
+  mobileRotate?: number;
 };
 
 export type Project = {
@@ -45,15 +51,20 @@ export const projects: Project[] = [
       imageRotate: -2.5,
       imageOffset: [-30, 0],
       infoRotate: 1.2,
-      infoOffset: [-320, 200],
+      infoOffset: [-320, 400],
     },
     stickyNotes: [
-      { text: "my favorite", color: "amber", offset: [-440, -140], rotate: -6 },
+      {
+        text: "fuel for my keyboard addiction",
+        color: "amber",
+        offset: [-340, -300],
+        rotate: -20,
+      },
       {
         text: "personal record: 152 wpm 👀",
-        color: "teal",
-        offset: [460, -280],
-        rotate: 4,
+        color: "rose",
+        offset: [260, -380],
+        rotate: 20,
       },
     ],
   },
@@ -77,8 +88,9 @@ export const projects: Project[] = [
       {
         text: "as seen on Mercury Spheres",
         color: "rose",
-        offset: [-440, -50],
+        offset: [-260, -300],
         rotate: -30,
+        mobileRotate: 4,
       },
       {
         text: "now built with TSL",
@@ -103,19 +115,21 @@ export const projects: Project[] = [
       imageOffset: [-35, 0],
       infoRotate: -20,
       infoOffset: [-310, 300],
+      mobileInfoRotate: -3,
     },
     stickyNotes: [
       {
         text: "modeled after my trusty daily driver keyboard",
         color: "amber",
-        offset: [450, -110],
-        rotate: -5,
+        offset: [400, -110],
+        rotate: 25,
       },
       {
         text: "hardware meets web",
         color: "teal",
         offset: [-400, -200],
         rotate: -30,
+        mobileRotate: 5,
       },
     ],
   },
@@ -139,14 +153,14 @@ export const projects: Project[] = [
       {
         text: "creative coding",
         color: "rose",
-        offset: [440, -200],
-        rotate: 3,
+        offset: [380, -200],
+        rotate: 10,
       },
       {
         text: "curl noise + bloom",
         color: "amber",
-        offset: [-445, -70],
-        rotate: -4,
+        offset: [-415, -170],
+        rotate: -25,
       },
     ],
   },

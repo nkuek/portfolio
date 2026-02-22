@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import {
   projects,
   cameraWaypoints,
@@ -28,10 +28,16 @@ export default function ProjectSection({
 }) {
   const sectionRef = useRef<HTMLElement>(null);
   const labelsRef = useRef<HTMLDivElement>(null);
+  const mouseLayerRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
   const [sectionInView, setSectionInView] = useState(false);
   const [viewport, setViewport] = useState({ w: 0, h: 0 });
   const [scrollYCenter, setScrollYCenter] = useState(0);
+
+  // Refs that the mouse-follow rAF loop reads — updated every render, zero re-renders from mouse
+  const focusIntensityRef = useRef(0);
+  const mouseNxRef = useRef(0);
+  const mouseNyRef = useRef(0);
 
   useEffect(() => {
     const updateViewport = () =>
@@ -124,6 +130,64 @@ export default function ProjectSection({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // ── Mouse-follow camera offset (desktop only) ──
+  // Runs in a separate rAF loop, reads refs — zero React re-renders from mouse moves.
+  // Applies a subtle translate to the mouse-layer wrapper that sits inside the
+  // scroll-driven world container.
+  const onWorldPointerMove = useCallback((e: PointerEvent) => {
+    mouseNxRef.current = (e.clientX / window.innerWidth - 0.5) * 2;
+    mouseNyRef.current = (e.clientY / window.innerHeight - 0.5) * 2;
+  }, []);
+
+  useEffect(() => {
+    if (viewport.w < MOBILE_BREAKPOINT) return;
+
+    const MAX_OFFSET = 140; // px max camera shift per axis
+    const LERP = 0.06; // smoothing factor — lower = more floaty
+    let offsetX = 0;
+    let offsetY = 0;
+    let raf = 0;
+
+    function tick() {
+      const el = mouseLayerRef.current;
+      if (!el) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+
+      const intensity = focusIntensityRef.current;
+      const targetX = mouseNxRef.current * MAX_OFFSET * intensity;
+      const targetY = mouseNyRef.current * MAX_OFFSET * intensity;
+
+      offsetX += (targetX - offsetX) * LERP;
+      offsetY += (targetY - offsetY) * LERP;
+
+      // Snap to zero when negligible to avoid sub-pixel jitter
+      if (
+        Math.abs(offsetX) < 0.05 &&
+        Math.abs(offsetY) < 0.05 &&
+        intensity === 0
+      ) {
+        offsetX = 0;
+        offsetY = 0;
+      }
+
+      // Camera follows mouse → world shifts opposite direction
+      el.style.transform = `translate(${-offsetX}px, ${-offsetY}px)`;
+      raf = requestAnimationFrame(tick);
+    }
+
+    window.addEventListener("pointermove", onWorldPointerMove, {
+      passive: true,
+    });
+    raf = requestAnimationFrame(tick);
+
+    return () => {
+      window.removeEventListener("pointermove", onWorldPointerMove);
+      cancelAnimationFrame(raf);
+    };
+  }, [viewport.w, onWorldPointerMove]);
+
   const dotCount = projects.length;
   const last = dotCount - 1;
 
@@ -149,7 +213,13 @@ export default function ProjectSection({
   const activeDy = activeProject.position.y - camera.y;
   const activeDist = Math.sqrt(activeDx * activeDx + activeDy * activeDy);
   const isMobile = viewport.w > 0 && viewport.w < MOBILE_BREAKPOINT;
+
+  // Scale factor so fragment offsets shrink proportionally with the polaroid
+  // Polaroid uses w-[min(760px,60vw)] → scale = min(1, vw * 0.6 / 760)
+  const cardScale = viewport.w > 0 ? Math.min(1, (viewport.w * 0.6) / 760) : 1;
+
   const focusIntensity = sectionInView ? Math.max(0, 1 - activeDist / 400) : 0;
+  focusIntensityRef.current = focusIntensity;
   highlightRef.current = {
     text: !isMobile && sectionInView ? activeProject.title : "",
     intensity: isMobile ? 0 : focusIntensity,
@@ -207,6 +277,8 @@ export default function ProjectSection({
             className="absolute will-change-transform"
             style={{ transform: `translate(${tx}px, ${ty}px)` }}
           >
+            {/* Mouse-follow parallax layer — imperatively translated by rAF loop */}
+            <div ref={mouseLayerRef} className="will-change-transform">
             {/* Connection lines between related projects */}
             <svg
               className="pointer-events-none absolute top-0 left-0"
@@ -337,10 +409,11 @@ export default function ProjectSection({
                     transform: "translate(-50%, -50%)",
                   }}
                 >
-                  <ProjectCard project={project} index={index} focus={focus} />
+                  <ProjectCard project={project} index={index} focus={focus} scale={cardScale} />
                 </div>
               );
             })}
+          </div>
           </div>
           )}
 

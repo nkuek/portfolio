@@ -71,12 +71,7 @@ function WildCardFragments({
   const reducedMotion = useReducedMotion();
 
   const imageTransform = fragmentTransform(-20, -40, project.rotate, focus);
-  const infoTransform = fragmentTransform(
-    -100,
-    500,
-    -project.rotate * 0.5,
-    focus,
-  );
+  const infoTransform = fragmentTransform(0, 400, -project.rotate * 0.5, focus);
   const tapeScatter = childScatter([0, -70], 12, focus);
   const playPauseScatter = childScatter([70, 30], -8, focus);
 
@@ -357,111 +352,111 @@ export default function InTheWild({
           {/* Gate on real viewport so the world doesn't render at the wrong
               translateX before useEffect measures dimensions */}
           {viewport.w > 0 && (
-          <div
-            className="absolute top-0 h-full will-change-transform"
-            style={{ transform: `translateX(${tx}px)` }}
-          >
-            {/* Floating labels */}
-            {wildLabels.map((label, i) => {
-              const seed = Math.sin(i * 73.17 + 3.91) * 43758.5453;
-              const phase = (seed - Math.floor(seed)) * 10;
-              const driftDuration = 6 + (i % 4) * 1.6;
-
-              return (
-                <div
-                  key={i}
-                  className={`floating-label pointer-events-none absolute font-mono uppercase ${LABEL_SIZES[label.size]}`}
-                  style={{
-                    ["--cursor-boost" as string]: "0",
-                    ["--base-opacity" as string]: "0.28",
-                    left: label.x,
-                    top: `calc(50% + ${label.y}px)`,
-                    animation: `labelFloat ${driftDuration}s ease-in-out ${-phase}s infinite`,
-                  }}
-                >
-                  {label.text}
-                </div>
-              );
-            })}
-
-            {/* Connection lines between projects */}
-            <svg
-              className="pointer-events-none absolute top-1/2 left-0"
-              style={{ overflow: "visible" }}
+            <div
+              className="absolute top-0 h-full will-change-transform"
+              style={{ transform: `translateX(${tx}px)` }}
             >
-              {wildProjects.slice(0, -1).map((project, i) => {
-                const next = wildProjects[i + 1];
-                const midX = (project.x + next.x) / 2;
-                const dist = Math.abs(midX - cameraX);
-                const baseOpacity = Math.max(0, 1 - dist / 1200) * 0.4;
-
-                const lineLen = Math.abs(next.x - project.x);
-                const n = wildProjects.length - 1;
-                const lineStartProgress = i / n;
-                const lineEndProgress = (i + 1) / n;
-                const lineRange = lineEndProgress - lineStartProgress;
-
-                let fillFraction = 0;
-                if (lineRange > 0) {
-                  fillFraction = Math.max(
-                    0,
-                    Math.min(1, (progress - lineStartProgress) / lineRange),
-                  );
-                }
-
-                const filledLen = fillFraction * lineLen;
-                const unfilledLen = lineLen - filledLen;
+              {/* Floating labels */}
+              {wildLabels.map((label, i) => {
+                const seed = Math.sin(i * 73.17 + 3.91) * 43758.5453;
+                const phase = (seed - Math.floor(seed)) * 10;
+                const driftDuration = 6 + (i % 4) * 1.6;
 
                 return (
-                  <g key={i}>
-                    <line
-                      x1={project.x}
-                      y1={0}
-                      x2={next.x}
-                      y2={0}
-                      stroke="currentColor"
-                      strokeWidth="1"
-                      className="text-[#a3a3a3] dark:text-[#525252]"
-                      style={{ opacity: baseOpacity }}
-                    />
-                    {filledLen > 0 && (
+                  <div
+                    key={i}
+                    className={`floating-label pointer-events-none absolute font-mono uppercase ${LABEL_SIZES[label.size]}`}
+                    style={{
+                      ["--cursor-boost" as string]: "0",
+                      ["--base-opacity" as string]: "0.28",
+                      left: label.x,
+                      top: `calc(50% + ${label.y}px)`,
+                      animation: `labelFloat ${driftDuration}s ease-in-out ${-phase}s infinite`,
+                    }}
+                  >
+                    {label.text}
+                  </div>
+                );
+              })}
+
+              {/* Connection lines between projects */}
+              <svg
+                className="pointer-events-none absolute top-1/2 left-0"
+                style={{ overflow: "visible" }}
+              >
+                {wildProjects.slice(0, -1).map((project, i) => {
+                  const next = wildProjects[i + 1];
+                  const midX = (project.x + next.x) / 2;
+                  const dist = Math.abs(midX - cameraX);
+                  const baseOpacity = Math.max(0, 1 - dist / 1200) * 0.4;
+
+                  const lineLen = Math.abs(next.x - project.x);
+                  const n = wildProjects.length - 1;
+                  const lineStartProgress = i / n;
+                  const lineEndProgress = (i + 1) / n;
+                  const lineRange = lineEndProgress - lineStartProgress;
+
+                  let fillFraction = 0;
+                  if (lineRange > 0) {
+                    fillFraction = Math.max(
+                      0,
+                      Math.min(1, (progress - lineStartProgress) / lineRange),
+                    );
+                  }
+
+                  const filledLen = fillFraction * lineLen;
+                  const unfilledLen = lineLen - filledLen;
+
+                  return (
+                    <g key={i}>
                       <line
                         x1={project.x}
                         y1={0}
                         x2={next.x}
                         y2={0}
-                        stroke="#2d7d9a"
-                        strokeWidth="2"
-                        strokeDasharray={`${filledLen} ${unfilledLen}`}
-                        strokeLinecap="round"
-                        style={{ opacity: Math.max(baseOpacity, 0.6) }}
+                        stroke="currentColor"
+                        strokeWidth="1"
+                        className="text-[#a3a3a3] dark:text-[#525252]"
+                        style={{ opacity: baseOpacity }}
                       />
-                    )}
-                  </g>
+                      {filledLen > 0 && (
+                        <line
+                          x1={project.x}
+                          y1={0}
+                          x2={next.x}
+                          y2={0}
+                          stroke="#2d7d9a"
+                          strokeWidth="2"
+                          strokeDasharray={`${filledLen} ${unfilledLen}`}
+                          strokeLinecap="round"
+                          style={{ opacity: Math.max(baseOpacity, 0.6) }}
+                        />
+                      )}
+                    </g>
+                  );
+                })}
+              </svg>
+
+              {/* Project cards */}
+              {wildProjects.map((project) => {
+                const dist = Math.abs(project.x - cameraX);
+                const focus = Math.max(0, 1 - dist / FOCUS_RADIUS);
+
+                return (
+                  <div
+                    key={project.title}
+                    className="absolute"
+                    style={{
+                      left: project.x,
+                      top: "50%",
+                      transform: "translate(-50%, -50%)",
+                    }}
+                  >
+                    <WildCardFragments project={project} focus={focus} />
+                  </div>
                 );
               })}
-            </svg>
-
-            {/* Project cards */}
-            {wildProjects.map((project) => {
-              const dist = Math.abs(project.x - cameraX);
-              const focus = Math.max(0, 1 - dist / FOCUS_RADIUS);
-
-              return (
-                <div
-                  key={project.title}
-                  className="absolute"
-                  style={{
-                    left: project.x,
-                    top: "50%",
-                    transform: "translate(-50%, -50%)",
-                  }}
-                >
-                  <WildCardFragments project={project} focus={focus} />
-                </div>
-              );
-            })}
-          </div>
+            </div>
           )}
         </div>
       </div>

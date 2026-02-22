@@ -33,16 +33,16 @@ export default function SkillsSection() {
       </div>
 
       {/* Skills list */}
-      <div className="flex flex-col gap-3 px-6 md:px-12 lg:px-20">
+      <div className="flex flex-col gap-10 px-16 md:gap-15 md:px-12 lg:px-20">
         {skills.map((skill) => (
           <div
             key={skill.name}
-            className="skill-reveal flex items-baseline gap-6"
+            className="skill-reveal flex items-baseline max-md:flex-col md:gap-3"
           >
-            <span className="text-text text-[clamp(2.5rem,8vw,7rem)] leading-[1.15] font-[200] tracking-[-0.02em]">
+            <span className="text-text text-[clamp(3.5rem,8vw,7rem)] leading-[1.15] font-[200] tracking-[-0.02em]">
               {skill.name}
             </span>
-            <span className="skill-annotation shrink-0 font-mono text-[clamp(0.75rem,1.2vw,1rem)] tracking-[0.02em] italic">
+            <span className="skill-annotation shrink-0 font-mono text-[clamp(1rem,1.2vw,1.25rem)] tracking-[0.02em] italic">
               {skill.note}
             </span>
           </div>

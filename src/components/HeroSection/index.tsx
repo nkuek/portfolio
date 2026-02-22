@@ -20,11 +20,9 @@ export default function HeroSection() {
       ref={ref}
       aria-label="Introduction"
       className="flex min-h-svh w-full items-center justify-center"
-        id="top"
+      id="top"
     >
-      <div
-        className="relative z-[1] flex w-full max-w-[900px] flex-col gap-0 px-8 max-md:items-center"
-      >
+      <div className="relative z-[1] flex w-full max-w-[900px] flex-col gap-0 px-16 max-md:items-center">
         <div
           className="mb-10 h-px w-full origin-left animate-[drawHairline_1000ms_cubic-bezier(0.0,0.0,0.2,1)_0ms_both] bg-[#d4d4d4] dark:bg-[#404040]"
           aria-hidden="true"
