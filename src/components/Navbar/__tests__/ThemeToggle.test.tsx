@@ -19,7 +19,10 @@ function createMatchMedia(matches: boolean) {
     addListener: vi.fn(),
     removeListener: vi.fn(),
     dispatchEvent: vi.fn(),
-    addEventListener: (_event: string, cb: EventListenerOrEventListenerObject, _options?: AddEventListenerOptions | boolean) => {
+    addEventListener: (
+      _event: string,
+      cb: EventListenerOrEventListenerObject,
+    ) => {
       listeners.push(cb as (e: MediaQueryListEvent) => void);
     },
     removeEventListener: vi.fn(),
