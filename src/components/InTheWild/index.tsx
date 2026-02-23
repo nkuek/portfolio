@@ -394,10 +394,15 @@ export default function InTheWild({
     ? Math.max(0, 1 - closestDist / FOCUS_RADIUS)
     : 0;
   const isMobile = viewport.w > 0 && viewport.w < 768;
-  highlightRef.current = {
-    text: !isMobile && sectionInView ? closestProject.title : "",
-    intensity: isMobile ? 0 : focusIntensity,
-  };
+  if (!isMobile && sectionInView) {
+    highlightRef.current = {
+      text: closestProject.title,
+      intensity: focusIntensity,
+      owner: "wild",
+    };
+  } else if (highlightRef.current.owner === "wild") {
+    highlightRef.current = { text: "", intensity: 0 };
+  }
   // ── Y-axis management ──
   // Y-axis uses scroll position (0 at page top). During horizontal scroll,
   // lock it so the y-axis stays fixed while only x changes.

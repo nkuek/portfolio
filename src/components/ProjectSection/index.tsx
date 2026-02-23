@@ -229,10 +229,15 @@ export default function ProjectSection({
 
   const focusIntensity = sectionInView ? Math.max(0, 1 - activeDist / 400) : 0;
   focusIntensityRef.current = focusIntensity;
-  highlightRef.current = {
-    text: !isMobile && sectionInView ? activeProject.title : "",
-    intensity: isMobile ? 0 : focusIntensity,
-  };
+  if (!isMobile && sectionInView) {
+    highlightRef.current = {
+      text: activeProject.title,
+      intensity: focusIntensity,
+      owner: "projects",
+    };
+  } else if (highlightRef.current.owner === "projects") {
+    highlightRef.current = { text: "", intensity: 0 };
+  }
   const crosshairFocused = focusIntensity > 0.8;
   if (!isMobile && sectionInView) {
     crosshairRef.current = {
