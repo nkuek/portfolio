@@ -6,6 +6,8 @@ export type CrosshairData = {
   label: string;
   focused: boolean;
   visible: boolean;
+  /** Which section last claimed visibility — only that section may clear it */
+  owner?: string;
 };
 
 /**

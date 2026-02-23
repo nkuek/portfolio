@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type RefObject } from "react";
+import { type MouseOffset } from "~/components/GridTicks";
 
 const TICK_INTERVAL = 200;
 
@@ -16,8 +17,10 @@ export type XAxisData = {
  */
 export default function XAxisTicks({
   dataRef,
+  mouseOffsetRef,
 }: {
   dataRef: RefObject<XAxisData>;
+  mouseOffsetRef: RefObject<MouseOffset>;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -56,6 +59,11 @@ export default function XAxisTicks({
       }
 
       ct.style.opacity = "1";
+
+      // Apply mouse offset as a container transform (decoupled from tick math
+      // to avoid jitter from rAF timing differences with the parallax loop)
+      ct.style.transform = `translateX(${-mouseOffsetRef.current.x}px)`;
+
       const w = window.innerWidth;
       const centerX = w / 2;
       const { translateX } = data;
@@ -109,7 +117,7 @@ export default function XAxisTicks({
     let raf = requestAnimationFrame(update);
 
     return () => cancelAnimationFrame(raf);
-  }, [dataRef]);
+  }, [dataRef, mouseOffsetRef]);
 
   return (
     <div

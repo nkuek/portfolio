@@ -1,28 +1,36 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 
 const TICK_INTERVAL = 200;
 
+export type MouseOffset = { x: number; y: number };
+
 /**
  * Fixed Y-axis grid tick marks along the left edge of the viewport.
- * Labels update with scroll position. Hidden on mobile.
+ * Continuous rAF loop so ticks respond to both scroll and mouse parallax.
  */
-export default function GridTicks() {
+export default function GridTicks({
+  mouseOffsetRef,
+}: {
+  mouseOffsetRef: RefObject<MouseOffset>;
+}) {
   const yContainerRef = useRef<HTMLDivElement>(null);
 
-  // Y-axis ticks — imperatively update positions on scroll to avoid re-renders
   useEffect(() => {
     const container = yContainerRef.current;
     if (!container) return;
+
+    let tickCount = 0;
 
     function buildTicks() {
       const ct = yContainerRef.current;
       if (!ct) return;
       const h = window.innerHeight;
-      const count = Math.ceil(h / TICK_INTERVAL) + 2;
+      const count = Math.ceil(h / TICK_INTERVAL) + 3;
+      if (count === tickCount) return;
+      tickCount = count;
 
-      // Pre-build tick elements with inline styles (Tailwind can't scan innerHTML)
       ct.innerHTML = "";
       for (let i = 0; i < count; i++) {
         const tick = document.createElement("div");
@@ -43,21 +51,32 @@ export default function GridTicks() {
       }
     }
 
-    function updatePositions() {
+    buildTicks();
+
+    let raf = 0;
+    let prevW = window.innerWidth;
+
+    function tick() {
       const ct = yContainerRef.current;
-      if (!ct) return;
+      if (!ct) { raf = requestAnimationFrame(tick); return; }
+
+      // Rebuild if viewport width changed (resize)
+      const w = window.innerWidth;
+      if (w !== prevW) { prevW = w; buildTicks(); }
 
       const sy = window.scrollY;
       const h = window.innerHeight;
       const centerY = h / 2;
 
-      // Highlight-by-value (stable): choose nearest tick VALUE to center
+      // Apply mouse offset as a container transform (decoupled from tick math
+      // to avoid jitter from rAF timing differences with the parallax loop)
+      ct.style.transform = `translateY(${-mouseOffsetRef.current.y}px)`;
+
       const centerVal = sy + centerY;
       const closestVal =
         Math.floor((centerVal + TICK_INTERVAL / 2) / TICK_INTERVAL) *
         TICK_INTERVAL;
 
-      // Anchor the tick window around the highlighted value (prevents startVal snapping)
       const startVal =
         Math.floor(closestVal / TICK_INTERVAL - h / (2 * TICK_INTERVAL) - 1) *
         TICK_INTERVAL;
@@ -91,45 +110,14 @@ export default function GridTicks() {
         const label = children[i].lastElementChild;
         if (label) label.textContent = String(val);
       }
+
+      raf = requestAnimationFrame(tick);
     }
 
-    buildTicks();
-    updatePositions();
+    raf = requestAnimationFrame(tick);
 
-    // -----------------------------
-    // rAF-throttled scheduler
-    // -----------------------------
-    let ticking = false;
-    let needsRebuild = false;
-
-    const requestUpdate = (rebuild: boolean) => {
-      if (rebuild) needsRebuild = true;
-      if (ticking) return;
-
-      ticking = true;
-      requestAnimationFrame(() => {
-        ticking = false;
-
-        if (needsRebuild) {
-          needsRebuild = false;
-          buildTicks();
-        }
-
-        updatePositions();
-      });
-    };
-
-    const onScroll = () => requestUpdate(false);
-    const onResize = () => requestUpdate(true);
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize);
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
-    };
-  }, []);
+    return () => cancelAnimationFrame(raf);
+  }, [mouseOffsetRef]);
 
   return (
     <div

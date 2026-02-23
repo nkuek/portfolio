@@ -14,6 +14,7 @@ import {
   LABEL_SIZES,
 } from "~/utils/scatterTransforms";
 import type { HighlightData } from "~/components/HeroSection/AsciiAmbient";
+import { cameraWaypoints } from "~/components/ProjectSection/constants";
 
 type WildProject = {
   title: string;
@@ -361,6 +362,11 @@ export default function InTheWild({
   const cameraX = firstX + panProgress * (lastX - firstX);
   const tx = -cameraX + viewport.w / 2;
 
+  // Offset so the x-axis continues from where ProjectSection ended
+  const xAxisOffset = cameraWaypoints[cameraWaypoints.length - 1].x;
+  const displayX = cameraX + xAxisOffset;
+  const displayTx = -displayX + viewport.w / 2;
+
   // Find the closest project and write highlight text
   let closestProject = wildProjects[0];
   let closestDist = Infinity;
@@ -381,12 +387,13 @@ export default function InTheWild({
   };
   if (!isMobile && sectionInView) {
     crosshairRef.current = {
-      label: `${Math.round(cameraX)}, ${scrollYCenter}`,
+      label: `${Math.round(displayX)}, ${scrollYCenter}`,
       focused: false,
       visible: true,
+      owner: "wild",
     };
-    xAxisRef.current = { cameraX, translateX: tx, visible: true };
-  } else if (!isMobile && !sectionInView && crosshairRef.current.visible) {
+    xAxisRef.current = { cameraX: displayX, translateX: displayTx, visible: true };
+  } else if (!isMobile && !sectionInView && crosshairRef.current.owner === "wild") {
     crosshairRef.current = { label: "", focused: false, visible: false };
     xAxisRef.current = { cameraX: 0, translateX: 0, visible: false };
   }

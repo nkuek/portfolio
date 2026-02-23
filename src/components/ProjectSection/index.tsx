@@ -13,6 +13,7 @@ import type { HighlightData } from "../HeroSection/AsciiAmbient";
 import SectionTitleCard from "~/components/SectionTitleCard";
 import type { CrosshairData } from "~/components/Crosshair";
 import type { XAxisData } from "~/components/XAxisTicks";
+import type { MouseOffset } from "~/components/GridTicks";
 import { LABEL_SIZES } from "~/utils/scatterTransforms";
 
 const MOBILE_BREAKPOINT = 768;
@@ -21,10 +22,12 @@ export default function ProjectSection({
   highlightRef,
   crosshairRef,
   xAxisRef,
+  mouseOffsetRef,
 }: {
   highlightRef: RefObject<HighlightData>;
   crosshairRef: RefObject<CrosshairData>;
   xAxisRef: RefObject<XAxisData>;
+  mouseOffsetRef: RefObject<MouseOffset>;
 }) {
   const sectionRef = useRef<HTMLElement>(null);
   const labelsRef = useRef<HTMLDivElement>(null);
@@ -174,6 +177,11 @@ export default function ProjectSection({
 
       // Camera follows mouse → world shifts opposite direction
       el.style.transform = `translate(${-offsetX}px, ${-offsetY}px)`;
+
+      // Write mouse offset for axis tick containers (applied as CSS transforms)
+      mouseOffsetRef.current.x = offsetX;
+      mouseOffsetRef.current.y = offsetY;
+
       raf = requestAnimationFrame(tick);
     }
 
@@ -230,9 +238,10 @@ export default function ProjectSection({
       label: `${Math.round(camera.x)}, ${scrollYCenter}`,
       focused: crosshairFocused,
       visible: true,
+      owner: "projects",
     };
     xAxisRef.current = { cameraX: camera.x, translateX: tx, visible: true };
-  } else if (!isMobile && !sectionInView && crosshairRef.current.visible) {
+  } else if (!isMobile && !sectionInView && crosshairRef.current.owner === "projects") {
     crosshairRef.current = { label: "", focused: false, visible: false };
     xAxisRef.current = { cameraX: 0, translateX: 0, visible: false };
   }
