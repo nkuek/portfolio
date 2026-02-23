@@ -6,27 +6,45 @@ const LERP_ATTACK = 0.08;
 const LERP_DECAY = 0.04;
 const TILT_DEAD = 0.01;
 
-/** Compute resting sheen from camera offset (normalized ~-1..1 per axis).
- *  Gradient center shifts toward the camera to simulate a view-dependent gloss. */
-function computeRestingSheen(offset: [number, number]): string {
-  const [nx, ny] = offset;
-  const cx = 50 + nx * 20;
-  const cy = 50 + ny * 20;
-  const mag = Math.sqrt(nx * nx + ny * ny);
-  const peak = 0.09 * (1 + mag * 0.5);
+/** Unified sheen — blends camera-offset resting gloss with cursor-driven tilt highlight.
+ *  As tilt decays toward zero the gradient slides back to the resting position
+ *  with no discontinuity. */
+function computeSheen(
+  rx: number,
+  ry: number,
+  cameraOffset: [number, number],
+): string {
+  const tiltMag = Math.sqrt(rx * rx + ry * ry) / MAX_TILT; // 0‥1
+
+  // Tilt-driven position (slides opposite to cursor)
+  const tiltX = 50 - (ry / MAX_TILT) * 30;
+  const tiltY = 50 + (rx / MAX_TILT) * 30;
+
+  // Camera-offset resting position
+  const [nx, ny] = cameraOffset;
+  const restX = 50 + nx * 20;
+  const restY = 50 + ny * 20;
+
+  // Blend: tiltMag drives mix — zero tilt → resting position, full tilt → tilt position
+  const sx = restX + (tiltX - restX) * tiltMag;
+  const sy = restY + (tiltY - restY) * tiltMag;
+
+  // Intensity ramps from subtle resting gloss to active tilt highlight
+  const cameraMag = Math.sqrt(nx * nx + ny * ny);
+  const restPeak = 0.09 * (1 + cameraMag * 0.5);
+  const peak = restPeak + (0.18 - restPeak) * tiltMag;
+
   return (
-    `radial-gradient(circle at ${cx.toFixed(1)}% ${cy.toFixed(1)}%, ` +
+    `radial-gradient(circle at ${sx.toFixed(1)}% ${sy.toFixed(1)}%, ` +
     `rgba(255,255,255,${peak.toFixed(3)}) 0%, ` +
-    `rgba(255,255,255,${(peak * 0.6).toFixed(3)}) 15%, ` +
-    `rgba(255,255,255,${(peak * 0.24).toFixed(3)}) 35%, ` +
-    `rgba(0,0,0,${(peak * 0.3).toFixed(3)}) 55%, ` +
-    `rgba(0,0,0,${(peak * 0.1).toFixed(3)}) 70%, ` +
-    `transparent 85%)`
+    `rgba(255,255,255,${(peak * 0.55).toFixed(3)}) 20%, ` +
+    `rgba(255,255,255,${(peak * 0.18).toFixed(3)}) 45%, ` +
+    `transparent 75%)`
   );
 }
 
 export const TILT_INNER_TRANSITION =
-  'scale 200ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 200ms cubic-bezier(0.2, 0.8, 0.2, 1)';
+  'scale var(--duration-fast) var(--ease-smooth), box-shadow var(--duration-fast) var(--ease-smooth)';
 
 export default function useTilt(
   reducedMotion: boolean,
@@ -45,16 +63,16 @@ export default function useTilt(
 
   // Update resting sheen continuously when not actively tilting
   if (sheenRef.current && !reducedMotion && !rafRef.current) {
-    sheenRef.current.style.background = computeRestingSheen(
-      cameraOffsetRef.current,
+    sheenRef.current.style.background = computeSheen(
+      0, 0, cameraOffsetRef.current,
     );
   }
 
   // Set resting sheen on mount
   useEffect(() => {
     if (sheenRef.current && !reducedMotion) {
-      sheenRef.current.style.background = computeRestingSheen(
-        cameraOffsetRef.current,
+      sheenRef.current.style.background = computeSheen(
+        0, 0, cameraOffsetRef.current,
       );
     }
   }, [reducedMotion]);
@@ -79,8 +97,8 @@ export default function useTilt(
         c.ry = 0;
         if (innerRef.current) innerRef.current.style.transform = '';
         if (sheenRef.current)
-          sheenRef.current.style.background = computeRestingSheen(
-            cameraOffsetRef.current,
+          sheenRef.current.style.background = computeSheen(
+            0, 0, cameraOffsetRef.current,
           );
         rafRef.current = 0;
         return;
@@ -90,21 +108,10 @@ export default function useTilt(
         innerRef.current.style.transform = `rotateX(${c.rx}deg) rotateY(${c.ry}deg)`;
       }
 
-      // Sheen — front-on spotlight reflection (slides opposite to cursor)
       if (sheenRef.current) {
-        const mag = Math.sqrt(c.rx * c.rx + c.ry * c.ry) / MAX_TILT;
-        const sx = 50 - (c.ry / MAX_TILT) * 30;
-        const sy = 50 + (c.rx / MAX_TILT) * 30;
-        const peak = mag * 0.18;
-
-        sheenRef.current.style.background =
-          `radial-gradient(circle at ${sx}% ${sy}%, ` +
-            `rgba(255,255,255,${peak}) 0%, ` +
-            `rgba(255,255,255,${peak * 0.6}) 15%, ` +
-            `rgba(255,255,255,${peak * 0.25}) 35%, ` +
-            `rgba(0,0,0,${peak * 0.3}) 55%, ` +
-            `rgba(0,0,0,${peak * 0.1}) 70%, ` +
-            `transparent 85%)`;
+        sheenRef.current.style.background = computeSheen(
+          c.rx, c.ry, cameraOffsetRef.current,
+        );
       }
 
       rafRef.current = requestAnimationFrame(tick);
