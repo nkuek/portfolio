@@ -81,7 +81,10 @@ function WildCardFragments({
   const playPauseScatter = childScatter([70, 30], -8, focus);
 
   const isVideo = !!project.videoSrc;
-  const { tiltRef, sheenRef, tiltHandlers, perspective } = useTilt(reducedMotion, cameraOffset);
+  const { tiltRef, sheenRef, tiltHandlers, perspective } = useTilt(
+    reducedMotion,
+    cameraOffset,
+  );
 
   return (
     <div className="relative h-[900px] w-[min(1400px,95vw)]">
@@ -104,7 +107,11 @@ function WildCardFragments({
           {/* Tape */}
           <div
             className="polaroid-tape polaroid-tape-teal"
-            style={{ width: 88, rotate: "3deg", transform: tapeScatter }}
+            style={{
+              width: `calc(88px + 8vw)`,
+              rotate: "3deg",
+              transform: tapeScatter,
+            }}
           />
           {/* Play/Pause on polaroid */}
           {isVideo && !reducedMotion && (
@@ -121,7 +128,7 @@ function WildCardFragments({
           )}
           <div className="p-3 pb-0">
             {isVideo ? (
-              <div className="relative aspect-16/10 overflow-hidden bg-surface-media">
+              <div className="bg-surface-media relative aspect-16/10 overflow-hidden">
                 <AutoplayVideo
                   src={project.videoSrc}
                   paused={paused}
@@ -130,8 +137,8 @@ function WildCardFragments({
                 />
               </div>
             ) : (
-              <div className="flex aspect-16/10 items-center justify-center bg-surface-media">
-                <span className="font-mono text-base text-text-subtle">
+              <div className="bg-surface-media flex aspect-16/10 items-center justify-center">
+                <span className="text-text-subtle font-mono text-base">
                   Coming soon
                 </span>
               </div>
@@ -187,7 +194,7 @@ function MobileWildCard({ project }: { project: WildProject }) {
         />
         <div className="p-2.5 pb-0">
           {isVideo ? (
-            <div className="relative aspect-16/10 overflow-hidden bg-surface-media">
+            <div className="bg-surface-media relative aspect-16/10 overflow-hidden">
               <AutoplayVideo
                 src={project.videoSrc}
                 paused={paused}
@@ -196,8 +203,8 @@ function MobileWildCard({ project }: { project: WildProject }) {
               />
             </div>
           ) : (
-            <div className="flex aspect-16/10 items-center justify-center bg-surface-media">
-              <span className="font-mono text-base text-text-subtle">
+            <div className="bg-surface-media flex aspect-16/10 items-center justify-center">
+              <span className="text-text-subtle font-mono text-base">
                 Coming soon
               </span>
             </div>
@@ -414,15 +421,25 @@ export default function InTheWild({
 
   // ── Crosshair & X-axis ──
   if (!isMobile && sectionInView) {
-    const displayY = yAxisRef.current.active ? yAxisRef.current.y : window.scrollY;
+    const displayY = yAxisRef.current.active
+      ? yAxisRef.current.y
+      : window.scrollY;
     crosshairRef.current = {
       label: `${Math.round(displayX)}, ${Math.round(displayY)}`,
       focused: false,
       visible: true,
       owner: "wild",
     };
-    xAxisRef.current = { cameraX: displayX, translateX: displayTx, visible: true };
-  } else if (!isMobile && !sectionInView && crosshairRef.current.owner === "wild") {
+    xAxisRef.current = {
+      cameraX: displayX,
+      translateX: displayTx,
+      visible: true,
+    };
+  } else if (
+    !isMobile &&
+    !sectionInView &&
+    crosshairRef.current.owner === "wild"
+  ) {
     crosshairRef.current = { label: "", focused: false, visible: false };
     xAxisRef.current = { cameraX: 0, translateX: 0, visible: false };
   }
@@ -466,27 +483,27 @@ export default function InTheWild({
             >
               {/* Floating labels */}
               <div ref={labelsRef}>
-              {wildLabels.map((label, i) => {
-                const seed = Math.sin(i * 73.17 + 3.91) * 43758.5453;
-                const phase = (seed - Math.floor(seed)) * 10;
-                const driftDuration = 6 + (i % 4) * 1.6;
+                {wildLabels.map((label, i) => {
+                  const seed = Math.sin(i * 73.17 + 3.91) * 43758.5453;
+                  const phase = (seed - Math.floor(seed)) * 10;
+                  const driftDuration = 6 + (i % 4) * 1.6;
 
-                return (
-                  <div
-                    key={i}
-                    className={`floating-label pointer-events-none absolute font-mono uppercase ${LABEL_SIZES[label.size]}`}
-                    style={{
-                      ["--cursor-boost" as string]: "0",
-                      ["--base-opacity" as string]: "0.28",
-                      left: label.x,
-                      top: `calc(50% + ${label.y}px)`,
-                      animation: `labelFloat ${driftDuration}s ease-in-out ${-phase}s infinite`,
-                    }}
-                  >
-                    {label.text}
-                  </div>
-                );
-              })}
+                  return (
+                    <div
+                      key={i}
+                      className={`floating-label pointer-events-none absolute font-mono uppercase ${LABEL_SIZES[label.size]}`}
+                      style={{
+                        ["--cursor-boost" as string]: "0",
+                        ["--base-opacity" as string]: "0.28",
+                        left: label.x,
+                        top: `calc(50% + ${label.y}px)`,
+                        animation: `labelFloat ${driftDuration}s ease-in-out ${-phase}s infinite`,
+                      }}
+                    >
+                      {label.text}
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Connection lines between projects */}
@@ -552,7 +569,10 @@ export default function InTheWild({
                 const dist = Math.abs(project.x - cameraX);
                 const focus = Math.max(0, 1 - dist / FOCUS_RADIUS);
                 const offset: [number, number] = [
-                  Math.max(-1, Math.min(1, (cameraX - project.x) / FOCUS_RADIUS)),
+                  Math.max(
+                    -1,
+                    Math.min(1, (cameraX - project.x) / FOCUS_RADIUS),
+                  ),
                   0,
                 ];
 
@@ -566,7 +586,11 @@ export default function InTheWild({
                       transform: "translate(-50%, -50%)",
                     }}
                   >
-                    <WildCardFragments project={project} focus={focus} cameraOffset={offset} />
+                    <WildCardFragments
+                      project={project}
+                      focus={focus}
+                      cameraOffset={offset}
+                    />
                   </div>
                 );
               })}

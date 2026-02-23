@@ -17,8 +17,7 @@ import {
 const HOVER_SPREAD = 1.25;
 
 /** Inline scatter transition — matches the one in .polaroid-card / .info-fragment CSS */
-const SCATTER_TRANSITION =
-  'transform 500ms cubic-bezier(0.16, 1, 0.3, 1)';
+const SCATTER_TRANSITION = "transform 500ms cubic-bezier(0.16, 1, 0.3, 1)";
 
 /** Seeded pseudo-random 0-1 from an integer seed */
 function seededRand(seed: number): number {
@@ -93,7 +92,7 @@ function PolaroidFragment({
       className="group block"
       aria-label={`View ${project.title} on ${project.liveLink ? "live site" : "GitHub"}`}
     >
-      <div className="relative aspect-square overflow-hidden bg-surface-media">
+      <div className="bg-surface-media relative aspect-square overflow-hidden">
         {isVideo ? (
           <AutoplayVideo
             src={project.src}
@@ -105,7 +104,7 @@ function PolaroidFragment({
             src={project.src}
             alt={`Screenshot of ${project.title}`}
             fill
-            className="object-cover transition-transform duration-500 ease-smooth group-hover:scale-[1.03]"
+            className="ease-smooth object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             sizes="(max-width: 768px) 72vw, 380px"
           />
         )}
@@ -119,8 +118,8 @@ function PolaroidFragment({
       className="group block"
     >
       <div className="aspect-square overflow-hidden">
-        <div className="flex h-full w-full items-center justify-center bg-surface-media">
-          <div className="flex flex-col items-center gap-3 text-text-muted transition-colors duration-200 group-hover:text-[#fafaf9]">
+        <div className="bg-surface-media flex h-full w-full items-center justify-center">
+          <div className="text-text-muted flex flex-col items-center gap-3 transition-colors duration-200 group-hover:text-[#fafaf9]">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="36"
@@ -149,7 +148,10 @@ function PolaroidFragment({
   // Play/pause scatters to the right when unfocused
   const playPauseScatter = childScatter([80 * s, 40 * s], -10, focus);
 
-  const { tiltRef, sheenRef, tiltHandlers, perspective } = useTilt(reducedMotion, cameraOffset);
+  const { tiltRef, sheenRef, tiltHandlers, perspective } = useTilt(
+    reducedMotion,
+    cameraOffset,
+  );
 
   return (
     <div
@@ -171,7 +173,7 @@ function PolaroidFragment({
         <div
           className={tapeClass}
           style={{
-            width: tapePlacement.width,
+            width: `calc(${tapePlacement.width}px + 3vw)`,
             rotate: tapePlacement.rotate,
             transform: tapeScatter,
           }}
@@ -357,7 +359,12 @@ function StickyNoteItem({
       <div
         ref={tiltRef}
         className={`sticky-note sticky-note-${note.color} font-mono text-[clamp(1rem,1.2vw,1.5rem)]`}
-        style={{ position: 'relative', left: 0, top: 0, transition: TILT_INNER_TRANSITION }}
+        style={{
+          position: "relative",
+          left: 0,
+          top: 0,
+          transition: TILT_INNER_TRANSITION,
+        }}
       >
         {note.text}
       </div>
@@ -421,7 +428,7 @@ function MobileProjectCard({
       className="group block"
       aria-label={`View ${project.title} on ${project.liveLink ? "live site" : "GitHub"}`}
     >
-      <div className="relative aspect-square overflow-hidden bg-surface-media">
+      <div className="bg-surface-media relative aspect-square overflow-hidden">
         {isVideo ? (
           <AutoplayVideo
             src={project.src}
@@ -447,8 +454,8 @@ function MobileProjectCard({
       className="group block"
     >
       <div className="aspect-square overflow-hidden">
-        <div className="flex h-full w-full items-center justify-center bg-surface-media">
-          <div className="flex flex-col items-center gap-3 text-text-muted transition-colors duration-200 group-hover:text-[#fafaf9]">
+        <div className="bg-surface-media flex h-full w-full items-center justify-center">
+          <div className="text-text-muted flex flex-col items-center gap-3 transition-colors duration-200 group-hover:text-[#fafaf9]">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="32"
