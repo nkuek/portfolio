@@ -102,7 +102,7 @@ function WildCardFragments({
           {/* Sheen overlay */}
           <div
             ref={sheenRef}
-            className="pointer-events-none absolute inset-0 z-[5] rounded-[3px]"
+            className="pointer-events-none absolute inset-0 z-5 rounded-[3px]"
           />
           {/* Tape */}
           <div

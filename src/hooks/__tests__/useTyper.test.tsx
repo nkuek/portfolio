@@ -3,7 +3,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import useTyper from "../useTyper";
 
 let observerCallback: IntersectionObserverCallback;
-let mockObserver: { observe: ReturnType<typeof vi.fn>; disconnect: ReturnType<typeof vi.fn> };
+let mockObserver: {
+  observe: ReturnType<typeof vi.fn>;
+  disconnect: ReturnType<typeof vi.fn>;
+};
 
 class MockIntersectionObserver {
   observe = vi.fn();

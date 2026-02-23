@@ -49,5 +49,5 @@ export function childScatter(
 export const LABEL_SIZES = {
   sm: "text-[16px] tracking-[0.1em]",
   md: "text-[24px] tracking-[0.06em]",
-  lg: "text-[34px] tracking-[0.04em] font-[300]",
+  lg: "text-[34px] tracking-[0.04em] font-light",
 } as const;

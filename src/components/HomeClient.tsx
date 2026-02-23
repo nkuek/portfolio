@@ -9,7 +9,10 @@ import Footer from "~/components/Footer";
 import AsciiAmbient, {
   type HighlightData,
 } from "~/components/HeroSection/AsciiAmbient";
-import GridTicks, { type MouseOffset, type YAxisData } from "~/components/GridTicks";
+import GridTicks, {
+  type MouseOffset,
+  type YAxisData,
+} from "~/components/GridTicks";
 import Crosshair, { type CrosshairData } from "~/components/Crosshair";
 import XAxisTicks, { type XAxisData } from "~/components/XAxisTicks";
 

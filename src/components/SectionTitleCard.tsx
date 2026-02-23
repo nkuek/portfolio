@@ -22,7 +22,7 @@ export default function SectionTitleCard({
         style={{ width: 80, rotate: `${-rotate * 1.2}deg` }}
       />
       <div className="section-title-card px-12 pt-10 pb-12 md:px-16 md:pt-12 md:pb-14">
-        <h2 className="section-title-text whitespace-nowrap font-serif text-[clamp(2.5rem,6vw,4.5rem)] font-bold tracking-[0.02em]">
+        <h2 className="section-title-text font-serif text-[clamp(2.5rem,6vw,4.5rem)] font-bold tracking-[0.02em] whitespace-nowrap">
           {title}
         </h2>
         {subtitle && (

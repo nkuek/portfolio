@@ -86,7 +86,7 @@ export default function Slideshow({
   }, [audioRef]);
 
   return (
-    <div className="relative aspect-[3/4] w-full max-w-xs overflow-hidden rounded-2xl sm:max-w-sm">
+    <div className="relative aspect-3/4 w-full max-w-xs overflow-hidden rounded-2xl sm:max-w-sm">
       {slides.map((src, i) => (
         <Image
           key={i}

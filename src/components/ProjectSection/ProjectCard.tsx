@@ -135,7 +135,7 @@ function PolaroidFragment({
               <polyline points="15 3 21 3 21 9" />
               <line x1="10" x2="21" y1="14" y2="3" />
             </svg>
-            <span className="text-base font-[300] tracking-wide">
+            <span className="text-base font-light tracking-wide">
               Launch experience
             </span>
           </div>
@@ -167,7 +167,7 @@ function PolaroidFragment({
         {/* Sheen — light-catch highlight driven by tilt RAF */}
         <div
           ref={sheenRef}
-          className="pointer-events-none absolute inset-0 z-[5] rounded-[3px]"
+          className="pointer-events-none absolute inset-0 z-5 rounded-[3px]"
         />
         {/* Tape — centered on top edge, width/rotation randomized per project */}
         <div
@@ -187,7 +187,7 @@ function PolaroidFragment({
               e.stopPropagation();
               onTogglePause();
             }}
-            className="absolute right-6 bottom-20 z-[3]"
+            className="absolute right-6 bottom-20 z-3"
             style={{ transform: playPauseScatter, rotate: "-3deg" }}
           />
         )}
@@ -240,7 +240,7 @@ function InfoFragment({
 
   return (
     <div
-      className="absolute top-1/2 left-1/2 z-[2]"
+      className="absolute top-1/2 left-1/2 z-2"
       style={{
         transform,
         width: `min(${Math.round(400 * s)}px, 72vw)`,
@@ -264,7 +264,7 @@ function InfoFragment({
               href={project.liveLink}
               target="_blank"
               rel="noopener"
-              className="info-link group relative inline-flex items-center gap-1.5 text-base font-[300] tracking-wide"
+              className="info-link group relative inline-flex items-center gap-1.5 text-base font-light tracking-wide"
               aria-label={`View ${project.title} on live site`}
             >
               <span>Experience</span>
@@ -276,7 +276,7 @@ function InfoFragment({
               href={project.githubLink}
               target="_blank"
               rel="noopener"
-              className="info-link-secondary group relative inline-flex items-center gap-1.5 text-base font-[300] tracking-wide"
+              className="info-link-secondary group relative inline-flex items-center gap-1.5 text-base font-light tracking-wide"
               aria-label={`View ${project.title} on GitHub"}`}
             >
               <span>Source</span>
@@ -471,7 +471,7 @@ function MobileProjectCard({
               <polyline points="15 3 21 3 21 9" />
               <line x1="10" x2="21" y1="14" y2="3" />
             </svg>
-            <span className="text-base font-[300] tracking-wide">
+            <span className="text-base font-light tracking-wide">
               Launch experience
             </span>
           </div>

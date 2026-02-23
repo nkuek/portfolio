@@ -44,7 +44,7 @@ function computeSheen(
 }
 
 export const TILT_INNER_TRANSITION =
-  'scale var(--duration-fast) var(--ease-smooth), box-shadow var(--duration-fast) var(--ease-smooth)';
+  "scale var(--duration-fast) var(--ease-smooth), box-shadow var(--duration-fast) var(--ease-smooth)";
 
 export default function useTilt(
   reducedMotion: boolean,
@@ -64,7 +64,9 @@ export default function useTilt(
   // Update resting sheen continuously when not actively tilting
   if (sheenRef.current && !reducedMotion && !rafRef.current) {
     sheenRef.current.style.background = computeSheen(
-      0, 0, cameraOffsetRef.current,
+      0,
+      0,
+      cameraOffsetRef.current,
     );
   }
 
@@ -72,7 +74,9 @@ export default function useTilt(
   useEffect(() => {
     if (sheenRef.current && !reducedMotion) {
       sheenRef.current.style.background = computeSheen(
-        0, 0, cameraOffsetRef.current,
+        0,
+        0,
+        cameraOffsetRef.current,
       );
     }
   }, [reducedMotion]);
@@ -95,10 +99,12 @@ export default function useTilt(
       if (done) {
         c.rx = 0;
         c.ry = 0;
-        if (innerRef.current) innerRef.current.style.transform = '';
+        if (innerRef.current) innerRef.current.style.transform = "";
         if (sheenRef.current)
           sheenRef.current.style.background = computeSheen(
-            0, 0, cameraOffsetRef.current,
+            0,
+            0,
+            cameraOffsetRef.current,
           );
         rafRef.current = 0;
         return;
@@ -110,7 +116,9 @@ export default function useTilt(
 
       if (sheenRef.current) {
         sheenRef.current.style.background = computeSheen(
-          c.rx, c.ry, cameraOffsetRef.current,
+          c.rx,
+          c.ry,
+          cameraOffsetRef.current,
         );
       }
 
@@ -152,6 +160,6 @@ export default function useTilt(
     tiltRef: innerRef,
     sheenRef,
     tiltHandlers: { onPointerEnter, onPointerLeave, onPointerMove },
-    perspective: reducedMotion ? undefined : ('1200px' as const),
+    perspective: reducedMotion ? undefined : ("1200px" as const),
   };
 }

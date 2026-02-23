@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import {
   projects,
   cameraWaypoints,
@@ -236,7 +242,11 @@ export default function ProjectSection({
       owner: "projects",
     };
     xAxisRef.current = { cameraX: camera.x, translateX: tx, visible: true };
-  } else if (!isMobile && !sectionInView && crosshairRef.current.owner === "projects") {
+  } else if (
+    !isMobile &&
+    !sectionInView &&
+    crosshairRef.current.owner === "projects"
+  ) {
     crosshairRef.current = { label: "", focused: false, visible: false };
     xAxisRef.current = { cameraX: 0, translateX: 0, visible: false };
   }
@@ -277,161 +287,174 @@ export default function ProjectSection({
           {/* Gate on real viewport so the world doesn't flash at (0,0) before
               useEffect measures dimensions (prevents CLS from hero area) */}
           {viewport.w > 0 && (
-          <div
-            className="absolute will-change-transform"
-            style={{ transform: `translate(${tx}px, ${ty}px)` }}
-          >
-            {/* Mouse-follow parallax layer — imperatively translated by rAF loop */}
-            <div ref={mouseLayerRef} className="will-change-transform">
-            {/* Connection lines between related projects */}
-            <svg
-              className="pointer-events-none absolute top-0 left-0"
-              style={{
-                width: 2000,
-                height: 3000,
-                left: -500,
-                top: -500,
-                overflow: "visible",
-              }}
+            <div
+              className="absolute will-change-transform"
+              style={{ transform: `translate(${tx}px, ${ty}px)` }}
             >
-              {connectionLines.map(([a, b], i) => {
-                const pa = projects[a].position;
-                const pb = projects[b].position;
-                const midX = (pa.x + pb.x) / 2;
-                const midY = (pa.y + pb.y) / 2;
-                const dist = Math.sqrt(
-                  (midX - camera.x) ** 2 + (midY - camera.y) ** 2,
-                );
-                const baseOpacity = Math.max(0, 1 - dist / 900) * 0.4;
-
-                // Line length for dasharray
-                const dx = pb.x - pa.x;
-                const dy = pb.y - pa.y;
-                const lineLen = Math.sqrt(dx * dx + dy * dy);
-
-                // Fill progress: how much of this line is "completed"
-                // Based on scroll progress relative to the waypoint indices
-                const startIdx = Math.min(a, b);
-                const endIdx = Math.max(a, b);
-                const n = cameraWaypoints.length - 1;
-                const lineStartProgress = startIdx / n;
-                const lineEndProgress = endIdx / n;
-                const lineRange = lineEndProgress - lineStartProgress;
-
-                let fillFraction = 0;
-                if (lineRange > 0) {
-                  fillFraction = Math.max(
-                    0,
-                    Math.min(1, (progress - lineStartProgress) / lineRange),
-                  );
-                }
-
-                const filledLen = fillFraction * lineLen;
-                const unfilledLen = lineLen - filledLen;
-
-                return (
-                  <g key={i}>
-                    {/* Background track */}
-                    <line
-                      x1={pa.x + 500}
-                      y1={pa.y + 500}
-                      x2={pb.x + 500}
-                      y2={pb.y + 500}
-                      stroke="currentColor"
-                      strokeWidth="1"
-                      className="text-[#a3a3a3] dark:text-[#525252]"
-                      style={{ opacity: baseOpacity }}
-                    />
-                    {/* Filled portion */}
-                    {filledLen > 0 && (
-                      <line
-                        x1={pa.x + 500}
-                        y1={pa.y + 500}
-                        x2={pb.x + 500}
-                        y2={pb.y + 500}
-                        stroke="var(--accent)"
-                        strokeWidth="2"
-                        strokeDasharray={`${filledLen} ${unfilledLen}`}
-                        strokeLinecap="round"
-                        style={{
-                          opacity: Math.max(baseOpacity, 0.6),
-                        }}
-                      />
-                    )}
-                  </g>
-                );
-              })}
-            </svg>
-
-            {/* Floating labels — skills, annotations, section header */}
-            <div ref={labelsRef}>
-              {floatingLabels.map((label, i) => {
-                const visibility = 0.7;
-
-                // Deterministic per-label float parameters
-                // Round to 2dp so server HTML survives browser CSS normalisation without hydration drift
-                // This is the classic GLSL pseudo-random hash just ported into JS
-                const seed = Math.sin(i * 73.17 + 3.91) * 43758.5453;
-                const phase =
-                  Math.round((seed - Math.floor(seed)) * 1000) / 100;
-                const driftDuration =
-                  Math.round((6 + (i % 5) * 1.4) * 100) / 100;
-                const baseOpacity = Math.round(visibility * 0.4 * 100) / 100;
-
-                return (
-                  <div
-                    key={i}
-                    className={`floating-label pointer-events-none absolute font-mono uppercase ${LABEL_SIZES[label.size]}`}
-                    style={{
-                      ["--cursor-boost" as string]: "0",
-                      ["--base-opacity" as string]: String(baseOpacity),
-                      left: `${label.position.x}px`,
-                      top: `${label.position.y}px`,
-                      animation: `labelFloat ${driftDuration}s ease-in-out ${-phase}s infinite`,
-                    }}
-                  >
-                    {label.text}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Project cards — always visible, no fade */}
-            {projects.map((project, index) => {
-              const dx = project.position.x - camera.x;
-              const dy = project.position.y - camera.y;
-              const dist = Math.sqrt(dx * dx + dy * dy);
-              const focus = sectionInView ? Math.max(0, 1 - dist / 600) : 0;
-
-              const cameraOffset: [number, number] = [
-                Math.max(-1, Math.min(1, (camera.x - project.position.x) / 600)),
-                Math.max(-1, Math.min(1, (camera.y - project.position.y) / 600)),
-              ];
-
-              return (
-                <div
-                  key={project.title}
-                  className="absolute"
+              {/* Mouse-follow parallax layer — imperatively translated by rAF loop */}
+              <div ref={mouseLayerRef} className="will-change-transform">
+                {/* Connection lines between related projects */}
+                <svg
+                  className="pointer-events-none absolute top-0 left-0"
                   style={{
-                    left: project.position.x,
-                    top: project.position.y,
-                    transform: "translate(-50%, -50%)",
+                    width: 2000,
+                    height: 3000,
+                    left: -500,
+                    top: -500,
+                    overflow: "visible",
                   }}
                 >
-                  <ProjectCard project={project} index={index} focus={focus} scale={cardScale} cameraOffset={cameraOffset} />
+                  {connectionLines.map(([a, b], i) => {
+                    const pa = projects[a].position;
+                    const pb = projects[b].position;
+                    const midX = (pa.x + pb.x) / 2;
+                    const midY = (pa.y + pb.y) / 2;
+                    const dist = Math.sqrt(
+                      (midX - camera.x) ** 2 + (midY - camera.y) ** 2,
+                    );
+                    const baseOpacity = Math.max(0, 1 - dist / 900) * 0.4;
+
+                    // Line length for dasharray
+                    const dx = pb.x - pa.x;
+                    const dy = pb.y - pa.y;
+                    const lineLen = Math.sqrt(dx * dx + dy * dy);
+
+                    // Fill progress: how much of this line is "completed"
+                    // Based on scroll progress relative to the waypoint indices
+                    const startIdx = Math.min(a, b);
+                    const endIdx = Math.max(a, b);
+                    const n = cameraWaypoints.length - 1;
+                    const lineStartProgress = startIdx / n;
+                    const lineEndProgress = endIdx / n;
+                    const lineRange = lineEndProgress - lineStartProgress;
+
+                    let fillFraction = 0;
+                    if (lineRange > 0) {
+                      fillFraction = Math.max(
+                        0,
+                        Math.min(1, (progress - lineStartProgress) / lineRange),
+                      );
+                    }
+
+                    const filledLen = fillFraction * lineLen;
+                    const unfilledLen = lineLen - filledLen;
+
+                    return (
+                      <g key={i}>
+                        {/* Background track */}
+                        <line
+                          x1={pa.x + 500}
+                          y1={pa.y + 500}
+                          x2={pb.x + 500}
+                          y2={pb.y + 500}
+                          stroke="currentColor"
+                          strokeWidth="1"
+                          className="text-[#a3a3a3] dark:text-[#525252]"
+                          style={{ opacity: baseOpacity }}
+                        />
+                        {/* Filled portion */}
+                        {filledLen > 0 && (
+                          <line
+                            x1={pa.x + 500}
+                            y1={pa.y + 500}
+                            x2={pb.x + 500}
+                            y2={pb.y + 500}
+                            stroke="var(--accent)"
+                            strokeWidth="2"
+                            strokeDasharray={`${filledLen} ${unfilledLen}`}
+                            strokeLinecap="round"
+                            style={{
+                              opacity: Math.max(baseOpacity, 0.6),
+                            }}
+                          />
+                        )}
+                      </g>
+                    );
+                  })}
+                </svg>
+
+                {/* Floating labels — skills, annotations, section header */}
+                <div ref={labelsRef}>
+                  {floatingLabels.map((label, i) => {
+                    const visibility = 0.7;
+
+                    // Deterministic per-label float parameters
+                    // Round to 2dp so server HTML survives browser CSS normalisation without hydration drift
+                    // This is the classic GLSL pseudo-random hash just ported into JS
+                    const seed = Math.sin(i * 73.17 + 3.91) * 43758.5453;
+                    const phase =
+                      Math.round((seed - Math.floor(seed)) * 1000) / 100;
+                    const driftDuration =
+                      Math.round((6 + (i % 5) * 1.4) * 100) / 100;
+                    const baseOpacity =
+                      Math.round(visibility * 0.4 * 100) / 100;
+
+                    return (
+                      <div
+                        key={i}
+                        className={`floating-label pointer-events-none absolute font-mono uppercase ${LABEL_SIZES[label.size]}`}
+                        style={{
+                          ["--cursor-boost" as string]: "0",
+                          ["--base-opacity" as string]: String(baseOpacity),
+                          left: `${label.position.x}px`,
+                          top: `${label.position.y}px`,
+                          animation: `labelFloat ${driftDuration}s ease-in-out ${-phase}s infinite`,
+                        }}
+                      >
+                        {label.text}
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
-          </div>
+
+                {/* Project cards — always visible, no fade */}
+                {projects.map((project, index) => {
+                  const dx = project.position.x - camera.x;
+                  const dy = project.position.y - camera.y;
+                  const dist = Math.sqrt(dx * dx + dy * dy);
+                  const focus = sectionInView ? Math.max(0, 1 - dist / 600) : 0;
+
+                  const cameraOffset: [number, number] = [
+                    Math.max(
+                      -1,
+                      Math.min(1, (camera.x - project.position.x) / 600),
+                    ),
+                    Math.max(
+                      -1,
+                      Math.min(1, (camera.y - project.position.y) / 600),
+                    ),
+                  ];
+
+                  return (
+                    <div
+                      key={project.title}
+                      className="absolute"
+                      style={{
+                        left: project.position.x,
+                        top: project.position.y,
+                        transform: "translate(-50%, -50%)",
+                      }}
+                    >
+                      <ProjectCard
+                        project={project}
+                        index={index}
+                        focus={focus}
+                        scale={cardScale}
+                        cameraOffset={cameraOffset}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           )}
 
           {/* Progress track — clickable dots */}
           <div className="absolute top-1/2 right-4 flex -translate-y-1/2 flex-col items-center gap-0">
             {/* Track line (base + fill) aligned to dot centers */}
-            <div className="absolute top-5 bottom-5 left-1/2 w-px -translate-x-1/2 bg-border-hairline" />
+            <div className="bg-border-hairline absolute top-5 bottom-5 left-1/2 w-px -translate-x-1/2" />
             <div
-              className="absolute top-5 bottom-5 left-1/2 w-px origin-top -translate-x-1/2 bg-accent"
+              className="bg-accent absolute top-5 bottom-5 left-1/2 w-px origin-top -translate-x-1/2"
               style={{
                 transform: `translateX(-50%) scaleY(${progress})`,
                 transition: "transform 80ms linear",

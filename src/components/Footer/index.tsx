@@ -39,7 +39,7 @@ export default function Footer() {
       aria-label="Get in touch"
       className="flex min-h-screen flex-col items-center justify-center gap-16 px-4 pb-24"
     >
-      <h2 className="scroll-stagger-in text-text text-center text-[clamp(1.75rem,4vw,3.5rem)] font-[300] tracking-[-0.02em]">
+      <h2 className="scroll-stagger-in text-text text-center text-[clamp(1.75rem,4vw,3.5rem)] font-light tracking-[-0.02em]">
         Let’s build something <br />
         {display}
         <span
@@ -55,10 +55,10 @@ export default function Footer() {
             href={link.href}
             target={link.href.startsWith("mailto:") ? undefined : "_blank"}
             rel={link.href.startsWith("mailto:") ? undefined : "noopener"}
-            className="contact-link group relative text-[clamp(0.875rem,1.5vw,1.125rem)] font-[300] tracking-[0.05em] text-text-muted uppercase transition-colors duration-200 hover:text-accent"
+            className="contact-link group text-text-muted hover:text-accent relative text-[clamp(0.875rem,1.5vw,1.125rem)] font-light tracking-[0.05em] uppercase transition-colors duration-200"
           >
             {link.label}
-            <span className="absolute -bottom-1 left-1/2 h-px w-0 -translate-x-1/2 bg-accent transition-[width] duration-200 ease-smooth group-hover:w-full" />
+            <span className="bg-accent ease-smooth absolute -bottom-1 left-1/2 h-px w-0 -translate-x-1/2 transition-[width] duration-200 group-hover:w-full" />
           </Link>
         ))}
       </nav>

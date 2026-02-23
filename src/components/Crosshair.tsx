@@ -81,7 +81,7 @@ export default function Crosshair({
       />
       <div
         ref={labelRef}
-        className="absolute top-1/2 left-1/2 translate-x-2 -translate-y-5 font-mono text-[10px] text-text-muted"
+        className="text-text-muted absolute top-1/2 left-1/2 translate-x-2 -translate-y-5 font-mono text-[10px]"
         style={{
           opacity: 0.35,
           transition: "opacity 300ms",

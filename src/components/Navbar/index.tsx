@@ -13,10 +13,7 @@ export default function Navbar() {
     const handleScroll = () => {
       if (!navRef.current) return;
       const scrolled = window.scrollY > 0;
-      navRef.current.setAttribute(
-        "data-scrolled",
-        scrolled ? "true" : "false",
-      );
+      navRef.current.setAttribute("data-scrolled", scrolled ? "true" : "false");
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });

@@ -31,11 +31,10 @@ export default function useTyper(items: string[], options?: UseTyperOptions) {
   const observerRef = useCallback((node: HTMLElement | null) => {
     if (!node) return;
     const observer = new IntersectionObserver(
-      ([entry],obs) => {
-        setInView(entry.isIntersecting)
-        if (entry.isIntersecting) obs.disconnect()
-      }
-        ,
+      ([entry], obs) => {
+        setInView(entry.isIntersecting);
+        if (entry.isIntersecting) obs.disconnect();
+      },
       { threshold: 0 },
     );
     observer.observe(node);

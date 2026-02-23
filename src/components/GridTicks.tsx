@@ -69,11 +69,17 @@ export default function GridTicks({
 
     function tick() {
       const ct = yContainerRef.current;
-      if (!ct) { raf = requestAnimationFrame(tick); return; }
+      if (!ct) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
 
       // Rebuild if viewport width changed (resize)
       const w = window.innerWidth;
-      if (w !== prevW) { prevW = w; buildTicks(); }
+      if (w !== prevW) {
+        prevW = w;
+        buildTicks();
+      }
 
       const sy = window.scrollY;
       const h = window.innerHeight;

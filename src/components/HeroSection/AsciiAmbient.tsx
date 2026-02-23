@@ -51,7 +51,8 @@ function generateLeaves(): Leaf[] {
 
 function leafSDF(nx: number, ny: number, leaf: Leaf, t: number): number {
   const cx = leaf.baseX + Math.sin(t * 0.3 + leaf.driftPhase) * leaf.driftAmpX;
-  const cy = leaf.baseY + Math.sin(t * 0.22 + leaf.driftPhase + 1.5) * leaf.driftAmpY;
+  const cy =
+    leaf.baseY + Math.sin(t * 0.22 + leaf.driftPhase + 1.5) * leaf.driftAmpY;
   const angle = leaf.baseAngle + Math.sin(t * 0.4 + leaf.swayPhase) * 0.5;
   const cosA = Math.cos(angle);
   const sinA = Math.sin(angle);
@@ -191,7 +192,6 @@ export default function AsciiAmbient({
     let hlRevealThreshold: Float32Array | null = null; // per-cell random reveal order
     let hlMaskText = "";
 
-
     function updateHighlightMask() {
       const hl = highlightRef?.current;
       if (!hl || !hl.text) {
@@ -253,10 +253,22 @@ export default function AsciiAmbient({
     function computeActiveCells(): Set<number> {
       if (!hovering) return new Set();
       const result = new Set<number>();
-      const minCol = Math.max(0, Math.floor((mouseX - MOUSE_RADIUS) / CHAR_WIDTH));
-      const maxCol = Math.min(cols - 1, Math.ceil((mouseX + MOUSE_RADIUS) / CHAR_WIDTH));
-      const minRow = Math.max(0, Math.floor((mouseY - MOUSE_RADIUS) / LINE_HEIGHT));
-      const maxRow = Math.min(rows - 1, Math.ceil((mouseY + MOUSE_RADIUS) / LINE_HEIGHT));
+      const minCol = Math.max(
+        0,
+        Math.floor((mouseX - MOUSE_RADIUS) / CHAR_WIDTH),
+      );
+      const maxCol = Math.min(
+        cols - 1,
+        Math.ceil((mouseX + MOUSE_RADIUS) / CHAR_WIDTH),
+      );
+      const minRow = Math.max(
+        0,
+        Math.floor((mouseY - MOUSE_RADIUS) / LINE_HEIGHT),
+      );
+      const maxRow = Math.min(
+        rows - 1,
+        Math.ceil((mouseY + MOUSE_RADIUS) / LINE_HEIGHT),
+      );
       for (let row = minRow; row <= maxRow; row++) {
         for (let col = minCol; col <= maxCol; col++) {
           const cx = col * CHAR_WIDTH + CHAR_WIDTH / 2;
@@ -274,7 +286,10 @@ export default function AsciiAmbient({
 
     function brightenNearMouse() {
       const newActive = computeActiveCells();
-      const hlActive = hlMask && (highlightRef?.current?.intensity ?? 0) > 0.1 && hlRevealProgress > 0;
+      const hlActive =
+        hlMask &&
+        (highlightRef?.current?.intensity ?? 0) > 0.1 &&
+        hlRevealProgress > 0;
       for (const idx of newActive) {
         if (hlActive && hlMask![idx] > 20) continue;
 
@@ -287,7 +302,10 @@ export default function AsciiAmbient({
         const dist = Math.sqrt(dx * dx + dy * dy);
         const intensity = 1 - dist / MOUSE_RADIUS;
         const brightAlpha = isDark() ? BRIGHT_ALPHA_DARK : BRIGHT_ALPHA_LIGHT;
-        brightness[idx] = Math.max(brightness[idx], brightAlpha * intensity * intensity);
+        brightness[idx] = Math.max(
+          brightness[idx],
+          brightAlpha * intensity * intensity,
+        );
         if (intensity > 0.4 && Math.random() < 0.08) accentCells.add(idx);
       }
       activeCells = newActive;
@@ -345,7 +363,9 @@ export default function AsciiAmbient({
       const textChanging = hlText !== hlPrevText;
       if (textChanging && hlMask) {
         fadingMask = new Uint8Array(hlMask);
-        fadingThresholds = hlRevealThreshold ? new Float32Array(hlRevealThreshold) : null;
+        fadingThresholds = hlRevealThreshold
+          ? new Float32Array(hlRevealThreshold)
+          : null;
         fadeOutProgress = 0;
       }
 
@@ -366,7 +386,10 @@ export default function AsciiAmbient({
         for (let i = 0; i < brightness.length; i++) {
           if (fadingMask[i] > 20 && brightness[i] > 0) {
             const threshold = fadingThresholds ? fadingThresholds[i] : 0;
-            const clearAmount = Math.max(0, Math.min(1, (fadeOutProgress * 1.3 - threshold) * 4));
+            const clearAmount = Math.max(
+              0,
+              Math.min(1, (fadeOutProgress * 1.3 - threshold) * 4),
+            );
 
             if (clearAmount > 0) {
               brightness[i] = Math.max(0, brightness[i] * (1 - clearAmount));
@@ -391,7 +414,6 @@ export default function AsciiAmbient({
         hlRevealProgress = Math.max(0, hlRevealProgress - HL_REVEAL_SPEED * 2);
       }
 
-
       if (dappleIntensity > 0.001 || (hlMask && hlIntensity > 0.01)) {
         const windX = t * 0.18;
         const windY = t * 0.07;
@@ -410,32 +432,42 @@ export default function AsciiAmbient({
               Math.sin((nx * 1.5 - ny * 2.1 + t * 0.12) * 1.8);
             const n2 =
               Math.sin((nx * 7.1 + windX * 1.3 + 5.2) * 1.5) *
-              Math.sin((ny * 6.3 + windY * 1.1 + 3.1) * 1.5) * 0.5;
+              Math.sin((ny * 6.3 + windY * 1.1 + 3.1) * 1.5) *
+              0.5;
             const cellHash = Math.sin(col * 127.1 + row * 311.7) * 43758.5453;
             const cellNoise = cellHash - Math.floor(cellHash);
-            const shimmer = Math.sin(t * (1.2 + cellNoise * 2.0) + cellNoise * 6.28) * 0.15;
+            const shimmer =
+              Math.sin(t * (1.2 + cellNoise * 2.0) + cellNoise * 6.28) * 0.15;
             const combined = n1 + n2 + shimmer;
             const edge = Math.max(0, Math.min(1, combined * 2.0 + 0.3));
 
             // Highlight mask with pseudo-random reveal
-            const maskVal = (hlMask && hlIntensity > 0.01 && hlRevealProgress > 0)
-              ? (hlMask[idx] ?? 0)
-              : 0;
+            const maskVal =
+              hlMask && hlIntensity > 0.01 && hlRevealProgress > 0
+                ? (hlMask[idx] ?? 0)
+                : 0;
 
             const threshold = hlRevealThreshold ? hlRevealThreshold[idx] : 0;
             // Expand progress past 1.0 so all cells fully resolve before progress caps
-            const cellReveal = Math.max(0, Math.min(1, (hlRevealProgress * 1.3 - threshold) * 4));
+            const cellReveal = Math.max(
+              0,
+              Math.min(1, (hlRevealProgress * 1.3 - threshold) * 4),
+            );
 
             const inTextRegion = maskVal > 20 && cellReveal > 0.01;
 
             if (inTextRegion) {
               const hlAlphaBase = isDark() ? 0.82 : 0.85;
-              const hlAlpha = (maskVal / 255) * hlIntensity * cellReveal * hlAlphaBase;
+              const hlAlpha =
+                (maskVal / 255) * hlIntensity * cellReveal * hlAlphaBase;
               if (hlAlpha > brightness[idx]) brightness[idx] = hlAlpha;
             } else {
               const nearText = maskVal > 0 && cellReveal > 0;
-              const suppressFactor = nearText ? (1 - (maskVal / 255) * hlIntensity * cellReveal) : 1;
-              const totalAlpha = edge * dappleAlpha * dappleIntensity * suppressFactor;
+              const suppressFactor = nearText
+                ? 1 - (maskVal / 255) * hlIntensity * cellReveal
+                : 1;
+              const totalAlpha =
+                edge * dappleAlpha * dappleIntensity * suppressFactor;
               if (totalAlpha > 0.01) {
                 if (totalAlpha > brightness[idx]) brightness[idx] = totalAlpha;
               }
@@ -449,7 +481,7 @@ export default function AsciiAmbient({
     }
 
     const spotlightSections = document.querySelectorAll(
-      'section[aria-label="Introduction"], section[aria-label="Get in touch"]'
+      'section[aria-label="Introduction"], section[aria-label="Get in touch"]',
     );
 
     const onPointerMove = (e: PointerEvent) => {
@@ -466,8 +498,10 @@ export default function AsciiAmbient({
       for (const section of spotlightSections) {
         const rect = section.getBoundingClientRect();
         if (
-          mouseX >= rect.left && mouseX <= rect.right &&
-          mouseY >= rect.top && mouseY <= rect.bottom
+          mouseX >= rect.left &&
+          mouseX <= rect.right &&
+          mouseY >= rect.top &&
+          mouseY <= rect.bottom
         ) {
           hovering = true;
           break;
@@ -484,7 +518,9 @@ export default function AsciiAmbient({
       activeCells = new Set();
     };
 
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
     const driftTimer = prefersReducedMotion
       ? null
@@ -507,7 +543,10 @@ export default function AsciiAmbient({
             const idx = row * cols + col;
             const nx = col / cols;
             const ny = row / rows;
-            const n1 = Math.sin((nx * 3.2 + windX) * 2.0) * Math.sin((ny * 2.8 + windY) * 2.0) * Math.sin((nx * 1.5 - ny * 2.1) * 1.8);
+            const n1 =
+              Math.sin((nx * 3.2 + windX) * 2.0) *
+              Math.sin((ny * 2.8 + windY) * 2.0) *
+              Math.sin((nx * 1.5 - ny * 2.1) * 1.8);
             const edge = Math.max(0, Math.min(1, n1 * 2.0 + 0.3));
             brightness[idx] = Math.max(brightness[idx], edge * dappleAlpha);
           }
