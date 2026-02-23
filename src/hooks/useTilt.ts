@@ -19,8 +19,9 @@ function computeRestingSheen(offset: [number, number]): string {
     `rgba(255,255,255,${peak.toFixed(3)}) 0%, ` +
     `rgba(255,255,255,${(peak * 0.6).toFixed(3)}) 15%, ` +
     `rgba(255,255,255,${(peak * 0.24).toFixed(3)}) 35%, ` +
-    `rgba(255,255,255,${(peak * 0.09).toFixed(3)}) 55%, ` +
-    `transparent 75%)`
+    `rgba(0,0,0,${(peak * 0.3).toFixed(3)}) 55%, ` +
+    `rgba(0,0,0,${(peak * 0.1).toFixed(3)}) 70%, ` +
+    `transparent 85%)`
   );
 }
 
@@ -101,8 +102,9 @@ export default function useTilt(
             `rgba(255,255,255,${peak}) 0%, ` +
             `rgba(255,255,255,${peak * 0.6}) 15%, ` +
             `rgba(255,255,255,${peak * 0.25}) 35%, ` +
-            `rgba(255,255,255,${peak * 0.08}) 55%, ` +
-            `transparent 75%)`;
+            `rgba(0,0,0,${peak * 0.3}) 55%, ` +
+            `rgba(0,0,0,${peak * 0.1}) 70%, ` +
+            `transparent 85%)`;
       }
 
       rafRef.current = requestAnimationFrame(tick);
