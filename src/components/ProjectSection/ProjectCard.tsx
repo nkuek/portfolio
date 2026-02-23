@@ -6,6 +6,7 @@ import PlayPauseButton from "~/components/PlayPauseButton";
 import AutoplayVideo from "~/components/AutoplayVideo";
 import ArrowUpRight from "~/components/ArrowUpRight";
 import useReducedMotion from "~/hooks/useReducedMotion";
+import useTilt, { TILT_INNER_TRANSITION } from "~/hooks/useTilt";
 import {
   FOCUS_SNAP,
   fragmentTransform,
@@ -14,6 +15,10 @@ import {
 
 /** How much extra spread when the group is hovered (1.0 = no change) */
 const HOVER_SPREAD = 1.25;
+
+/** Inline scatter transition — matches the one in .polaroid-card / .info-fragment CSS */
+const SCATTER_TRANSITION =
+  'transform 500ms cubic-bezier(0.16, 1, 0.3, 1)';
 
 /** Seeded pseudo-random 0-1 from an integer seed */
 function seededRand(seed: number): number {
@@ -52,6 +57,7 @@ function PolaroidFragment({
   reducedMotion,
   scale,
   hoverSpread,
+  cameraOffset,
 }: {
   project: Project;
   layout: FragmentLayout;
@@ -63,6 +69,7 @@ function PolaroidFragment({
   reducedMotion: boolean;
   scale: number;
   hoverSpread: number;
+  cameraOffset?: [number, number];
 }) {
   const s = scale;
   const transform = fragmentTransform(
@@ -142,38 +149,52 @@ function PolaroidFragment({
   // Play/pause scatters to the right when unfocused
   const playPauseScatter = childScatter([80 * s, 40 * s], -10, focus);
 
+  const { tiltRef, sheenRef, tiltHandlers, perspective } = useTilt(reducedMotion, cameraOffset);
+
   return (
     <div
-      className="polaroid-card absolute top-1/2 left-1/2 w-[min(760px,60vw)]"
-      style={{ transform }}
+      className="absolute top-1/2 left-1/2 w-[min(760px,60vw)]"
+      style={{ transform, transition: SCATTER_TRANSITION, perspective }}
+      {...tiltHandlers}
     >
-      {/* Tape — centered on top edge, width/rotation randomized per project */}
       <div
-        className={tapeClass}
-        style={{
-          width: tapePlacement.width,
-          rotate: tapePlacement.rotate,
-          transform: tapeScatter,
-        }}
-      />
-      {/* Play/Pause — bottom-right of polaroid, scatters like tape */}
-      {isVideo && !reducedMotion && (
-        <PlayPauseButton
-          paused={videoPaused}
-          onToggle={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onTogglePause();
-          }}
-          className="absolute right-6 bottom-20 z-[3]"
-          style={{ transform: playPauseScatter, rotate: "-3deg" }}
+        ref={tiltRef}
+        className="polaroid-card relative"
+        style={{ transition: TILT_INNER_TRANSITION }}
+      >
+        {/* Sheen — light-catch highlight driven by tilt RAF */}
+        <div
+          ref={sheenRef}
+          className="pointer-events-none absolute inset-0 z-[5] rounded-[3px]"
         />
-      )}
-      <div className="p-3 pb-0">{polaroidContent}</div>
-      <div className="px-4 pt-3 pb-5">
-        <p className="polaroid-title text-center font-mono text-xl tracking-[0.02em]">
-          {project.title}
-        </p>
+        {/* Tape — centered on top edge, width/rotation randomized per project */}
+        <div
+          className={tapeClass}
+          style={{
+            width: tapePlacement.width,
+            rotate: tapePlacement.rotate,
+            transform: tapeScatter,
+          }}
+        />
+        {/* Play/Pause — bottom-right of polaroid, scatters like tape */}
+        {isVideo && !reducedMotion && (
+          <PlayPauseButton
+            paused={videoPaused}
+            onToggle={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onTogglePause();
+            }}
+            className="absolute right-6 bottom-20 z-[3]"
+            style={{ transform: playPauseScatter, rotate: "-3deg" }}
+          />
+        )}
+        <div className="p-3 pb-0">{polaroidContent}</div>
+        <div className="px-4 pt-3 pb-5">
+          <p className="polaroid-title text-center font-mono text-xl tracking-[0.02em]">
+            {project.title}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -191,6 +212,7 @@ function InfoFragment({
   hovered,
   scale,
   hoverSpread,
+  reducedMotion,
 }: {
   project: Project;
   layout: FragmentLayout;
@@ -198,6 +220,7 @@ function InfoFragment({
   hovered: boolean;
   scale: number;
   hoverSpread: number;
+  reducedMotion: boolean;
 }) {
   const s = scale;
   const transform = fragmentTransform(
@@ -211,60 +234,74 @@ function InfoFragment({
   // Pin scatters up and away, scales down when unfocused
   const pinScatter = childScatter([0, -60 * s], 20, focus, [0.4, 1]);
 
+  const { tiltRef, tiltHandlers, perspective } = useTilt(reducedMotion);
+
   return (
     <div
-      className="info-fragment absolute top-1/2 left-1/2 z-[2] flex flex-col gap-3 px-6 py-5"
-      style={{ transform, width: `min(${Math.round(400 * s)}px, 72vw)` }}
+      className="absolute top-1/2 left-1/2 z-[2]"
+      style={{
+        transform,
+        width: `min(${Math.round(400 * s)}px, 72vw)`,
+        transition: SCATTER_TRANSITION,
+        perspective,
+      }}
+      {...tiltHandlers}
     >
-      {/* Pin — CSS positioned on the card, scatters via its own transform */}
-      <div className="info-pin" style={{ transform: pinScatter }} />
+      <div
+        ref={tiltRef}
+        className="info-fragment relative flex flex-col gap-3 px-6 py-5"
+        style={{ transition: TILT_INNER_TRANSITION }}
+      >
+        {/* Pin — CSS positioned on the card, scatters via its own transform */}
+        <div className="info-pin" style={{ transform: pinScatter }} />
 
-      {/* Links */}
-      <div className="flex gap-5">
-        {project.liveLink && (
-          <Link
-            href={project.liveLink}
-            target="_blank"
-            rel="noopener"
-            className="info-link group relative inline-flex items-center gap-1.5 text-base font-[300] tracking-wide"
-            aria-label={`View ${project.title} on live site`}
-          >
-            <span>Experience</span>
-            <ArrowUpRight className={ARROW_CLASSES} />
-          </Link>
-        )}
-        {project.githubLink && (
-          <Link
-            href={project.githubLink}
-            target="_blank"
-            rel="noopener"
-            className="info-link-secondary group relative inline-flex items-center gap-1.5 text-base font-[300] tracking-wide"
-            aria-label={`View ${project.title} on GitHub"}`}
-          >
-            <span>Source</span>
-            <ArrowUpRight className={ARROW_CLASSES} />
-          </Link>
-        )}
-      </div>
+        {/* Links */}
+        <div className="flex gap-5">
+          {project.liveLink && (
+            <Link
+              href={project.liveLink}
+              target="_blank"
+              rel="noopener"
+              className="info-link group relative inline-flex items-center gap-1.5 text-base font-[300] tracking-wide"
+              aria-label={`View ${project.title} on live site`}
+            >
+              <span>Experience</span>
+              <ArrowUpRight className={ARROW_CLASSES} />
+            </Link>
+          )}
+          {project.githubLink && (
+            <Link
+              href={project.githubLink}
+              target="_blank"
+              rel="noopener"
+              className="info-link-secondary group relative inline-flex items-center gap-1.5 text-base font-[300] tracking-wide"
+              aria-label={`View ${project.title} on GitHub"}`}
+            >
+              <span>Source</span>
+              <ArrowUpRight className={ARROW_CLASSES} />
+            </Link>
+          )}
+        </div>
 
-      {/* Hairline */}
-      <div className="info-hairline h-px" />
+        {/* Hairline */}
+        <div className="info-hairline h-px" />
 
-      {/* Description */}
-      <p className="info-desc font-300 text-[clamp(1rem,1.2vw,1.1rem)] leading-[1.7]">
-        {project.description}
-      </p>
+        {/* Description */}
+        <p className="info-desc font-300 text-[clamp(1rem,1.2vw,1.1rem)] leading-[1.7]">
+          {project.description}
+        </p>
 
-      {/* Tech pills */}
-      <div className="flex flex-wrap gap-1.5">
-        {project.technologies.map((tech) => (
-          <span
-            key={tech}
-            className="tech-pill font-300 rounded px-2.5 py-1 text-[16px]"
-          >
-            {tech}
-          </span>
-        ))}
+        {/* Tech pills */}
+        <div className="flex flex-wrap gap-1.5">
+          {project.technologies.map((tech) => (
+            <span
+              key={tech}
+              className="tech-pill font-300 rounded px-2.5 py-1 text-[16px]"
+            >
+              {tech}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -272,48 +309,91 @@ function InfoFragment({
 
 /* ── Sticky Notes — converge on the project when focused ── */
 
+function StickyNoteItem({
+  note,
+  index,
+  focus,
+  hovered,
+  scale,
+  hoverSpread,
+  reducedMotion,
+}: {
+  note: StickyNote;
+  index: number;
+  focus: number;
+  hovered: boolean;
+  scale: number;
+  hoverSpread: number;
+  reducedMotion: boolean;
+}) {
+  const s = scale;
+  const scatterTransform = childScatter(
+    [
+      (note.offset[0] > 0 ? 100 + index * 30 : -100 - index * 30) * s,
+      (-70 - index * 20) * s,
+    ],
+    note.rotate,
+    focus,
+    [0.5, 1],
+  );
+
+  const spread = hovered && focus > FOCUS_SNAP ? hoverSpread : 1;
+  const ox = note.offset[0] * spread * s;
+  const oy = note.offset[1] * spread * s;
+  const landedTransform = `translate(calc(-50% + ${ox}px), calc(-50% + ${oy}px)) rotate(${note.rotate}deg)`;
+
+  const { tiltRef, tiltHandlers, perspective } = useTilt(reducedMotion);
+
+  return (
+    <div
+      className="absolute top-1/2 left-1/2"
+      style={{
+        transform: `${landedTransform} ${scatterTransform}`,
+        transition: SCATTER_TRANSITION,
+        perspective,
+      }}
+      {...tiltHandlers}
+    >
+      <div
+        ref={tiltRef}
+        className={`sticky-note sticky-note-${note.color} font-mono text-[clamp(1rem,1.2vw,1.5rem)]`}
+        style={{ position: 'relative', left: 0, top: 0, transition: TILT_INNER_TRANSITION }}
+      >
+        {note.text}
+      </div>
+    </div>
+  );
+}
+
 function StickyNotes({
   notes,
   focus,
   hovered,
   scale,
   hoverSpread,
+  reducedMotion,
 }: {
   notes: StickyNote[];
   focus: number;
   hovered: boolean;
   scale: number;
   hoverSpread: number;
+  reducedMotion: boolean;
 }) {
-  const s = scale;
   return (
     <>
-      {notes.map((note, i) => {
-        const scatterTransform = childScatter(
-          [
-            (note.offset[0] > 0 ? 100 + i * 30 : -100 - i * 30) * s,
-            (-70 - i * 20) * s,
-          ],
-          note.rotate,
-          focus,
-          [0.5, 1],
-        );
-
-        const spread = hovered && focus > FOCUS_SNAP ? hoverSpread : 1;
-        const ox = note.offset[0] * spread * s;
-        const oy = note.offset[1] * spread * s;
-        const landedTransform = `translate(calc(-50% + ${ox}px), calc(-50% + ${oy}px)) rotate(${note.rotate}deg)`;
-
-        return (
-          <div
-            key={i}
-            className={`sticky-note sticky-note-${note.color} absolute top-1/2 left-1/2 p-12 font-mono text-[clamp(1rem,1.2vw,1.5rem)]`}
-            style={{ transform: `${landedTransform} ${scatterTransform}` }}
-          >
-            {note.text}
-          </div>
-        );
-      })}
+      {notes.map((note, i) => (
+        <StickyNoteItem
+          key={i}
+          note={note}
+          index={i}
+          focus={focus}
+          hovered={hovered}
+          scale={scale}
+          hoverSpread={hoverSpread}
+          reducedMotion={reducedMotion}
+        />
+      ))}
     </>
   );
 }
@@ -507,12 +587,15 @@ export default function ProjectCard({
   index,
   focus,
   scale = 1,
+  cameraOffset,
 }: {
   project: Project;
   index: number;
   focus: number;
   /** Responsive scale factor — offsets shrink proportionally with the polaroid */
   scale?: number;
+  /** Normalized camera-to-card offset for resting sheen direction */
+  cameraOffset?: [number, number];
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
@@ -552,6 +635,7 @@ export default function ProjectCard({
         reducedMotion={reducedMotion}
         scale={scale}
         hoverSpread={hoverSpread}
+        cameraOffset={cameraOffset}
       />
       <StickyNotes
         notes={project.stickyNotes}
@@ -559,6 +643,7 @@ export default function ProjectCard({
         hovered={hovered}
         scale={scale}
         hoverSpread={hoverSpread}
+        reducedMotion={reducedMotion}
       />
       <InfoFragment
         project={project}
@@ -567,6 +652,7 @@ export default function ProjectCard({
         hovered={hovered}
         hoverSpread={hoverSpread}
         scale={scale}
+        reducedMotion={reducedMotion}
       />
     </div>
   );

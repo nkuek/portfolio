@@ -7,6 +7,7 @@ import SectionTitleCard from "~/components/SectionTitleCard";
 import type { CrosshairData } from "~/components/Crosshair";
 import type { XAxisData } from "~/components/XAxisTicks";
 import useReducedMotion from "~/hooks/useReducedMotion";
+import useTilt, { TILT_INNER_TRANSITION } from "~/hooks/useTilt";
 import {
   fragmentTransform,
   childScatter,
@@ -63,9 +64,11 @@ const FOCUS_RADIUS = 1400;
 function WildCardFragments({
   project,
   focus,
+  cameraOffset,
 }: {
   project: WildProject;
   focus: number;
+  cameraOffset?: [number, number];
 }) {
   const [paused, setPaused] = useState(false);
   const reducedMotion = useReducedMotion();
@@ -76,58 +79,71 @@ function WildCardFragments({
   const playPauseScatter = childScatter([70, 30], -8, focus);
 
   const isVideo = !!project.videoSrc;
+  const { tiltRef, sheenRef, tiltHandlers, perspective } = useTilt(reducedMotion, cameraOffset);
 
   return (
     <div className="relative h-[900px] w-[min(1400px,95vw)]">
       {/* Polaroid */}
       <div
-        className="polaroid-card absolute top-1/2 left-1/2 w-[min(1280px,90vw)]"
-        style={{ transform: imageTransform }}
+        className="absolute top-1/2 left-1/2 w-[min(1280px,90vw)]"
+        style={{ transform: imageTransform, perspective }}
+        {...tiltHandlers}
       >
-        {/* Tape */}
         <div
-          className="polaroid-tape polaroid-tape-teal"
-          style={{ width: 88, rotate: "3deg", transform: tapeScatter }}
-        />
-        {/* Play/Pause on polaroid */}
-        {isVideo && !reducedMotion && (
-          <PlayPauseButton
-            paused={paused}
-            onToggle={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setPaused((p) => !p);
-            }}
-            className="absolute right-6 bottom-20 z-3"
-            style={{ transform: playPauseScatter, rotate: "-3deg" }}
+          ref={tiltRef}
+          className="polaroid-card relative"
+          style={{ transition: TILT_INNER_TRANSITION }}
+        >
+          {/* Sheen overlay */}
+          <div
+            ref={sheenRef}
+            className="pointer-events-none absolute inset-0 z-[5] rounded-[3px]"
           />
-        )}
-        <div className="p-3 pb-0">
-          {isVideo ? (
-            <div className="relative aspect-16/10 overflow-hidden bg-[#171717]">
-              <AutoplayVideo
-                src={project.videoSrc}
-                paused={paused}
-                threshold={0.9}
-                className="object-contain"
-              />
-            </div>
-          ) : (
-            <div className="flex aspect-16/10 items-center justify-center bg-[#171717]">
-              <span className="font-mono text-base text-[#525252]">
-                Coming soon
+          {/* Tape */}
+          <div
+            className="polaroid-tape polaroid-tape-teal"
+            style={{ width: 88, rotate: "3deg", transform: tapeScatter }}
+          />
+          {/* Play/Pause on polaroid */}
+          {isVideo && !reducedMotion && (
+            <PlayPauseButton
+              paused={paused}
+              onToggle={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setPaused((p) => !p);
+              }}
+              className="absolute right-6 bottom-20 z-3"
+              style={{ transform: playPauseScatter, rotate: "-3deg" }}
+            />
+          )}
+          <div className="p-3 pb-0">
+            {isVideo ? (
+              <div className="relative aspect-16/10 overflow-hidden bg-[#171717]">
+                <AutoplayVideo
+                  src={project.videoSrc}
+                  paused={paused}
+                  threshold={0.9}
+                  className="object-contain"
+                />
+              </div>
+            ) : (
+              <div className="flex aspect-16/10 items-center justify-center bg-[#171717]">
+                <span className="font-mono text-base text-[#525252]">
+                  Coming soon
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="px-4 pt-3 pb-5">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="polaroid-title font-mono text-[17px] tracking-[0.01em]">
+                {project.title}
+              </p>
+              <span className="wild-company shrink-0 font-mono text-[12px] tracking-[0.08em] uppercase">
+                {project.company}
               </span>
             </div>
-          )}
-        </div>
-        <div className="px-4 pt-3 pb-5">
-          <div className="flex items-baseline justify-between gap-3">
-            <p className="polaroid-title font-mono text-[17px] tracking-[0.01em]">
-              {project.title}
-            </p>
-            <span className="wild-company shrink-0 font-mono text-[12px] tracking-[0.08em] uppercase">
-              {project.company}
-            </span>
           </div>
         </div>
       </div>
@@ -225,12 +241,12 @@ function MobileWildCard({ project }: { project: WildProject }) {
 /* ── Floating labels in the horizontal world ── */
 
 const wildLabels = [
-  { text: "production code", x: -600, y: -200, size: "lg" as const },
-  { text: "shipped", x: 800, y: 220, size: "md" as const },
-  { text: "design engineering", x: 3500, y: -220, size: "lg" as const },
+  { text: "production code", x: -900, y: -300, size: "lg" as const },
+  { text: "shipped", x: 1100, y: 280, size: "md" as const },
+  { text: "design engineering", x: 3800, y: -280, size: "lg" as const },
   { text: "craft at scale", x: 1500, y: -170, size: "md" as const },
   { text: "pixel perfect", x: 4500, y: 200, size: "sm" as const },
-  { text: "interaction design", x: 6000, y: -200, size: "lg" as const },
+  { text: "interaction design", x: 6500, y: -260, size: "lg" as const },
 ];
 
 /* ── Main section ── */
@@ -245,6 +261,7 @@ export default function InTheWild({
   xAxisRef: RefObject<XAxisData>;
 }) {
   const sectionRef = useRef<HTMLElement>(null);
+  const labelsRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
   const [sectionInView, setSectionInView] = useState(false);
   const [viewport, setViewport] = useState({ w: 0, h: 0 });
@@ -256,6 +273,61 @@ export default function InTheWild({
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
+  }, []);
+
+  // Imperative cursor proximity — updates label DOM directly, no re-renders
+  // Fades spotlight out after cursor goes idle, returning to dappled-sunlight base
+  useEffect(() => {
+    let mouseX = -9999;
+    let mouseY = -9999;
+    let lastMoveTime = 0;
+    let raf = 0;
+
+    const PROXIMITY_RADIUS = 280;
+    const IDLE_THRESHOLD = 2000;
+    const FADE_DURATION = 800;
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (e.clientX !== mouseX || e.clientY !== mouseY) {
+        lastMoveTime = performance.now();
+      }
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    };
+
+    function tick() {
+      const container = labelsRef.current;
+      if (container) {
+        const idle = performance.now() - lastMoveTime;
+        const fadeFactor =
+          idle < IDLE_THRESHOLD
+            ? 1
+            : Math.max(0, 1 - (idle - IDLE_THRESHOLD) / FADE_DURATION);
+
+        const labels = container.children as HTMLCollectionOf<HTMLElement>;
+        for (let i = 0; i < labels.length; i++) {
+          const el = labels[i];
+          const rect = el.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const dx = cx - mouseX;
+          const dy = cy - mouseY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const boost = Math.max(0, 1 - dist / PROXIMITY_RADIUS) * fadeFactor;
+
+          el.style.setProperty("--cursor-boost", String(boost));
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    }
+
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    raf = requestAnimationFrame(tick);
+
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      cancelAnimationFrame(raf);
+    };
   }, []);
 
   useEffect(() => {
@@ -357,6 +429,7 @@ export default function InTheWild({
               style={{ transform: `translateX(${tx}px)` }}
             >
               {/* Floating labels */}
+              <div ref={labelsRef}>
               {wildLabels.map((label, i) => {
                 const seed = Math.sin(i * 73.17 + 3.91) * 43758.5453;
                 const phase = (seed - Math.floor(seed)) * 10;
@@ -378,6 +451,7 @@ export default function InTheWild({
                   </div>
                 );
               })}
+              </div>
 
               {/* Connection lines between projects */}
               <svg
@@ -441,6 +515,10 @@ export default function InTheWild({
               {wildProjects.map((project) => {
                 const dist = Math.abs(project.x - cameraX);
                 const focus = Math.max(0, 1 - dist / FOCUS_RADIUS);
+                const offset: [number, number] = [
+                  Math.max(-1, Math.min(1, (cameraX - project.x) / FOCUS_RADIUS)),
+                  0,
+                ];
 
                 return (
                   <div
@@ -452,7 +530,7 @@ export default function InTheWild({
                       transform: "translate(-50%, -50%)",
                     }}
                   >
-                    <WildCardFragments project={project} focus={focus} />
+                    <WildCardFragments project={project} focus={focus} cameraOffset={offset} />
                   </div>
                 );
               })}

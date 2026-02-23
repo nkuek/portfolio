@@ -399,6 +399,11 @@ export default function ProjectSection({
               const dist = Math.sqrt(dx * dx + dy * dy);
               const focus = sectionInView ? Math.max(0, 1 - dist / 600) : 0;
 
+              const cameraOffset: [number, number] = [
+                Math.max(-1, Math.min(1, (camera.x - project.position.x) / 600)),
+                Math.max(-1, Math.min(1, (camera.y - project.position.y) / 600)),
+              ];
+
               return (
                 <div
                   key={project.title}
@@ -409,7 +414,7 @@ export default function ProjectSection({
                     transform: "translate(-50%, -50%)",
                   }}
                 >
-                  <ProjectCard project={project} index={index} focus={focus} scale={cardScale} />
+                  <ProjectCard project={project} index={index} focus={focus} scale={cardScale} cameraOffset={cameraOffset} />
                 </div>
               );
             })}
