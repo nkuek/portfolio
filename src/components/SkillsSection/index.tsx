@@ -37,7 +37,7 @@ export default function SkillsSection() {
         {skills.map((skill) => (
           <div
             key={skill.name}
-            className="skill-reveal flex items-baseline max-md:flex-col md:gap-3"
+            className="skill-reveal flex max-md:flex-col max-md:items-center md:items-baseline md:gap-3"
           >
             <span className="text-text text-[clamp(3.5rem,8vw,7rem)] leading-[1.15] font-[200] tracking-[-0.02em]">
               {skill.name}
