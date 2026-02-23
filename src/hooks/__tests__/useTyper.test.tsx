@@ -31,6 +31,9 @@ async function setupAndEnterView(result: {
   });
 }
 
+// Stable reference — avoids useCallback recomputing `tick` on every render
+const ITEMS = ["Hi", "Go"];
+
 describe("useTyper", () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -45,17 +48,17 @@ describe("useTyper", () => {
   });
 
   it("initial display is items[0]", () => {
-    const { result } = renderHook(() => useTyper(["Hi", "Go"]));
+    const { result } = renderHook(() => useTyper(ITEMS));
     expect(result.current.display).toBe("Hi");
   });
 
   it("initial cursor is visible", () => {
-    const { result } = renderHook(() => useTyper(["Hi", "Go"]));
+    const { result } = renderHook(() => useTyper(ITEMS));
     expect(result.current.cursorVisible).toBe(true);
   });
 
   it("does NOT start typing/deleting before element is in view", async () => {
-    const { result } = renderHook(() => useTyper(["Hi", "Go"]));
+    const { result } = renderHook(() => useTyper(ITEMS));
 
     // Attach ref but never trigger intersection
     act(() => {
@@ -70,7 +73,7 @@ describe("useTyper", () => {
   });
 
   it("starts deleting after in-view + 3000ms initial delay", async () => {
-    const { result } = renderHook(() => useTyper(["Hi", "Go"]));
+    const { result } = renderHook(() => useTyper(ITEMS));
     await setupAndEnterView(result);
 
     // Just before the delay — no change
@@ -87,7 +90,7 @@ describe("useTyper", () => {
   });
 
   it("after full deletion, pauses, then types next item char-by-char", async () => {
-    const { result } = renderHook(() => useTyper(["Hi", "Go"]));
+    const { result } = renderHook(() => useTyper(ITEMS));
     await setupAndEnterView(result);
 
     // t+3000: "H" (first delete)
@@ -116,7 +119,7 @@ describe("useTyper", () => {
   });
 
   it("cycles back to first item after exhausting all items", async () => {
-    const { result } = renderHook(() => useTyper(["Hi", "Go"]));
+    const { result } = renderHook(() => useTyper(ITEMS));
     await setupAndEnterView(result);
 
     // Full sequence:
@@ -135,7 +138,7 @@ describe("useTyper", () => {
   });
 
   it("cursor toggles every 530ms when in view", async () => {
-    const { result } = renderHook(() => useTyper(["Hi", "Go"]));
+    const { result } = renderHook(() => useTyper(ITEMS));
     await setupAndEnterView(result);
 
     expect(result.current.cursorVisible).toBe(true);
@@ -152,7 +155,7 @@ describe("useTyper", () => {
   });
 
   it("cursor does NOT toggle when not in view", async () => {
-    const { result } = renderHook(() => useTyper(["Hi", "Go"]));
+    const { result } = renderHook(() => useTyper(ITEMS));
 
     act(() => {
       result.current.ref(document.createElement("div"));
