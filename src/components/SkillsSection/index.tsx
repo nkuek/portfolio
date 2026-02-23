@@ -33,7 +33,7 @@ export default function SkillsSection() {
       </div>
 
       {/* Skills list */}
-      <div className="flex flex-col gap-10 px-16 md:gap-15 md:px-12 lg:px-20">
+      <div className="flex flex-col gap-10 px-16 md:gap-15 md:pr-0 md:pl-12 lg:px-20">
         {skills.map((skill) => (
           <div
             key={skill.name}
