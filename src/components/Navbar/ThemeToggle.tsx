@@ -6,30 +6,57 @@ export type ThemePreference = "light" | "dark";
 
 export default function ThemeToggle() {
   const [preference, setPreference] = useState<ThemePreference>("light");
-  function updatePreference(preference?: ThemePreference) {
+  function updatePreference(next?: ThemePreference, persist = false) {
     setPreference((prev) => {
-      const opposite = prev === "light" ? "dark" : "light";
-      const newPreference = preference || opposite;
+      const newPreference = next || (prev === "light" ? "dark" : "light");
       document.documentElement.setAttribute("data-color-scheme", newPreference);
+      if (persist) {
+        try {
+          localStorage.setItem("theme", newPreference);
+        } catch {}
+      }
       return newPreference;
     });
   }
 
   useEffect(() => {
-    updatePreference(
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light",
-    );
+    const saved = (() => {
+      try {
+        return localStorage.getItem("theme");
+      } catch {
+        return null;
+      }
+    })();
+
+    if (saved === "light" || saved === "dark") {
+      updatePreference(saved);
+    } else {
+      updatePreference(
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light",
+      );
+    }
+
     const abortController = new AbortController();
-    const listener = () => {
-      updatePreference();
-    };
     window
       .matchMedia("(prefers-color-scheme: dark)")
-      .addEventListener("change", listener, {
-        signal: abortController.signal,
-      });
+      .addEventListener(
+        "change",
+        (e) => {
+          const hasSaved = (() => {
+            try {
+              return localStorage.getItem("theme") !== null;
+            } catch {
+              return false;
+            }
+          })();
+          if (!hasSaved) {
+            updatePreference(e.matches ? "dark" : "light");
+          }
+        },
+        { signal: abortController.signal },
+      );
 
     return () => abortController.abort();
   }, []);
@@ -44,7 +71,7 @@ export default function ThemeToggle() {
           className="before:bg-track-color group block aspect-square rounded-[50%] transition-transform duration-200 ease-out before:absolute before:m-auto before:flex before:h-[125%] before:w-[250%] before:translate-x-[-25%] before:translate-y-[-12.5%] before:rounded-2xl before:transition-colors before:group-focus-visible:outline hover:cursor-pointer focus-visible:outline-offset-[5px] focus-visible:outline-none active:scale-97"
           title="Toggles light & dark"
           aria-live="polite"
-          onClick={() => updatePreference()}
+          onClick={() => updatePreference(undefined, true)}
         >
           <span className="sr-only">{`Toggle Theme: ${preference}`}</span>
           <SunAndMoon />
