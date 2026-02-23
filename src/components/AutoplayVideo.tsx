@@ -64,8 +64,6 @@ export default function AutoplayVideo({
     }
   }, [visible, paused, reducedMotion]);
 
-  const handleCanPlay = useCallback(() => setLoaded(true), []);
-
   return (
     <div ref={observerRef} className="relative h-full w-full">
       <video
@@ -74,7 +72,9 @@ export default function AutoplayVideo({
         muted
         loop
         playsInline
-        onCanPlay={handleCanPlay}
+        onCanPlay={() => {
+          setLoaded(true);
+        }}
         className={`h-full w-full ${className}`}
       />
       {blurSrc && (
