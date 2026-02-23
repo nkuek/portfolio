@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import useTyper from "../useTyper";
 
 let observerCallback: IntersectionObserverCallback;
-let mockObserverInstance: MockIntersectionObserver;
+let mockObserver: { observe: ReturnType<typeof vi.fn>; disconnect: ReturnType<typeof vi.fn> };
 
 class MockIntersectionObserver {
   observe = vi.fn();
@@ -12,7 +12,7 @@ class MockIntersectionObserver {
 
   constructor(cb: IntersectionObserverCallback) {
     observerCallback = cb;
-    mockObserverInstance = this;
+    mockObserver = { observe: this.observe, disconnect: this.disconnect };
   }
 }
 
@@ -26,7 +26,7 @@ async function setupAndEnterView(result: {
   await act(async () => {
     observerCallback(
       [{ isIntersecting: true } as IntersectionObserverEntry],
-      mockObserverInstance as unknown as IntersectionObserver,
+      mockObserver as unknown as IntersectionObserver,
     );
   });
 }
