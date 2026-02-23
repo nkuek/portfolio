@@ -24,14 +24,14 @@ export default function HeroSection() {
     >
       <div className="relative z-[1] flex w-full max-w-[900px] flex-col gap-0 px-16 max-md:items-center">
         <div
-          className="mb-10 h-px w-full origin-left animate-[drawHairline_1000ms_cubic-bezier(0.0,0.0,0.2,1)_0ms_both] bg-[#d4d4d4] dark:bg-[#404040]"
+          className="mb-10 h-px w-full origin-left animate-[drawHairline_1000ms_cubic-bezier(0.0,0.0,0.2,1)_0ms_both] bg-border-hairline"
           aria-hidden="true"
         />
         <h1 className="text-text animate-[heroFocusPull_900ms_cubic-bezier(0.16,1,0.3,1)_200ms_both] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] font-[300] tracking-[-0.03em] opacity-0">
           Nick Kuek
         </h1>
         <div
-          className="mt-10 mb-8 h-px w-full origin-left animate-[drawHairline_1000ms_cubic-bezier(0.0,0.0,0.2,1)_500ms_both] bg-[#d4d4d4] dark:bg-[#404040]"
+          className="mt-10 mb-8 h-px w-full origin-left animate-[drawHairline_1000ms_cubic-bezier(0.0,0.0,0.2,1)_500ms_both] bg-border-hairline"
           aria-hidden="true"
         />
         <p className="text-text animate-[heroFocusPull_700ms_cubic-bezier(0.34,1.56,0.64,1)_700ms_both] text-[clamp(1rem,2vw,1.5rem)] font-[300] tracking-[0.02em] opacity-0">
@@ -41,14 +41,14 @@ export default function HeroSection() {
             style={{ opacity: cursorVisible ? 1 : 0 }}
           />
         </p>
-        <p className="mt-4 w-fit animate-[heroFocusPull_800ms_cubic-bezier(0.22,0.61,0.36,1)_1000ms_both] font-mono text-[clamp(1rem,1.2vw,1.2375rem)] leading-[1.6] text-[#2d7d9a] italic opacity-0 backdrop-blur-2xl">
+        <p className="mt-4 w-fit animate-[heroFocusPull_800ms_cubic-bezier(0.22,0.61,0.36,1)_1000ms_both] font-mono text-[clamp(1rem,1.2vw,1.2375rem)] leading-[1.6] text-accent italic opacity-0 backdrop-blur-2xl">
           making the web more beautiful
         </p>
         <div
-          className="mt-10 mb-6 h-px w-full origin-left animate-[drawHairline_1200ms_cubic-bezier(0.0,0.0,0.2,1)_1300ms_both] bg-[#d4d4d4] dark:bg-[#404040]"
+          className="mt-10 mb-6 h-px w-full origin-left animate-[drawHairline_1200ms_cubic-bezier(0.0,0.0,0.2,1)_1300ms_both] bg-border-hairline"
           aria-hidden="true"
         />
-        <div className="flex animate-[heroFocusPull_600ms_cubic-bezier(0.25,0.46,0.45,0.94)_1600ms_both] gap-4 text-[clamp(0.625rem,1vw,0.75rem)] font-[300] tracking-[0.1em] text-[#737373] uppercase opacity-0">
+        <div className="flex animate-[heroFocusPull_600ms_cubic-bezier(0.25,0.46,0.45,0.94)_1600ms_both] gap-4 text-[clamp(0.625rem,1vw,0.75rem)] font-[300] tracking-[0.1em] text-text-muted uppercase opacity-0">
           <span>2026</span>
           <span aria-hidden="true">·</span>
           <span>Maryland</span>

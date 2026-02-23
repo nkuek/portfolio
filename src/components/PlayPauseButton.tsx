@@ -23,7 +23,7 @@ export default function PlayPauseButton({
     >
       <span className="relative block overflow-hidden">
         <span
-          className="block transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+          className="block transition-all duration-200 ease-smooth"
           style={{
             opacity: paused ? 0 : 1,
             transform: paused ? "translateY(-100%)" : "translateY(0)",
@@ -32,7 +32,7 @@ export default function PlayPauseButton({
           pause
         </span>
         <span
-          className="absolute inset-0 block transition-all duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+          className="absolute inset-0 block transition-all duration-200 ease-smooth"
           style={{
             opacity: paused ? 1 : 0,
             transform: paused ? "translateY(0)" : "translateY(100%)",

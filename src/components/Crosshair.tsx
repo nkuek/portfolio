@@ -63,7 +63,7 @@ export default function Crosshair({
         ref={hLineRef}
         className="absolute top-1/2 left-0 h-px w-full"
         style={{
-          background: "#737373",
+          background: "var(--text-muted)",
           opacity: 0.12,
           transition: "opacity 300ms",
         }}
@@ -72,14 +72,14 @@ export default function Crosshair({
         ref={vLineRef}
         className="absolute top-0 left-1/2 h-full w-px"
         style={{
-          background: "#737373",
+          background: "var(--text-muted)",
           opacity: 0.12,
           transition: "opacity 300ms",
         }}
       />
       <div
         ref={labelRef}
-        className="absolute top-1/2 left-1/2 translate-x-2 -translate-y-5 font-mono text-[10px] text-[#737373]"
+        className="absolute top-1/2 left-1/2 translate-x-2 -translate-y-5 font-mono text-[10px] text-text-muted"
         style={{
           opacity: 0.35,
           transition: "opacity 300ms",

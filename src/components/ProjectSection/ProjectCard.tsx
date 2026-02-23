@@ -93,7 +93,7 @@ function PolaroidFragment({
       className="group block"
       aria-label={`View ${project.title} on ${project.liveLink ? "live site" : "GitHub"}`}
     >
-      <div className="relative aspect-square overflow-hidden bg-[#171717]">
+      <div className="relative aspect-square overflow-hidden bg-surface-media">
         {isVideo ? (
           <AutoplayVideo
             src={project.src}
@@ -105,7 +105,7 @@ function PolaroidFragment({
             src={project.src}
             alt={`Screenshot of ${project.title}`}
             fill
-            className="object-cover transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-[1.03]"
+            className="object-cover transition-transform duration-500 ease-smooth group-hover:scale-[1.03]"
             sizes="(max-width: 768px) 72vw, 380px"
           />
         )}
@@ -119,8 +119,8 @@ function PolaroidFragment({
       className="group block"
     >
       <div className="aspect-square overflow-hidden">
-        <div className="flex h-full w-full items-center justify-center bg-[#171717]">
-          <div className="flex flex-col items-center gap-3 text-[#737373] transition-colors duration-200 group-hover:text-[#fafaf9]">
+        <div className="flex h-full w-full items-center justify-center bg-surface-media">
+          <div className="flex flex-col items-center gap-3 text-text-muted transition-colors duration-200 group-hover:text-[#fafaf9]">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="36"
@@ -203,7 +203,7 @@ function PolaroidFragment({
 /* ── Info Fragment (description + links + pills) ── */
 
 const ARROW_CLASSES =
-  "transition-transform duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5";
+  "transition-transform duration-200 ease-smooth group-hover:translate-x-0.5 group-hover:-translate-y-0.5";
 
 function InfoFragment({
   project,
@@ -421,7 +421,7 @@ function MobileProjectCard({
       className="group block"
       aria-label={`View ${project.title} on ${project.liveLink ? "live site" : "GitHub"}`}
     >
-      <div className="relative aspect-square overflow-hidden bg-[#171717]">
+      <div className="relative aspect-square overflow-hidden bg-surface-media">
         {isVideo ? (
           <AutoplayVideo
             src={project.src}
@@ -447,8 +447,8 @@ function MobileProjectCard({
       className="group block"
     >
       <div className="aspect-square overflow-hidden">
-        <div className="flex h-full w-full items-center justify-center bg-[#171717]">
-          <div className="flex flex-col items-center gap-3 text-[#737373] transition-colors duration-200 group-hover:text-[#fafaf9]">
+        <div className="flex h-full w-full items-center justify-center bg-surface-media">
+          <div className="flex flex-col items-center gap-3 text-text-muted transition-colors duration-200 group-hover:text-[#fafaf9]">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="32"

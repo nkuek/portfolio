@@ -345,7 +345,7 @@ export default function ProjectSection({
                         y1={pa.y + 500}
                         x2={pb.x + 500}
                         y2={pb.y + 500}
-                        stroke="#2d7d9a"
+                        stroke="var(--accent)"
                         strokeWidth="2"
                         strokeDasharray={`${filledLen} ${unfilledLen}`}
                         strokeLinecap="round"
@@ -425,9 +425,9 @@ export default function ProjectSection({
           {/* Progress track — clickable dots */}
           <div className="absolute top-1/2 right-4 flex -translate-y-1/2 flex-col items-center gap-0">
             {/* Track line (base + fill) aligned to dot centers */}
-            <div className="absolute top-5 bottom-5 left-1/2 w-px -translate-x-1/2 bg-[#d4d4d4] dark:bg-[#404040]" />
+            <div className="absolute top-5 bottom-5 left-1/2 w-px -translate-x-1/2 bg-border-hairline" />
             <div
-              className="absolute top-5 bottom-5 left-1/2 w-px origin-top -translate-x-1/2 bg-[#2d7d9a]"
+              className="absolute top-5 bottom-5 left-1/2 w-px origin-top -translate-x-1/2 bg-accent"
               style={{
                 transform: `translateX(-50%) scaleY(${progress})`,
                 transition: "transform 80ms linear",
@@ -463,10 +463,10 @@ export default function ProjectSection({
                       width: isCurrent ? 10 : 6,
                       height: isCurrent ? 10 : 6,
                       backgroundColor: isCurrent
-                        ? "#2d7d9a"
+                        ? "var(--accent)"
                         : isPast
-                          ? "#2d7d9a"
-                          : "#d4d4d4",
+                          ? "var(--accent)"
+                          : "var(--border-hairline)",
                       opacity: isCurrent ? 1 : isPast ? 0.5 : 0.6,
                     }}
                   />

@@ -119,7 +119,7 @@ function WildCardFragments({
           )}
           <div className="p-3 pb-0">
             {isVideo ? (
-              <div className="relative aspect-16/10 overflow-hidden bg-[#171717]">
+              <div className="relative aspect-16/10 overflow-hidden bg-surface-media">
                 <AutoplayVideo
                   src={project.videoSrc}
                   paused={paused}
@@ -128,8 +128,8 @@ function WildCardFragments({
                 />
               </div>
             ) : (
-              <div className="flex aspect-16/10 items-center justify-center bg-[#171717]">
-                <span className="font-mono text-base text-[#525252]">
+              <div className="flex aspect-16/10 items-center justify-center bg-surface-media">
+                <span className="font-mono text-base text-text-subtle">
                   Coming soon
                 </span>
               </div>
@@ -185,7 +185,7 @@ function MobileWildCard({ project }: { project: WildProject }) {
         />
         <div className="p-2.5 pb-0">
           {isVideo ? (
-            <div className="relative aspect-16/10 overflow-hidden bg-[#171717]">
+            <div className="relative aspect-16/10 overflow-hidden bg-surface-media">
               <AutoplayVideo
                 src={project.videoSrc}
                 paused={paused}
@@ -194,8 +194,8 @@ function MobileWildCard({ project }: { project: WildProject }) {
               />
             </div>
           ) : (
-            <div className="flex aspect-16/10 items-center justify-center bg-[#171717]">
-              <span className="font-mono text-base text-[#525252]">
+            <div className="flex aspect-16/10 items-center justify-center bg-surface-media">
+              <span className="font-mono text-base text-text-subtle">
                 Coming soon
               </span>
             </div>
@@ -499,7 +499,7 @@ export default function InTheWild({
                           y1={0}
                           x2={next.x}
                           y2={0}
-                          stroke="#2d7d9a"
+                          stroke="var(--accent)"
                           strokeWidth="2"
                           strokeDasharray={`${filledLen} ${unfilledLen}`}
                           strokeLinecap="round"

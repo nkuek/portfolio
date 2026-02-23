@@ -21,6 +21,49 @@
 
   --tertiary: var(--color-teal-950);
   --tertiary-hover: var(--color-teal-900);
+  /* ── Surface ── */
+  --surface-card: #fafaf9;
+  --surface-card-alt: #f0f0f0;
+  --surface-media: #171717;
+  --surface-overlay: rgb(250 250 249 / 0.92);
+
+  /* ── Accent ── */
+  --accent: #2d7d9a;
+  --accent-tape: rgb(45 125 154 / 0.5);
+  --accent-rose: #c4636a;
+  --accent-rose-tape: rgb(196 99 106 / 0.5);
+
+  /* ── Text variants ── */
+  --text-muted: #737373;
+  --text-subtle: #525252;
+  --text-card-title: #404040;
+
+  /* ── Borders ── */
+  --border-hairline: #d4d4d4;
+  --border-light: #e5e5e5;
+  --border-card: rgba(0, 0, 0, 0.08);
+
+  /* ── Shadows ── */
+  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.08), 0 6px 20px rgb(0 0 0 / 0.1);
+  --shadow-card-hover: 0 2px 6px rgb(0 0 0 / 0.1), 0 12px 32px rgb(0 0 0 / 0.14);
+  --shadow-info: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 14px rgb(0 0 0 / 0.07);
+  --shadow-info-hover: 0 2px 4px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.1);
+  --shadow-section-title: drop-shadow(0 2px 4px rgb(0 0 0 / 0.06)) drop-shadow(0 8px 20px rgb(0 0 0 / 0.1));
+  --shadow-control: 0 1px 3px rgb(0 0 0 / 0.08), 0 4px 10px rgb(0 0 0 / 0.06);
+  --shadow-sticky: 0 2px 6px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-pin: 0 1px 3px rgb(0 0 0 / 0.25), inset 0 1px 2px rgb(255 255 255 / 0.3);
+
+  /* ── Motion ── */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-fast: 200ms;
+  --duration-scatter: 500ms;
+
+  /* ── Radii ── */
+  --radius-torn: 3px;
+  --radius-control: 6px;
+  --radius-info: 10px;
+
   --grainy-background-color: var(--background);
   --grainy-background-opaque:
     linear-gradient(
@@ -121,6 +164,23 @@
   --inline-code: var(--color-inline-code-dark);
   --track-color: var(--text);
   --grainy-background-color: rgb(23, 24, 32);
+
+  --surface-card: #242424;
+  --surface-card-alt: #1a1a2e;
+  --surface-overlay: rgb(28 28 28 / 0.92);
+  --text-muted: #a3a3a3;
+  --text-subtle: #a3a3a3;
+  --text-card-title: #a3a3a3;
+  --border-hairline: #404040;
+  --border-light: #333333;
+  --border-card: rgba(255, 255, 255, 0.08);
+  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.2), 0 6px 20px rgb(0 0 0 / 0.35);
+  --shadow-card-hover: 0 2px 6px rgb(0 0 0 / 0.25), 0 12px 32px rgb(0 0 0 / 0.4);
+  --shadow-info: 0 1px 2px rgb(0 0 0 / 0.15), 0 4px 14px rgb(0 0 0 / 0.25);
+  --shadow-info-hover: 0 2px 4px rgb(0 0 0 / 0.2), 0 8px 24px rgb(0 0 0 / 0.35);
+  --shadow-section-title: drop-shadow(0 2px 4px rgb(0 0 0 / 0.15)) drop-shadow(0 8px 20px rgb(0 0 0 / 0.25));
+  --shadow-control: 0 1px 3px rgb(0 0 0 / 0.2), 0 4px 10px rgb(0 0 0 / 0.15);
+  --shadow-sticky: 0 2px 6px rgb(0 0 0 / 0.25), 0 1px 2px rgb(0 0 0 / 0.15);
 }
 
 @utility clip-path-* {
@@ -171,6 +231,19 @@
   --color-tertiary: var(--tertiary);
   --color-tertiary-hover: var(--tertiary-hover);
   --color-text-on-button: var(--text-on-button);
+
+  --color-surface-card: var(--surface-card);
+  --color-surface-media: var(--surface-media);
+  --color-accent: var(--accent);
+  --color-accent-rose: var(--accent-rose);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+  --color-text-card-title: var(--text-card-title);
+  --color-border-hairline: var(--border-hairline);
+  --color-border-light: var(--border-light);
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
+
   --animation-delay: 0ms;
 
   --font-sans: var(--font-poppins);
@@ -476,8 +549,8 @@ body {
   --base: var(--base-opacity, 0.3);
   transform: translate(-50%, -50%);
   opacity: calc(var(--base) + var(--boost) * (1 - var(--base)));
-  color: #2d7d9a;
-  transition: opacity 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  color: var(--accent);
+  transition: opacity var(--duration-fast) var(--ease-smooth);
   text-shadow:
     0 0 8px rgb(255 255 255 / 0.9),
     0 0 20px rgb(255 255 255 / 0.6),
@@ -494,7 +567,7 @@ body {
 /* ── Skills annotations ── */
 
 .skill-annotation {
-  color: #2d7d9a;
+  color: var(--accent);
   opacity: 0.6;
 }
 
@@ -503,11 +576,11 @@ body {
   font-size: 16px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #525252;
-  background: #fafaf9;
-  border: 1px solid #e5e5e5;
+  color: var(--text-subtle);
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
   padding: 12px 22px;
-  border-radius: 3px;
+  border-radius: var(--radius-torn);
   /* Torn edge feel via subtle clip */
   clip-path: polygon(
     0% 2%,
@@ -521,29 +594,17 @@ body {
   );
 }
 
-:root[data-color-scheme="dark"] .constellation-pill {
-  color: #a3a3a3;
-  background: #1c1c1c;
-  border-color: #333;
-}
-
 /* ── Section title card — large torn-edge scrapbook fragment ── */
 
 /* Wrapper carries drop-shadow so it follows the torn clip-path shape */
 .section-title-wrapper {
   position: relative;
-  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.06))
-    drop-shadow(0 8px 20px rgb(0 0 0 / 0.1));
-}
-
-:root[data-color-scheme="dark"] .section-title-wrapper {
-  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.15))
-    drop-shadow(0 8px 20px rgb(0 0 0 / 0.25));
+  filter: var(--shadow-section-title);
 }
 
 .section-title-card {
-  background: #fafaf9;
-  border-radius: 3px;
+  background: var(--surface-card);
+  border-radius: var(--radius-torn);
   /* Torn bottom edge */
   clip-path: polygon(
     0% 0%,
@@ -570,60 +631,34 @@ body {
   );
 }
 
-:root[data-color-scheme="dark"] .section-title-card {
-  background: #242424;
-}
-
 .section-title-text {
   color: var(--text);
 }
 
 .section-title-subtitle {
-  color: #737373;
-}
-
-:root[data-color-scheme="dark"] .section-title-subtitle {
-  color: #a3a3a3;
+  color: var(--text-muted);
 }
 
 /* ── Polaroid image cards ── */
 
 .polaroid-card {
-  background: #fafaf9;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 3px;
-  box-shadow:
-    0 1px 3px rgb(0 0 0 / 0.08),
-    0 6px 20px rgb(0 0 0 / 0.1);
+  background: var(--surface-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-torn);
+  box-shadow: var(--shadow-card);
   transition:
-    transform 500ms cubic-bezier(0.16, 1, 0.3, 1),
-    scale 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-:root[data-color-scheme="dark"] .polaroid-card {
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow:
-    0 1px 3px rgb(0 0 0 / 0.2),
-    0 6px 20px rgb(0 0 0 / 0.35);
+    transform var(--duration-scatter) var(--ease-spring),
+    scale var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth);
 }
 
 .polaroid-card:hover {
   scale: 1.02;
-  box-shadow:
-    0 2px 6px rgb(0 0 0 / 0.1),
-    0 12px 32px rgb(0 0 0 / 0.14);
-}
-
-:root[data-color-scheme="dark"] .polaroid-card:hover {
-  scale: 1.02;
-  box-shadow:
-    0 2px 6px rgb(0 0 0 / 0.25),
-    0 12px 32px rgb(0 0 0 / 0.4);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .polaroid-title {
-  color: #404040;
+  color: var(--text-card-title);
 }
 
 /* Tape strip — washi tape, always centered on top edge.
@@ -681,7 +716,7 @@ body {
     100% 5%,
     calc(100% - 3px) 0%
   );
-  transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--duration-scatter) var(--ease-spring);
   backdrop-filter: blur(2px);
 }
 
@@ -694,7 +729,7 @@ body {
       rgb(255 255 255 / 0.25) 3px,
       rgb(255 255 255 / 0.25) 6px
     ),
-    rgb(45 125 154 / 0.5);
+    var(--accent-tape);
 }
 
 .polaroid-tape-rose {
@@ -706,59 +741,37 @@ body {
       rgb(255 255 255 / 0.2) 4px,
       rgb(255 255 255 / 0.2) 8px
     ),
-    rgb(196 99 106 / 0.5);
+    var(--accent-rose-tape);
 }
 
 /* ── "In the Wild" horizontal scroll ── */
 
 .wild-progress-track {
-  background: #e5e5e5;
-}
-
-:root[data-color-scheme="dark"] .wild-progress-track {
-  background: #333;
+  background: var(--border-light);
 }
 
 .wild-progress-fill {
-  background: #2d7d9a;
+  background: var(--accent);
   transition: transform 50ms linear;
 }
 
 .wild-card {
-  background: #fafaf9;
-  border-radius: 3px;
-  box-shadow:
-    0 1px 3px rgb(0 0 0 / 0.08),
-    0 6px 20px rgb(0 0 0 / 0.1);
+  background: var(--surface-card);
+  border-radius: var(--radius-torn);
+  box-shadow: var(--shadow-card);
   scroll-snap-align: center;
   transition:
-    scale 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-:root[data-color-scheme="dark"] .wild-card {
-  background: #242424;
-  box-shadow:
-    0 1px 3px rgb(0 0 0 / 0.2),
-    0 6px 20px rgb(0 0 0 / 0.35);
+    scale var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth);
 }
 
 .wild-card:hover {
   scale: 1.02;
-  box-shadow:
-    0 2px 6px rgb(0 0 0 / 0.1),
-    0 12px 32px rgb(0 0 0 / 0.14);
-}
-
-:root[data-color-scheme="dark"] .wild-card:hover {
-  scale: 1.02;
-  box-shadow:
-    0 2px 6px rgb(0 0 0 / 0.25),
-    0 12px 32px rgb(0 0 0 / 0.4);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .wild-company {
-  color: #2d7d9a;
+  color: var(--accent);
 }
 
 .wild-caption {
@@ -768,76 +781,59 @@ body {
 /* ── Play/Pause floating fragment ── */
 
 .play-pause-fragment {
-  border-radius: 6px;
-  background: #fafaf9;
-  border: 1px solid #e5e5e5;
-  color: #525252;
-  box-shadow:
-    0 1px 3px rgb(0 0 0 / 0.08),
-    0 4px 10px rgb(0 0 0 / 0.06);
+  border-radius: var(--radius-control);
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
+  color: var(--text-subtle);
+  box-shadow: var(--shadow-control);
   transition:
-    transform 500ms cubic-bezier(0.16, 1, 0.3, 1),
-    background 200ms,
-    color 200ms;
+    transform var(--duration-scatter) var(--ease-spring),
+    background var(--duration-fast),
+    color var(--duration-fast);
 }
 
 .play-pause-fragment:hover {
-  background: #2d7d9a;
-  border-color: #2d7d9a;
-  color: white;
-}
-
-:root[data-color-scheme="dark"] .play-pause-fragment {
-  background: #242424;
-  border-color: #333;
-  color: #a3a3a3;
-  box-shadow:
-    0 1px 3px rgb(0 0 0 / 0.2),
-    0 4px 10px rgb(0 0 0 / 0.15);
-}
-
-:root[data-color-scheme="dark"] .play-pause-fragment:hover {
-  background: #2d7d9a;
-  border-color: #2d7d9a;
+  background: var(--accent);
+  border-color: var(--accent);
   color: white;
 }
 
 /* ── Grid ticks ── */
 
 .grid-tick {
-  background: #737373;
+  background: var(--text-muted);
   opacity: 0.7;
   transition:
-    background 200ms,
-    opacity 200ms;
+    background var(--duration-fast),
+    opacity var(--duration-fast);
 }
 
 .grid-tick-label {
-  color: #737373;
+  color: var(--text-muted);
   opacity: 0.6;
   transition:
-    color 200ms,
-    opacity 200ms;
+    color var(--duration-fast),
+    opacity var(--duration-fast);
 }
 
 .grid-tick-highlight .grid-tick {
-  background: #2d7d9a !important;
+  background: var(--accent) !important;
   opacity: 1 !important;
 }
 
 .grid-tick-highlight .grid-tick-label {
-  color: #2d7d9a !important;
+  color: var(--accent) !important;
   opacity: 1 !important;
 }
 
 .grid-tick-highlight-y {
-  transition: transform 200ms;
+  transition: transform var(--duration-fast);
   transform: scale(1.3);
   transform-origin: left center;
 }
 
 .grid-tick-highlight-x {
-  transition: transform 200ms;
+  transition: transform var(--duration-fast);
   transform: scale(1.3);
   transform-origin: center bottom;
 }
@@ -851,90 +847,60 @@ body {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #c4636a;
-  box-shadow:
-    0 1px 3px rgb(0 0 0 / 0.25),
-    inset 0 1px 2px rgb(255 255 255 / 0.3);
+  background: var(--accent-rose);
+  box-shadow: var(--shadow-pin);
   z-index: 4;
   pointer-events: none;
-  transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--duration-scatter) var(--ease-spring);
 }
 
 /* ── Info fragment (description card) ── */
 
 .info-fragment {
-  border-radius: 10px;
-  border: 1px solid #e5e5e5;
-  background: rgb(250 250 249 / 0.92);
+  border-radius: var(--radius-info);
+  border: 1px solid var(--border-light);
+  background: var(--surface-overlay);
   backdrop-filter: blur(14px);
-  box-shadow:
-    0 1px 2px rgb(0 0 0 / 0.04),
-    0 4px 14px rgb(0 0 0 / 0.07);
+  box-shadow: var(--shadow-info);
   transition:
-    transform 500ms cubic-bezier(0.16, 1, 0.3, 1),
-    scale 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-:root[data-color-scheme="dark"] .info-fragment {
-  border-color: #333;
-  background: rgb(28 28 28 / 0.92);
-  box-shadow:
-    0 1px 2px rgb(0 0 0 / 0.15),
-    0 4px 14px rgb(0 0 0 / 0.25);
+    transform var(--duration-scatter) var(--ease-spring),
+    scale var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth);
 }
 
 .info-fragment:hover {
   scale: 1.015;
-  box-shadow:
-    0 2px 4px rgb(0 0 0 / 0.06),
-    0 8px 24px rgb(0 0 0 / 0.1);
-}
-
-:root[data-color-scheme="dark"] .info-fragment:hover {
-  scale: 1.015;
-  box-shadow:
-    0 2px 4px rgb(0 0 0 / 0.2),
-    0 8px 24px rgb(0 0 0 / 0.35);
+  box-shadow: var(--shadow-info-hover);
 }
 
 /* Info card inner elements — dark mode via attribute */
 .info-link {
   color: var(--text);
-  transition: color 200ms;
+  transition: color var(--duration-fast);
 }
 .info-link:hover {
-  color: #2d7d9a;
+  color: var(--accent);
 }
 
 .info-link-secondary {
   color: var(--caption);
-  transition: color 200ms;
+  transition: color var(--duration-fast);
 }
 .info-link-secondary:hover {
-  color: #2d7d9a;
+  color: var(--accent);
 }
 
 .info-hairline {
-  background: #e5e5e5;
+  background: var(--border-light);
 }
-:root[data-color-scheme="dark"] .info-hairline {
-  background: #333;
-}
-
 .info-desc {
   color: var(--caption);
 }
 
 .tech-pill {
-  background: #f0f0f0;
-  color: #525252;
+  background: var(--surface-card-alt);
+  color: var(--text-subtle);
 }
-:root[data-color-scheme="dark"] .tech-pill {
-  background: #1a1a2e;
-  color: #c8c4b8;
-}
-
 /* ── Sticky notes ── */
 
 .sticky-note {
@@ -946,22 +912,14 @@ body {
   padding: 18px 21px;
   font-style: italic;
   line-height: 1.4;
-  border-radius: 3px;
+  border-radius: var(--radius-torn);
   pointer-events: none;
   z-index: 3;
-  box-shadow:
-    0 2px 6px rgb(0 0 0 / 0.08),
-    0 1px 2px rgb(0 0 0 / 0.04);
-  transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-sticky);
+  transition: transform var(--duration-scatter) var(--ease-spring);
   @media (max-width: 767px) {
     font-size: 16px;
   }
-}
-
-:root[data-color-scheme="dark"] .sticky-note {
-  box-shadow:
-    0 2px 6px rgb(0 0 0 / 0.25),
-    0 1px 2px rgb(0 0 0 / 0.15);
 }
 
 /* Sticky note color variants */
