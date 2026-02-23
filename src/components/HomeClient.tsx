@@ -9,7 +9,7 @@ import Footer from "~/components/Footer";
 import AsciiAmbient, {
   type HighlightData,
 } from "~/components/HeroSection/AsciiAmbient";
-import GridTicks, { type MouseOffset } from "~/components/GridTicks";
+import GridTicks, { type MouseOffset, type YAxisData } from "~/components/GridTicks";
 import Crosshair, { type CrosshairData } from "~/components/Crosshair";
 import XAxisTicks, { type XAxisData } from "~/components/XAxisTicks";
 
@@ -26,6 +26,7 @@ export default function HomeClient() {
     visible: false,
   });
   const mouseOffsetRef = useRef<MouseOffset>({ x: 0, y: 0 });
+  const yAxisRef = useRef<YAxisData>({ y: 0, active: false });
 
   return (
     <>
@@ -33,7 +34,7 @@ export default function HomeClient() {
       <div className="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
         <AsciiAmbient highlightRef={highlightRef} />
       </div>
-      <GridTicks mouseOffsetRef={mouseOffsetRef} />
+      <GridTicks mouseOffsetRef={mouseOffsetRef} yAxisRef={yAxisRef} />
       <Crosshair dataRef={crosshairRef} />
       <XAxisTicks dataRef={xAxisRef} mouseOffsetRef={mouseOffsetRef} />
       <div className="relative z-1">
@@ -48,6 +49,7 @@ export default function HomeClient() {
           highlightRef={highlightRef}
           crosshairRef={crosshairRef}
           xAxisRef={xAxisRef}
+          yAxisRef={yAxisRef}
         />
         <SkillsSection />
         <Footer />

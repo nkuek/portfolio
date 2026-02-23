@@ -35,7 +35,6 @@ export default function ProjectSection({
   const [progress, setProgress] = useState(0);
   const [sectionInView, setSectionInView] = useState(false);
   const [viewport, setViewport] = useState({ w: 0, h: 0 });
-  const [scrollYCenter, setScrollYCenter] = useState(0);
 
   // Refs that the mouse-follow rAF loop reads — updated every render, zero re-renders from mouse
   const focusIntensityRef = useRef(0);
@@ -117,15 +116,11 @@ export default function ProjectSection({
       const viewportH = window.innerHeight;
       const scrolled = -rect.top;
       const scrollableDistance = sectionHeight - viewportH;
-      const p =
-        scrollableDistance <= 0
-          ? 1
-          : Math.min(Math.max(scrolled / scrollableDistance, 0), 1);
-      setProgress(p);
+      const raw = scrollableDistance <= 0 ? 1 : scrolled / scrollableDistance;
+      setProgress(Math.min(Math.max(raw, 0), 1));
       // Section is "in view" when its top is above mid-viewport AND its bottom is below mid-viewport
       const midScreen = viewportH * 0.5;
       setSectionInView(rect.top < midScreen && rect.bottom > midScreen);
-      setScrollYCenter(window.scrollY + midScreen);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -194,7 +189,7 @@ export default function ProjectSection({
       window.removeEventListener("pointermove", onWorldPointerMove);
       cancelAnimationFrame(raf);
     };
-  }, [viewport.w, onWorldPointerMove]);
+  }, [viewport.w, onWorldPointerMove, mouseOffsetRef]);
 
   const dotCount = projects.length;
   const last = dotCount - 1;
@@ -235,7 +230,7 @@ export default function ProjectSection({
   const crosshairFocused = focusIntensity > 0.8;
   if (!isMobile && sectionInView) {
     crosshairRef.current = {
-      label: `${Math.round(camera.x)}, ${scrollYCenter}`,
+      label: `${Math.round(camera.x)}, ${Math.round(window.scrollY)}`,
       focused: crosshairFocused,
       visible: true,
       owner: "projects",

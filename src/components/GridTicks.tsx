@@ -6,14 +6,25 @@ const TICK_INTERVAL = 200;
 
 export type MouseOffset = { x: number; y: number };
 
+export type YAxisData = {
+  /** Scroll-position value to display at viewport center (0 = page top) */
+  y: number;
+  /** When true, use `y` instead of live scrollY (e.g. locked during horizontal scroll) */
+  active: boolean;
+};
+
 /**
  * Fixed Y-axis grid tick marks along the left edge of the viewport.
  * Continuous rAF loop so ticks respond to both scroll and mouse parallax.
+ * When a section locks the y-axis (horizontal scroll), reads from yAxisRef
+ * instead of live scroll position.
  */
 export default function GridTicks({
   mouseOffsetRef,
+  yAxisRef,
 }: {
   mouseOffsetRef: RefObject<MouseOffset>;
+  yAxisRef: RefObject<YAxisData>;
 }) {
   const yContainerRef = useRef<HTMLDivElement>(null);
 
@@ -72,7 +83,9 @@ export default function GridTicks({
       // to avoid jitter from rAF timing differences with the parallax loop)
       ct.style.transform = `translateY(${-mouseOffsetRef.current.y}px)`;
 
-      const centerVal = sy + centerY;
+      const yData = yAxisRef.current;
+      const centerVal = yData.active ? yData.y : sy;
+      const virtualSy = centerVal - centerY;
       const closestVal =
         Math.floor((centerVal + TICK_INTERVAL / 2) / TICK_INTERVAL) *
         TICK_INTERVAL;
@@ -85,7 +98,7 @@ export default function GridTicks({
 
       for (let i = 0; i < children.length; i++) {
         const val = startVal + i * TICK_INTERVAL;
-        const screenY = val - sy;
+        const screenY = val - virtualSy;
 
         if (screenY < -20 || screenY > h + 20) {
           children[i].style.display = "none";
@@ -117,7 +130,7 @@ export default function GridTicks({
     raf = requestAnimationFrame(tick);
 
     return () => cancelAnimationFrame(raf);
-  }, [mouseOffsetRef]);
+  }, [mouseOffsetRef, yAxisRef]);
 
   return (
     <div

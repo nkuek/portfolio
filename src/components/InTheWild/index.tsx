@@ -6,6 +6,7 @@ import AutoplayVideo from "~/components/AutoplayVideo";
 import SectionTitleCard from "~/components/SectionTitleCard";
 import type { CrosshairData } from "~/components/Crosshair";
 import type { XAxisData } from "~/components/XAxisTicks";
+import type { YAxisData } from "~/components/GridTicks";
 import useReducedMotion from "~/hooks/useReducedMotion";
 import useTilt, { TILT_INNER_TRANSITION } from "~/hooks/useTilt";
 import {
@@ -256,17 +257,21 @@ export default function InTheWild({
   highlightRef,
   crosshairRef,
   xAxisRef,
+  yAxisRef,
 }: {
   highlightRef: RefObject<HighlightData>;
   crosshairRef: RefObject<CrosshairData>;
   xAxisRef: RefObject<XAxisData>;
+  yAxisRef: RefObject<YAxisData>;
 }) {
   const sectionRef = useRef<HTMLElement>(null);
   const labelsRef = useRef<HTMLDivElement>(null);
+  const lockedYRef = useRef<number | null>(null);
+  const scrollDistRef = useRef(0);
   const [progress, setProgress] = useState(0);
+  const [rawProgress, setRawProgress] = useState(0);
   const [sectionInView, setSectionInView] = useState(false);
   const [viewport, setViewport] = useState({ w: 0, h: 0 });
-  const [scrollYCenter, setScrollYCenter] = useState(0);
 
   useEffect(() => {
     const update = () =>
@@ -341,11 +346,12 @@ export default function InTheWild({
       const viewportH = window.innerHeight;
       const scrolled = -rect.top;
       const scrollableDistance = sectionHeight - viewportH;
-      const p = Math.min(Math.max(scrolled / scrollableDistance, 0), 1);
-      setProgress(p);
+      scrollDistRef.current = scrollableDistance;
+      const raw = scrollableDistance <= 0 ? 1 : scrolled / scrollableDistance;
+      setRawProgress(raw);
+      setProgress(Math.min(Math.max(raw, 0), 1));
 
       const midScreen = viewportH * 0.5;
-      setScrollYCenter(window.scrollY + midScreen);
       setSectionInView(rect.top < midScreen && rect.bottom > midScreen);
     };
 
@@ -362,9 +368,9 @@ export default function InTheWild({
   const cameraX = firstX + panProgress * (lastX - firstX);
   const tx = -cameraX + viewport.w / 2;
 
-  // Offset so the x-axis continues from where ProjectSection ended
-  const xAxisOffset = cameraWaypoints[cameraWaypoints.length - 1].x;
-  const displayX = cameraX + xAxisOffset;
+  // Offset so x-axis continues from where ProjectSection ended
+  const lastWaypoint = cameraWaypoints[cameraWaypoints.length - 1];
+  const displayX = cameraX + lastWaypoint.x;
   const displayTx = -displayX + viewport.w / 2;
 
   // Find the closest project and write highlight text
@@ -385,9 +391,32 @@ export default function InTheWild({
     text: !isMobile && sectionInView ? closestProject.title : "",
     intensity: isMobile ? 0 : focusIntensity,
   };
+  // ── Y-axis management ──
+  // Y-axis uses scroll position (0 at page top). During horizontal scroll,
+  // lock it so the y-axis stays fixed while only x changes.
+  if (!isMobile && viewport.w > 0) {
+    if (rawProgress >= 0 && rawProgress <= 1) {
+      // Horizontal scroll active — lock Y at the scroll position on entry
+      if (lockedYRef.current === null) {
+        lockedYRef.current = window.scrollY;
+      }
+      yAxisRef.current = { y: lockedYRef.current, active: true };
+    } else if (rawProgress > 1 && lockedYRef.current !== null) {
+      // Past InTheWild — continue from locked Y plus additional scroll
+      const extraPx = (rawProgress - 1) * (scrollDistRef.current || 1);
+      yAxisRef.current = { y: lockedYRef.current + extraPx, active: true };
+    } else {
+      // Before InTheWild or past with no lock — GridTicks uses scrollY directly
+      lockedYRef.current = null;
+      yAxisRef.current = { y: 0, active: false };
+    }
+  }
+
+  // ── Crosshair & X-axis ──
   if (!isMobile && sectionInView) {
+    const displayY = yAxisRef.current.active ? yAxisRef.current.y : window.scrollY;
     crosshairRef.current = {
-      label: `${Math.round(displayX)}, ${scrollYCenter}`,
+      label: `${Math.round(displayX)}, ${Math.round(displayY)}`,
       focused: false,
       visible: true,
       owner: "wild",
