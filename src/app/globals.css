@@ -428,6 +428,7 @@ html[data-color-scheme="dark"] {
 body {
   background: var(--background);
   font-family: var(--font-poppins);
+  text-wrap: pretty;
 }
 
 /* ── Scroll-driven keyframes (outside @theme to guarantee emission) ── */

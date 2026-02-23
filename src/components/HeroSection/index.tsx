@@ -41,7 +41,7 @@ export default function HeroSection() {
             style={{ opacity: cursorVisible ? 1 : 0 }}
           />
         </p>
-        <p className="text-accent mt-4 w-fit animate-[heroFocusPull_800ms_cubic-bezier(0.22,0.61,0.36,1)_1000ms_both] font-mono text-[clamp(1rem,1.2vw,1.2375rem)] leading-[1.6] italic opacity-0 backdrop-blur-2xl">
+        <p className="text-accent mt-4 w-fit animate-[heroFocusPull_800ms_cubic-bezier(0.22,0.61,0.36,1)_1000ms_both] font-mono text-[clamp(1rem,1.2vw,1.2375rem)] leading-[1.6] text-balance italic opacity-0 backdrop-blur-2xl max-md:text-center">
           making the web more beautiful
         </p>
         <div
