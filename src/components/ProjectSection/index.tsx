@@ -125,7 +125,7 @@ export default function ProjectSection({
       // Section is "in view" when its top is above mid-viewport AND its bottom is below mid-viewport
       const midScreen = viewportH * 0.5;
       setSectionInView(rect.top < midScreen && rect.bottom > midScreen);
-      setScrollYCenter(midScreen);
+      setScrollYCenter(window.scrollY + midScreen);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });

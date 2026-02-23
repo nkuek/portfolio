@@ -345,7 +345,7 @@ export default function InTheWild({
       setProgress(p);
 
       const midScreen = viewportH * 0.5;
-      setScrollYCenter(midScreen);
+      setScrollYCenter(window.scrollY + midScreen);
       setSectionInView(rect.top < midScreen && rect.bottom > midScreen);
     };
 
