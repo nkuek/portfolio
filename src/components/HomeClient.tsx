@@ -6,6 +6,7 @@ import ProjectSection from "~/components/ProjectSection";
 import InTheWild from "~/components/InTheWild";
 import SkillsSection from "~/components/SkillsSection";
 import Footer from "~/components/Footer";
+import ScrollToTop from "~/components/ScrollToTop";
 import AsciiAmbient, {
   type HighlightData,
 } from "~/components/HeroSection/AsciiAmbient";
@@ -56,6 +57,7 @@ export default function HomeClient() {
         />
         <SkillsSection />
         <Footer />
+        <ScrollToTop />
       </div>
     </>
   );

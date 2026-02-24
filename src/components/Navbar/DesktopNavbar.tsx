@@ -7,7 +7,7 @@ export default function DesktopNavbar() {
   return (
     <ul className="hidden justify-end gap-6 px-6 py-4 text-lg md:flex">
       <li className="flex">
-        <DSAnchor href="/KuekResume.pdf" className="h-full">
+        <DSAnchor href="/resume" className="h-full">
           Resume
         </DSAnchor>
       </li>

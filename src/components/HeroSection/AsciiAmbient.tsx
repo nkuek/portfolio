@@ -7,67 +7,11 @@ const FONT_SIZE = 16;
 const LINE_HEIGHT = FONT_SIZE * 1.7;
 const CHAR_WIDTH = FONT_SIZE * 0.62;
 const MOUSE_RADIUS = 300;
-const DRIFT_INTERVAL = 400;
-const FADE_STEP = 0.0015;
+const DRIFT_INTERVAL = 500;
+const FADE_STEP = 0.009;
 
 const BRIGHT_ALPHA_LIGHT = 0.45;
 const BRIGHT_ALPHA_DARK = 0.3;
-
-const NUM_LEAVES = 14;
-
-type Leaf = {
-  baseX: number;
-  baseY: number;
-  length: number;
-  halfWidth: number;
-  baseAngle: number;
-  driftPhase: number;
-  swayPhase: number;
-  driftAmpX: number;
-  driftAmpY: number;
-};
-
-function generateLeaves(): Leaf[] {
-  const leaves: Leaf[] = [];
-  for (let i = 0; i < NUM_LEAVES; i++) {
-    const seed = Math.sin(i * 73.17 + 3.91) * 43758.5453;
-    const r = seed - Math.floor(seed);
-    const seed2 = Math.sin(i * 127.3 + 7.13) * 23421.631;
-    const r2 = seed2 - Math.floor(seed2);
-    leaves.push({
-      baseX: 0.05 + r * 0.9,
-      baseY: 0.05 + r2 * 0.9,
-      length: 0.03 + r * 0.03,
-      halfWidth: 0.006 + r2 * 0.008,
-      baseAngle: r * Math.PI * 2,
-      driftPhase: r * 10,
-      swayPhase: r2 * 10,
-      driftAmpX: 0.06 + r2 * 0.08,
-      driftAmpY: 0.04 + r * 0.06,
-    });
-  }
-  return leaves;
-}
-
-function leafSDF(nx: number, ny: number, leaf: Leaf, t: number): number {
-  const cx = leaf.baseX + Math.sin(t * 0.3 + leaf.driftPhase) * leaf.driftAmpX;
-  const cy =
-    leaf.baseY + Math.sin(t * 0.22 + leaf.driftPhase + 1.5) * leaf.driftAmpY;
-  const angle = leaf.baseAngle + Math.sin(t * 0.4 + leaf.swayPhase) * 0.5;
-  const cosA = Math.cos(angle);
-  const sinA = Math.sin(angle);
-  const dx = nx - cx;
-  const dy = ny - cy;
-  const lx = dx * cosA + dy * sinA;
-  const ly = -dx * sinA + dy * cosA;
-  const normX = lx / leaf.length + 0.5;
-  if (normX < 0 || normX > 1) return -1;
-  const envelope = Math.sin(normX * Math.PI) * leaf.halfWidth;
-  if (envelope <= 0) return -1;
-  const normDist = Math.abs(ly) / envelope;
-  if (normDist > 1) return -1;
-  return 1 - normDist;
-}
 
 function randomChar() {
   return CHARS[Math.floor(Math.random() * CHARS.length)];
@@ -116,7 +60,6 @@ export default function AsciiAmbient({
     }
 
     const accentCells = new Set<number>();
-    const leaves = generateLeaves();
     let leafDepthMap = new Float32Array(0);
 
     function setupCanvas() {
@@ -129,22 +72,9 @@ export default function AsciiAmbient({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       initGrid();
       leafDepthMap = new Float32Array(cols * rows).fill(-1);
-    }
-
-    function updateLeaves(t: number) {
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-          const idx = row * cols + col;
-          const nx = col / cols;
-          const ny = row / rows;
-          let maxDepth = -1;
-          for (const leaf of leaves) {
-            const d = leafSDF(nx, ny, leaf, t);
-            if (d > maxDepth) maxDepth = d;
-          }
-          leafDepthMap[idx] = maxDepth;
-        }
-      }
+      hlMaskText = ""; // invalidate so highlight recomputes at new grid size
+      updateTextDimMap();
+      lastDimScrollY = window.scrollY;
     }
 
     function renderFrame() {
@@ -170,7 +100,8 @@ export default function AsciiAmbient({
 
         const col = i % cols;
         const row = Math.floor(i / cols);
-        ctx.globalAlpha = brightness[i] * leafMask;
+        const dim = textDimMap.length > i ? textDimMap[i] : 1;
+        ctx.globalAlpha = brightness[i] * leafMask * dim;
 
         // Accent colors from spotlight — but never inside highlight text region
         const inHighlight = hlMask && hlMask[i] > 20;
@@ -248,7 +179,9 @@ export default function AsciiAmbient({
     let hovering = false;
     let cursorIdle = false;
     let lastMoveTime = 0;
-    const IDLE_THRESHOLD = 1000; // ms before spotlight fades
+    const IDLE_THRESHOLD = 500; // ms before spotlight fades
+    let cursorSpeed = 0; // px/s
+    const MIN_SPEED = 40; // px/s threshold to trigger spotlight
     let activeCells = new Set<number>();
 
     function computeActiveCells(): Set<number> {
@@ -303,10 +236,8 @@ export default function AsciiAmbient({
         const dist = Math.sqrt(dx * dx + dy * dy);
         const intensity = 1 - dist / MOUSE_RADIUS;
         const brightAlpha = isDark() ? BRIGHT_ALPHA_DARK : BRIGHT_ALPHA_LIGHT;
-        brightness[idx] = Math.max(
-          brightness[idx],
-          brightAlpha * intensity * intensity,
-        );
+        const spotlightVal = brightAlpha * intensity * intensity;
+        brightness[idx] = Math.min(1, brightness[idx] + spotlightVal);
         if (intensity > 0.4 && Math.random() < 0.08) accentCells.add(idx);
       }
       activeCells = newActive;
@@ -315,10 +246,6 @@ export default function AsciiAmbient({
     let raf = 0;
     const DAPPLE_ALPHA_LIGHT = 0.2;
     const DAPPLE_ALPHA_DARK = 0.12;
-    const DAPPLE_FADE_SPEED = 0.04;
-    let dappleIntensity = 1;
-    let hoverEndTime = 0;
-    const DAPPLE_RETURN_DELAY = 800;
 
     // Highlight reveal animation — sweeps letters left to right
     let hlRevealProgress = 0;
@@ -335,21 +262,16 @@ export default function AsciiAmbient({
       const now = performance.now();
       const t = now * 0.001;
 
-      updateLeaves(t);
+      const sy = window.scrollY;
+      if (sy !== lastDimScrollY) {
+        updateTextDimMap();
+        lastDimScrollY = sy;
+      }
 
-      // Treat an idle cursor as "not hovering" — fade spotlight, restore dapple
+      // Treat an idle cursor as "not hovering" — fade spotlight
       if (hovering && !cursorIdle && now - lastMoveTime > IDLE_THRESHOLD) {
         cursorIdle = true;
         activeCells = new Set();
-      }
-
-      const effectiveHover = hovering && !cursorIdle;
-
-      if (effectiveHover) {
-        dappleIntensity += (0 - dappleIntensity) * DAPPLE_FADE_SPEED;
-        hoverEndTime = now;
-      } else if (now - hoverEndTime > DAPPLE_RETURN_DELAY) {
-        dappleIntensity += (1 - dappleIntensity) * DAPPLE_FADE_SPEED;
       }
 
       for (let i = 0; i < brightness.length; i++) {
@@ -407,71 +329,66 @@ export default function AsciiAmbient({
       }
 
       // Don't start new reveal until old text is gone AND camera is close
+      // Once revealed, text stays at full brightness — exit is handled
+      // exclusively by the fadingMask dissolve when text changes.
       if (fadingMask) {
         hlRevealProgress = 0;
       } else if (hlText && hlIntensity > 0.3) {
         hlRevealProgress = Math.min(1, hlRevealProgress + HL_REVEAL_SPEED);
-      } else if (hlRevealProgress > 0 && hlIntensity < 0.1) {
-        hlRevealProgress = Math.max(0, hlRevealProgress - HL_REVEAL_SPEED * 2);
       }
 
-      if (dappleIntensity > 0.001 || (hlMask && hlIntensity > 0.01)) {
-        const windX = t * 0.18;
-        const windY = t * 0.07;
-        const dappleAlpha = isDark() ? DAPPLE_ALPHA_DARK : DAPPLE_ALPHA_LIGHT;
+      const windX = t * 0.18;
+      const windY = t * 0.07;
+      const dark = isDark();
+      const dappleAlpha = dark ? DAPPLE_ALPHA_DARK : DAPPLE_ALPHA_LIGHT;
 
-        for (let row = 0; row < rows; row++) {
-          for (let col = 0; col < cols; col++) {
-            const idx = row * cols + col;
-            const nx = col / cols;
-            const ny = row / rows;
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const idx = row * cols + col;
+          const nx = col / cols;
+          const ny = row / rows;
 
-            // Base dapple noise
-            const n1 =
-              Math.sin((nx * 3.2 + windX) * 2.0) *
-              Math.sin((ny * 2.8 + windY) * 2.0) *
-              Math.sin((nx * 1.5 - ny * 2.1 + t * 0.12) * 1.8);
-            const n2 =
-              Math.sin((nx * 7.1 + windX * 1.3 + 5.2) * 1.5) *
-              Math.sin((ny * 6.3 + windY * 1.1 + 3.1) * 1.5) *
-              0.5;
-            const cellHash = Math.sin(col * 127.1 + row * 311.7) * 43758.5453;
-            const cellNoise = cellHash - Math.floor(cellHash);
-            const shimmer =
-              Math.sin(t * (1.2 + cellNoise * 2.0) + cellNoise * 6.28) * 0.15;
-            const combined = n1 + n2 + shimmer;
-            const edge = Math.max(0, Math.min(1, combined * 2.0 + 0.3));
+          // Base dapple noise
+          const n1 =
+            Math.sin((nx * 3.2 + windX) * 2.0) *
+            Math.sin((ny * 2.8 + windY) * 2.0) *
+            Math.sin((nx * 1.5 - ny * 2.1 + t * 0.12) * 1.8);
+          const n2 =
+            Math.sin((nx * 7.1 + windX * 1.3 + 5.2) * 1.5) *
+            Math.sin((ny * 6.3 + windY * 1.1 + 3.1) * 1.5) *
+            0.5;
+          const cellHash = Math.sin(col * 127.1 + row * 311.7) * 43758.5453;
+          const cellNoise = cellHash - Math.floor(cellHash);
+          const shimmer =
+            Math.sin(t * (1.2 + cellNoise * 2.0) + cellNoise * 6.28) * 0.15;
+          const combined = n1 + n2 + shimmer;
+          const edge = Math.max(0, Math.min(1, combined * 2.0 + 0.3));
 
-            // Highlight mask with pseudo-random reveal
-            const maskVal =
-              hlMask && hlIntensity > 0.01 && hlRevealProgress > 0
-                ? (hlMask[idx] ?? 0)
-                : 0;
+          // Highlight mask with pseudo-random reveal
+          const maskVal =
+            hlMask && hlRevealProgress > 0 ? (hlMask[idx] ?? 0) : 0;
 
-            const threshold = hlRevealThreshold ? hlRevealThreshold[idx] : 0;
-            // Expand progress past 1.0 so all cells fully resolve before progress caps
-            const cellReveal = Math.max(
-              0,
-              Math.min(1, (hlRevealProgress * 1.3 - threshold) * 4),
-            );
+          const threshold = hlRevealThreshold ? hlRevealThreshold[idx] : 0;
+          // Expand progress past 1.0 so all cells fully resolve before progress caps
+          const cellReveal = Math.max(
+            0,
+            Math.min(1, (hlRevealProgress * 1.3 - threshold) * 4),
+          );
 
-            const inTextRegion = maskVal > 20 && cellReveal > 0.01;
+          const inTextRegion = maskVal > 20 && cellReveal > 0.01;
 
-            if (inTextRegion) {
-              const hlAlphaBase = isDark() ? 0.82 : 0.85;
-              const hlAlpha =
-                (maskVal / 255) * hlIntensity * cellReveal * hlAlphaBase;
-              if (hlAlpha > brightness[idx]) brightness[idx] = hlAlpha;
-            } else {
-              const nearText = maskVal > 0 && cellReveal > 0;
-              const suppressFactor = nearText
-                ? 1 - (maskVal / 255) * hlIntensity * cellReveal
-                : 1;
-              const totalAlpha =
-                edge * dappleAlpha * dappleIntensity * suppressFactor;
-              if (totalAlpha > 0.01) {
-                if (totalAlpha > brightness[idx]) brightness[idx] = totalAlpha;
-              }
+          if (inTextRegion) {
+            const hlAlphaBase = dark ? 0.82 : 0.85;
+            const hlAlpha = (maskVal / 255) * cellReveal * hlAlphaBase;
+            if (hlAlpha > brightness[idx]) brightness[idx] = hlAlpha;
+          } else {
+            const nearText = maskVal > 0 && cellReveal > 0;
+            const suppressFactor = nearText
+              ? 1 - (maskVal / 255) * cellReveal
+              : 1;
+            const totalAlpha = edge * dappleAlpha * suppressFactor;
+            if (totalAlpha > 0.01) {
+              if (totalAlpha > brightness[idx]) brightness[idx] = totalAlpha;
             }
           }
         }
@@ -485,15 +402,89 @@ export default function AsciiAmbient({
       'section[aria-label="Introduction"], section[aria-label="Get in touch"]',
     );
 
+    // Per-cell dimming mask — cells behind text render faintly so text wins
+    const TEXT_DIM_FLOOR = 0.15;
+    const TEXT_DIM_PAD = 150; // px feather around text rects
+    let textDimMap = new Float32Array(0);
+    let lastDimScrollY = -1;
+
+    function getTextContainerRects(): DOMRect[] {
+      const rects: DOMRect[] = [];
+      for (const section of spotlightSections) {
+        const children = section.querySelectorAll(
+          ":scope > *:not([aria-hidden])",
+        );
+        let top = Infinity;
+        let left = Infinity;
+        let bottom = -Infinity;
+        let right = -Infinity;
+        let found = false;
+        for (const el of children) {
+          const r = el.getBoundingClientRect();
+          if (r.width === 0 || r.height === 0) continue;
+          found = true;
+          top = Math.min(top, r.top);
+          left = Math.min(left, r.left);
+          bottom = Math.max(bottom, r.bottom);
+          right = Math.max(right, r.right);
+        }
+        if (found) {
+          rects.push(new DOMRect(left, top, right - left, bottom - top));
+        }
+      }
+      return rects;
+    }
+
+    function updateTextDimMap() {
+      const rects = getTextContainerRects();
+      if (textDimMap.length !== cols * rows) {
+        textDimMap = new Float32Array(cols * rows);
+      }
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const px = col * CHAR_WIDTH + CHAR_WIDTH / 2;
+          const py = row * LINE_HEIGHT + LINE_HEIGHT / 2;
+          let minDist = Infinity;
+          for (const r of rects) {
+            const dx = Math.max(r.left - px, 0, px - r.right);
+            const dy = Math.max(r.top - py, 0, py - r.bottom);
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < minDist) minDist = dist;
+          }
+          // Spatial noise breaks up the rectangular edge into an organic boundary
+          const noise =
+            Math.sin(px * 0.08 + py * 0.11) *
+            Math.sin(px * 0.05 - py * 0.07) *
+            30;
+          const noisyDist = Math.max(0, minDist + noise);
+          const idx = row * cols + col;
+          if (noisyDist <= 0) {
+            textDimMap[idx] = TEXT_DIM_FLOOR;
+          } else if (noisyDist < TEXT_DIM_PAD) {
+            const t = noisyDist / TEXT_DIM_PAD;
+            // Smoothstep — S-curve that's gentle at both ends
+            const eased = t * t * (3 - 2 * t);
+            textDimMap[idx] = TEXT_DIM_FLOOR + (1 - TEXT_DIM_FLOOR) * eased;
+          } else {
+            textDimMap[idx] = 1;
+          }
+        }
+      }
+    }
+
     const onPointerMove = (e: PointerEvent) => {
-      const moved = e.clientX !== mouseX || e.clientY !== mouseY;
+      const now = performance.now();
+      const dx = e.clientX - mouseX;
+      const dy = e.clientY - mouseY;
+      const dt = now - lastMoveTime;
+      if (dt > 0 && mouseX > -9000) {
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        cursorSpeed = (dist / dt) * 1000; // px/s
+      }
       mouseX = e.clientX;
       mouseY = e.clientY;
-
-      if (moved) {
-        lastMoveTime = performance.now();
-        cursorIdle = false;
-      }
+      lastMoveTime = now;
+      cursorIdle = false;
 
       hovering = false;
       for (const section of spotlightSections) {
@@ -508,7 +499,8 @@ export default function AsciiAmbient({
           break;
         }
       }
-      if (hovering && !cursorIdle) brightenNearMouse();
+      if (hovering && !cursorIdle && cursorSpeed > MIN_SPEED)
+        brightenNearMouse();
       else activeCells = new Set();
     };
 
@@ -535,7 +527,6 @@ export default function AsciiAmbient({
       setupCanvas();
       if (prefersReducedMotion) {
         // Render one static frame — no animation loop
-        updateLeaves(0);
         const windX = 0;
         const windY = 0;
         const dappleAlpha = isDark() ? DAPPLE_ALPHA_DARK : DAPPLE_ALPHA_LIGHT;
