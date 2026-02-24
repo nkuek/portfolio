@@ -41,11 +41,22 @@ export default function Footer() {
     >
       <h2 className="scroll-stagger-in text-text text-center text-[clamp(1.75rem,4vw,3.5rem)] font-light tracking-[-0.02em]">
         Let’s build something <br />
-        {display}
-        <span
-          className="bg-primary ml-1 inline-block h-[1.1em] w-[6px] translate-y-[0.15em]"
-          style={{ opacity: cursorVisible ? 1 : 0 }}
-        />
+        <span className="relative inline-block">
+          {/* Invisible longest word reserves line height */}
+          <span className="invisible" aria-hidden="true">
+            {buzzwords.reduce((a, b) => (a.length >= b.length ? a : b))}
+          </span>
+          {/* Typed text overlaid at the same position */}
+          <span className="absolute inset-0 text-center">
+            <span className="relative inline">
+              {display}
+              <span
+                className="bg-primary absolute top-[0.15em] -right-2.5 h-[1.1em] w-1.5"
+                style={{ opacity: cursorVisible ? 1 : 0 }}
+              />
+            </span>
+          </span>
+        </span>
       </h2>
 
       <nav aria-label="Contact links" className="scroll-stagger-in flex gap-10">
