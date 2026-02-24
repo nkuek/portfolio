@@ -123,7 +123,7 @@ export default function AsciiAmbient({
 
     // Offscreen canvas for rendering highlight text as a pixel mask
     const hlCanvas = document.createElement("canvas");
-    const hlCtx = hlCanvas.getContext("2d")!;
+    const hlCtx = hlCanvas.getContext("2d", { willReadFrequently: true })!;
     let hlMask: Uint8Array | null = null;
     let hlRevealThreshold: Float32Array | null = null; // per-cell random reveal order
     let hlMaskText = "";
@@ -395,6 +395,8 @@ export default function AsciiAmbient({
       'section[aria-label="Introduction"], section[aria-label="Get in touch"]',
     );
 
+    const navBar = document.querySelector("nav");
+
     // Per-cell dimming mask — cells behind text render faintly so text wins
     const TEXT_DIM_FLOOR = 0.15;
     const TEXT_DIM_PAD = 150; // px feather around text rects
@@ -425,6 +427,11 @@ export default function AsciiAmbient({
           rects.push(new DOMRect(left, top, right - left, bottom - top));
         }
       }
+
+      if (navBar) {
+        rects.push(navBar.getBoundingClientRect());
+      }
+
       return rects;
     }
 
