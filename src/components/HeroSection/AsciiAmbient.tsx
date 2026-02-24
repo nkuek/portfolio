@@ -6,9 +6,13 @@ const CHARS = "{}[]·:.-+*<>/|";
 const FONT_SIZE = 16;
 const LINE_HEIGHT = FONT_SIZE * 1.7;
 const CHAR_WIDTH = FONT_SIZE * 0.62;
-const MOUSE_RADIUS = 300;
+const MOUSE_RADIUS_MIN = 50;
+const MOUSE_RADIUS_MAX = 250;
+const MOUSE_RADIUS_LERP = 0.05;
 const DRIFT_INTERVAL = 500;
 const FADE_STEP = 0.009;
+const IDLE_THRESHOLD = 800; // ms before spotlight fades
+const MIN_SPEED = 100; // px/s threshold to trigger spotlight
 
 const BRIGHT_ALPHA_LIGHT = 0.45;
 const BRIGHT_ALPHA_DARK = 0.3;
@@ -179,37 +183,25 @@ export default function AsciiAmbient({
     let hovering = false;
     let cursorIdle = false;
     let lastMoveTime = 0;
-    const IDLE_THRESHOLD = 500; // ms before spotlight fades
     let cursorSpeed = 0; // px/s
-    const MIN_SPEED = 40; // px/s threshold to trigger spotlight
+    let mouseRadius = MOUSE_RADIUS_MIN;
     let activeCells = new Set<number>();
 
     function computeActiveCells(): Set<number> {
       if (!hovering) return new Set();
+      const r = mouseRadius;
       const result = new Set<number>();
-      const minCol = Math.max(
-        0,
-        Math.floor((mouseX - MOUSE_RADIUS) / CHAR_WIDTH),
-      );
-      const maxCol = Math.min(
-        cols - 1,
-        Math.ceil((mouseX + MOUSE_RADIUS) / CHAR_WIDTH),
-      );
-      const minRow = Math.max(
-        0,
-        Math.floor((mouseY - MOUSE_RADIUS) / LINE_HEIGHT),
-      );
-      const maxRow = Math.min(
-        rows - 1,
-        Math.ceil((mouseY + MOUSE_RADIUS) / LINE_HEIGHT),
-      );
+      const minCol = Math.max(0, Math.floor((mouseX - r) / CHAR_WIDTH));
+      const maxCol = Math.min(cols - 1, Math.ceil((mouseX + r) / CHAR_WIDTH));
+      const minRow = Math.max(0, Math.floor((mouseY - r) / LINE_HEIGHT));
+      const maxRow = Math.min(rows - 1, Math.ceil((mouseY + r) / LINE_HEIGHT));
       for (let row = minRow; row <= maxRow; row++) {
         for (let col = minCol; col <= maxCol; col++) {
           const cx = col * CHAR_WIDTH + CHAR_WIDTH / 2;
           const cy = row * LINE_HEIGHT + LINE_HEIGHT / 2;
           const dx = cx - mouseX;
           const dy = cy - mouseY;
-          if (Math.sqrt(dx * dx + dy * dy) < MOUSE_RADIUS) {
+          if (Math.sqrt(dx * dx + dy * dy) < r) {
             const idx = row * cols + col;
             if (idx >= 0 && idx < chars.length) result.add(idx);
           }
@@ -220,6 +212,7 @@ export default function AsciiAmbient({
 
     function brightenNearMouse() {
       const newActive = computeActiveCells();
+      const r = mouseRadius;
       const hlActive =
         hlMask &&
         (highlightRef?.current?.intensity ?? 0) > 0.1 &&
@@ -234,7 +227,7 @@ export default function AsciiAmbient({
         const dx = cx - mouseX;
         const dy = cy - mouseY;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const intensity = 1 - dist / MOUSE_RADIUS;
+        const intensity = 1 - dist / r;
         const brightAlpha = isDark() ? BRIGHT_ALPHA_DARK : BRIGHT_ALPHA_LIGHT;
         const spotlightVal = brightAlpha * intensity * intensity;
         brightness[idx] = Math.min(1, brightness[idx] + spotlightVal);
@@ -245,7 +238,7 @@ export default function AsciiAmbient({
 
     let raf = 0;
     const DAPPLE_ALPHA_LIGHT = 0.2;
-    const DAPPLE_ALPHA_DARK = 0.12;
+    const DAPPLE_ALPHA_DARK = 0.3;
 
     // Highlight reveal animation — sweeps letters left to right
     let hlRevealProgress = 0;
@@ -485,6 +478,12 @@ export default function AsciiAmbient({
       mouseY = e.clientY;
       lastMoveTime = now;
       cursorIdle = false;
+
+      // Lerp spotlight radius toward speed-based target
+      const speedFactor = Math.min(1, cursorSpeed / 800);
+      const targetRadius =
+        MOUSE_RADIUS_MIN + (MOUSE_RADIUS_MAX - MOUSE_RADIUS_MIN) * speedFactor;
+      mouseRadius += (targetRadius - mouseRadius) * MOUSE_RADIUS_LERP;
 
       hovering = false;
       for (const section of spotlightSections) {
