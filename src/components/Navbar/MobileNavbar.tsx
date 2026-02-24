@@ -2,8 +2,8 @@
 import { useState } from "react";
 import { sections } from "./constants";
 import DSLink from "~/design-system/DSLink";
-import ThemeToggle from "./ThemeToggle";
 import DSAnchor from "~/design-system/DSLink/DSAnchor";
+import ThemeToggle from "./ThemeToggle";
 
 export default function MobileNavbar() {
   const [showNavDrawer, setShowNavDrawer] = useState(false);
@@ -41,18 +41,6 @@ export default function MobileNavbar() {
         role="menu"
         id="nav-menu"
       >
-        <li
-          className="flex w-full items-center px-4"
-          onClick={() => setShowNavDrawer(false)}
-          role="menuitem"
-        >
-          <DSAnchor
-            href="/KuekResume.pdf"
-            className="w-full border-b border-zinc-700 p-3"
-          >
-            Resume
-          </DSAnchor>
-        </li>
         {sections.map((section) => (
           <li
             key={section.title}
@@ -60,12 +48,21 @@ export default function MobileNavbar() {
             onClick={() => setShowNavDrawer(false)}
             role="menuitem"
           >
-            <DSLink
-              href={section.href}
-              className="w-full border-b border-zinc-700 p-3"
-            >
-              {section.title}
-            </DSLink>
+            {section.external ? (
+              <DSAnchor
+                href={section.href}
+                className="w-full border-b border-zinc-700 p-3"
+              >
+                {section.title}
+              </DSAnchor>
+            ) : (
+              <DSLink
+                href={section.href}
+                className="w-full border-b border-zinc-700 p-3"
+              >
+                {section.title}
+              </DSLink>
+            )}
           </li>
         ))}
         <li
