@@ -30,7 +30,7 @@ export default function Navbar() {
       >
         <div className="px-6 py-4">
           <Link
-            href="#top"
+            href="/"
             aria-label="Go to the top of the page"
             className="group"
           >
