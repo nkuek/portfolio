@@ -48,7 +48,7 @@ export default function Footer() {
           </span>
           {/* Typed text overlaid at the same position */}
           <span className="absolute inset-0 text-center">
-            <span className="relative inline">
+            <span className="relative inline-block">
               {display}
               <span
                 className="bg-primary absolute top-[0.15em] -right-2.5 h-[1.1em] w-1.5"
