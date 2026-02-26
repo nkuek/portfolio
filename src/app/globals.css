@@ -261,7 +261,7 @@
   --animate-reveal-right-to-left: revealRightToLeft 1s ease-out forwards
     var(--animation-delay);
 
-  --animate-fade-in: fadeIn 0.5s ease-in forwards var(--animation-delay);
+  --animate-fade-in: fadeIn 0.3s ease-out forwards var(--animation-delay);
 
   --animate-revealLetters: revealLetters var(--typeSpeed)
     steps(var(--textLength)) infinite;
@@ -681,6 +681,7 @@ body {
   border: 1px solid var(--border-card);
   border-radius: var(--radius-torn);
   box-shadow: var(--shadow-card);
+  will-change: transform;
   transition:
     transform var(--duration-scatter) var(--ease-spring),
     scale var(--duration-fast) var(--ease-smooth),
@@ -897,6 +898,7 @@ body {
   background: var(--surface-overlay);
   backdrop-filter: blur(14px);
   box-shadow: var(--shadow-info);
+  will-change: transform;
   transition:
     transform var(--duration-scatter) var(--ease-spring),
     scale var(--duration-fast) var(--ease-smooth),
@@ -951,6 +953,7 @@ body {
   pointer-events: none;
   z-index: 3;
   box-shadow: var(--shadow-sticky);
+  will-change: transform;
   transition: transform var(--duration-scatter) var(--ease-spring);
   @media (max-width: 767px) {
     font-size: 16px;
@@ -1111,6 +1114,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .story-line,
   .project-reveal,
+  .skill-reveal,
   .scroll-stagger-in,
   .project-image-ltr,
   .project-image-rtl,

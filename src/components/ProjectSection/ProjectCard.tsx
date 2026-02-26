@@ -104,7 +104,7 @@ function PolaroidFragment({
             src={project.src}
             alt={`Screenshot of ${project.title}`}
             fill
-            className="ease-smooth object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            className="ease-smooth object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
             sizes="(max-width: 768px) 72vw, 380px"
           />
         )}
@@ -205,7 +205,7 @@ function PolaroidFragment({
 /* ── Info Fragment (description + links + pills) ── */
 
 const ARROW_CLASSES =
-  "transition-transform duration-200 ease-smooth group-hover:translate-x-0.5 group-hover:-translate-y-0.5";
+  "transition-transform duration-200 ease-smooth group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0 motion-reduce:group-hover:translate-y-0";
 
 function InfoFragment({
   project,
@@ -533,7 +533,7 @@ function MobileProjectCard({
               aria-label={`View ${project.title} on "live site"}`}
             >
               <span>Experience</span>
-              <ArrowUpRight className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              <ArrowUpRight className={ARROW_CLASSES} />
             </Link>
           )}
           {project.githubLink && (
@@ -545,7 +545,7 @@ function MobileProjectCard({
               aria-label={`View ${project.title} on GitHub`}
             >
               <span>Source</span>
-              <ArrowUpRight className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              <ArrowUpRight className={ARROW_CLASSES} />
             </Link>
           )}
         </div>

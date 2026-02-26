@@ -65,7 +65,7 @@ export default function ScrollToTop() {
     }
 
     function startAnimations() {
-      if (!button) return;
+      if (!button || reducedMotion) return;
       const ping = pingRef.current;
       if (ping) {
         ping.style.animation = "none";

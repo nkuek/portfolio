@@ -14,7 +14,7 @@ import {
   childScatter,
   LABEL_SIZES,
 } from "~/utils/scatterTransforms";
-import type { HighlightData } from "~/components/HeroSection/AsciiAmbient";
+import type { HighlightData } from "~/types/highlight";
 import { cameraWaypoints } from "~/components/ProjectSection/constants";
 
 type WildProject = {

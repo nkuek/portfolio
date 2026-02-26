@@ -15,7 +15,7 @@ import {
 } from "./constants";
 import { interpolatePath } from "./cameraPath";
 import ProjectCard, { MobileProjectCard } from "./ProjectCard";
-import type { HighlightData } from "../HeroSection/AsciiAmbient";
+import type { HighlightData } from "~/types/highlight";
 import SectionTitleCard from "~/components/SectionTitleCard";
 import type { CrosshairData } from "~/components/Crosshair";
 import type { XAxisData } from "~/components/XAxisTicks";
