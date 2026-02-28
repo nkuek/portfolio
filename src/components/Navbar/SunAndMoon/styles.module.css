@@ -12,6 +12,7 @@
 
 .sun-and-moon > :is(.moon, .sun, .sun-beams) {
   transform-origin: center center;
+  transition: fill 200ms, stroke 200ms;
 }
 
 .sun-and-moon > .sun-beams {
@@ -20,13 +21,16 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .sun-and-moon > .sun {
-    transition: transform 0.5s var(--ease-elastic-3);
+    transition:
+      transform 0.5s var(--ease-elastic-3),
+      fill 200ms;
   }
 
   .sun-and-moon > .sun-beams {
     transition:
       transform 0.5s var(--ease-elastic-4),
-      opacity 0.5s var(--ease-3);
+      opacity 0.5s var(--ease-3),
+      stroke 200ms;
   }
 
   .sun-and-moon .moon > circle {
@@ -37,6 +41,10 @@
     .sun-and-moon .moon > circle {
       transition: cx 0.25s var(--ease-out-5);
     }
+  }
+
+  .sun-and-moon:hover > .sun-beams {
+    transform: rotateZ(15deg);
   }
 }
 

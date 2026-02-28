@@ -4,8 +4,12 @@ import styles from "./styles.module.css";
 
 export default function SunAndMoon({ compact = false }: { compact?: boolean }) {
   const id = useId();
-  const fill = compact ? "fill-text" : "fill-background";
-  const stroke = compact ? "stroke-text" : "stroke-background";
+  const fill = compact
+    ? "fill-text group-hover:fill-accent"
+    : "fill-background group-hover:fill-accent";
+  const stroke = compact
+    ? "stroke-text group-hover:stroke-accent"
+    : "stroke-background group-hover:stroke-accent";
   return (
     <svg
       className={cn(styles["sun-and-moon"], compact && styles.compact)}
