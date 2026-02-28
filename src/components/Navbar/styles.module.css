@@ -1,24 +1,24 @@
 /* ═══ Navbar — scroll-morph styles ═══ */
 
-.nav-shell {
+.shell {
   padding-top: 0;
   padding-inline: 0;
   transition:
     padding-top 0.35s ease,
     padding-inline 0.35s ease;
 }
-.nav-shell[data-scrolled] {
+.shell[data-scrolled] {
   padding-top: 1rem;
   padding-inline: 1rem;
 }
 @media (min-width: 768px) {
-  .nav-shell,
-  .nav-shell[data-scrolled] {
+  .shell,
+  .shell[data-scrolled] {
     padding-inline: 0;
   }
 }
 
-.nav-bar {
+.bar {
   width: 100%;
   max-width: 100%;
   padding: 12px 20px;
@@ -29,16 +29,16 @@
     max-width 0.35s ease,
     padding 0.35s ease;
 }
-.nav-shell[data-scrolled] .nav-bar {
+.shell[data-scrolled] .bar {
   padding: 8px 20px;
 }
 @media (min-width: 768px) {
-  .nav-shell[data-scrolled] .nav-bar {
+  .shell[data-scrolled] .bar {
     max-width: 40rem;
   }
 }
 
-.nav-pill-bg {
+.pillBg {
   border-radius: 12px;
   border-color: transparent;
   background: transparent;
@@ -53,7 +53,7 @@
     -webkit-backdrop-filter 0.35s ease,
     backdrop-filter 0.35s ease;
 }
-.nav-shell[data-scrolled] .nav-pill-bg {
+.shell[data-scrolled] .pillBg {
   border-radius: 9999px;
   border-color: var(--border-card);
   background: var(--surface-overlay);
@@ -62,11 +62,11 @@
   backdrop-filter: blur(24px) saturate(1.4);
 }
 
-.nav-logo {
+.logo {
   width: 2.5rem;
   transition: width 0.35s ease;
 }
-.nav-shell[data-scrolled] .nav-logo {
+.shell[data-scrolled] .logo {
   width: 2.25rem;
 }
 
@@ -83,10 +83,14 @@
   }
 }
 
+.linkIn[data-open] {
+  animation: navLinkIn 0.4s var(--ease-spring) var(--delay) both;
+}
+
 /* ── Reduced motion ── */
 
 @media (prefers-reduced-motion: reduce) {
-  .nav-link-in {
+  .linkIn {
     animation: none !important;
     opacity: 1 !important;
     filter: none !important;

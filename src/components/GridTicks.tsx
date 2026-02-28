@@ -1,5 +1,5 @@
 "use client";
-import "./GridTicks.css";
+import styles from "./GridTicks.module.css";
 import { useEffect, useRef, type RefObject } from "react";
 
 const TICK_INTERVAL = 200;
@@ -48,11 +48,11 @@ export default function GridTicks({
         tick.style.cssText = "position:absolute;left:0";
 
         const line = document.createElement("div");
-        line.className = "grid-tick";
+        line.className = styles.tick;
         line.style.cssText = "height:1px;width:8px";
 
         const label = document.createElement("span");
-        label.className = "grid-tick-label";
+        label.className = styles.label;
         label.style.cssText =
           "position:absolute;top:2px;left:10px;font-size:9px";
 
@@ -115,15 +115,9 @@ export default function GridTicks({
         children[i].style.top = `${screenY}px`;
 
         if (val === closestVal) {
-          children[i].classList.add(
-            "grid-tick-highlight",
-            "grid-tick-highlight-y",
-          );
+          children[i].classList.add(styles.highlight, styles.highlightY);
         } else {
-          children[i].classList.remove(
-            "grid-tick-highlight",
-            "grid-tick-highlight-y",
-          );
+          children[i].classList.remove(styles.highlight, styles.highlightY);
         }
 
         const label = children[i].lastElementChild;

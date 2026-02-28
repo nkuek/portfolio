@@ -1,5 +1,5 @@
 "use client";
-import "~/components/shared/Tape.css";
+import tapeStyles from "~/components/shared/Tape.module.css";
 import { useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import useReducedMotion from "~/hooks/useReducedMotion";
@@ -209,7 +209,7 @@ export default function HeroDappledZone() {
         {/* z-4: Teal tape — fades in last */}
         <div
           ref={tapeRef}
-          className="polaroid-tape-teal pointer-events-none absolute"
+          className={`${tapeStyles.teal} pointer-events-none absolute`}
           style={{
             opacity: 0,
             zIndex: 4,

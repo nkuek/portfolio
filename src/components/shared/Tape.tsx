@@ -1,4 +1,4 @@
-import "./Tape.css";
+import styles from "./Tape.module.css";
 
 export default function Tape({
   color = "teal",
@@ -15,7 +15,7 @@ export default function Tape({
 }) {
   return (
     <div
-      className={`polaroid-tape polaroid-tape-${color} ${className}`}
+      className={`${styles.tape} ${styles[color]} ${className}`}
       style={{ width, rotate, ...style }}
     />
   );

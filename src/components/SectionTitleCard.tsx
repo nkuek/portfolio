@@ -3,7 +3,7 @@
  * Outer wrapper carries drop-shadow so it follows the torn clip-path.
  * Tape sits outside the clipped area so it's always visible.
  */
-import "./SectionTitleCard.css";
+import styles from "./SectionTitleCard.module.css";
 import Tape from "~/components/shared/Tape";
 
 export default function SectionTitleCard({
@@ -18,10 +18,10 @@ export default function SectionTitleCard({
   tapeColor?: "teal" | "rose";
 }) {
   return (
-    <div className="section-title-wrapper" style={{ rotate: `${rotate}deg` }}>
+    <div className={styles.wrapper} style={{ rotate: `${rotate}deg` }}>
       {/* Tape — outside the clipped card so it's never cut off */}
       <Tape color={tapeColor} width={80} rotate={`${-rotate * 1.2}deg`} />
-      <div className="section-title-card px-12 pt-10 pb-12 md:px-16 md:pt-12 md:pb-14">
+      <div className={`${styles.card} px-12 pt-10 pb-12 md:px-16 md:pt-12 md:pb-14`}>
         <h2 className="text-text font-serif text-[clamp(2.5rem,6vw,4.5rem)] font-bold tracking-[0.02em] whitespace-nowrap">
           {title}
         </h2>

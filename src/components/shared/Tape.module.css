@@ -1,6 +1,6 @@
 /* ═══ Tape strip — washi tape with jagged edges ═══ */
 
-.polaroid-tape {
+.tape {
   position: absolute;
   top: calc(-14px - 2%);
   left: 50%;
@@ -57,7 +57,7 @@
   backdrop-filter: blur(2px);
 }
 
-.polaroid-tape-teal {
+.teal {
   background:
     repeating-linear-gradient(
       -45deg,
@@ -69,7 +69,7 @@
     var(--accent-tape);
 }
 
-.polaroid-tape-rose {
+.rose {
   background:
     repeating-linear-gradient(
       -45deg,
@@ -82,7 +82,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .polaroid-tape {
+  .tape {
     transition: none !important;
   }
 }

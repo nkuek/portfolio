@@ -1,5 +1,5 @@
 "use client";
-import "./ScrollToTop.css";
+import styles from "./ScrollToTop.module.css";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import useReducedMotion from "~/hooks/useReducedMotion";
@@ -9,9 +9,6 @@ const CHARS = "{}[]·:.-+*<>/|";
 function randomChar() {
   return CHARS[Math.floor(Math.random() * CHARS.length)];
 }
-
-const PING_ANIM = "sonar-ping 3s ease-out infinite";
-const SQUISH_ANIM = "sonar-squish 3s linear infinite";
 
 export default function ScrollToTop() {
   const buttonRef = useRef<HTMLAnchorElement>(null);
@@ -68,13 +65,13 @@ export default function ScrollToTop() {
       if (!button || reducedMotion) return;
       const ping = pingRef.current;
       if (ping) {
-        ping.style.animation = "none";
+        ping.classList.remove(styles.ping);
         void ping.offsetHeight;
-        ping.style.animation = PING_ANIM;
+        ping.classList.add(styles.ping);
       }
-      button.style.animation = "none";
+      button.classList.remove(styles.squish);
       void button.offsetHeight;
-      button.style.animation = SQUISH_ANIM;
+      button.classList.add(styles.squish);
       animating = true;
     }
 
@@ -94,8 +91,8 @@ export default function ScrollToTop() {
         pendingStop = null;
         // Guard against race with re-entry
         if (inFooter.current) return;
-        ping.style.animation = "none";
-        button.style.animation = "";
+        ping.classList.remove(styles.ping);
+        button.classList.remove(styles.squish);
         animating = false;
       };
       pendingStop = handler;

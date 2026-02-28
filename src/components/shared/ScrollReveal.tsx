@@ -1,4 +1,4 @@
-import "./ScrollReveal.css";
+import styles from "./ScrollReveal.module.css";
 
 type ScrollRevealProps = {
   variant: "skill" | "stagger";
@@ -8,8 +8,8 @@ type ScrollRevealProps = {
 } & Record<string, unknown>;
 
 const VARIANT_CLASS = {
-  skill: "skill-reveal",
-  stagger: "scroll-stagger-in",
+  skill: styles.skill,
+  stagger: styles.stagger,
 };
 
 export default function ScrollReveal({

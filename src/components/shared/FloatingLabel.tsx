@@ -1,4 +1,4 @@
-import "./FloatingLabel.css";
+import styles from "./FloatingLabel.module.css";
 
 const LABEL_SIZES: Record<string, string> = {
   sm: "text-[16px] tracking-[0.1em]",
@@ -27,14 +27,15 @@ export default function FloatingLabel({
 }) {
   return (
     <div
-      className={`floating-label pointer-events-none absolute font-mono uppercase ${LABEL_SIZES[size] ?? ""} ${className}`}
+      className={`${styles.label} pointer-events-none absolute font-mono uppercase ${LABEL_SIZES[size] ?? ""} ${className}`}
       style={
         {
           "--cursor-boost": "0",
           "--base-opacity": String(baseOpacity),
+          "--drift-duration": `${driftDuration}s`,
+          "--drift-delay": `${-driftPhase}s`,
           left: typeof x === "number" ? `${x}px` : x,
           top: typeof y === "number" ? `${y}px` : y,
-          animation: `labelFloat ${driftDuration}s ease-in-out ${-driftPhase}s infinite`,
         } as React.CSSProperties
       }
     >

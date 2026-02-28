@@ -22,7 +22,7 @@
   }
 }
 
-.skill-reveal {
+.skill {
   animation-name: scrollSkillReveal;
   animation-duration: auto;
   animation-timing-function: linear;
@@ -31,7 +31,7 @@
   animation-range: entry 0% cover 40%;
 }
 
-.scroll-stagger-in {
+.stagger {
   animation-name: scrollStaggerIn;
   animation-duration: auto;
   animation-timing-function: linear;
@@ -43,8 +43,8 @@
 /* ── Reduced motion ── */
 
 @media (prefers-reduced-motion: reduce) {
-  .skill-reveal,
-  .scroll-stagger-in {
+  .skill,
+  .stagger {
     animation: none !important;
     opacity: 1 !important;
     filter: none !important;

@@ -1,6 +1,6 @@
 /* ═══ Grid ticks — imperative DOM + highlight selectors ═══ */
 
-.grid-tick {
+.tick {
   background: var(--text-muted);
   opacity: 0.7;
   transition:
@@ -8,7 +8,7 @@
     opacity var(--duration-fast);
 }
 
-.grid-tick-label {
+.label {
   color: var(--text-muted);
   opacity: 0.6;
   transition:
@@ -16,23 +16,23 @@
     opacity var(--duration-fast);
 }
 
-.grid-tick-highlight .grid-tick {
+.highlight .tick {
   background: var(--accent) !important;
   opacity: 1 !important;
 }
 
-.grid-tick-highlight .grid-tick-label {
+.highlight .label {
   color: var(--accent) !important;
   opacity: 1 !important;
 }
 
-.grid-tick-highlight-y {
+.highlightY {
   transition: transform var(--duration-fast);
   transform: scale(1.3);
   transform-origin: left center;
 }
 
-.grid-tick-highlight-x {
+.highlightX {
   transition: transform var(--duration-fast);
   transform: scale(1.3);
   transform-origin: center bottom;

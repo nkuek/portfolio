@@ -1,5 +1,5 @@
 "use client";
-import "./GridTicks.css";
+import styles from "./GridTicks.module.css";
 import { useEffect, useRef, type RefObject } from "react";
 import { type MouseOffset } from "~/components/GridTicks";
 
@@ -35,11 +35,11 @@ export default function XAxisTicks({
       tick.style.cssText = "position:absolute;bottom:0";
 
       const line = document.createElement("div");
-      line.className = "grid-tick";
+      line.className = styles.tick;
       line.style.cssText = "height:8px;width:1px";
 
       const label = document.createElement("span");
-      label.className = "grid-tick-label";
+      label.className = styles.label;
       label.style.cssText =
         "position:absolute;bottom:10px;left:4px;font-size:9px";
 
@@ -96,15 +96,9 @@ export default function XAxisTicks({
         children[i].style.left = `${screen}px`;
 
         if (val === closestVal) {
-          children[i].classList.add(
-            "grid-tick-highlight",
-            "grid-tick-highlight-x",
-          );
+          children[i].classList.add(styles.highlight, styles.highlightX);
         } else {
-          children[i].classList.remove(
-            "grid-tick-highlight",
-            "grid-tick-highlight-x",
-          );
+          children[i].classList.remove(styles.highlight, styles.highlightX);
         }
 
         const label = children[i].lastElementChild;

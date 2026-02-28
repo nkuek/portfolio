@@ -1,11 +1,11 @@
 /* ═══ Section title card — torn-edge clip-path + filter ═══ */
 
-.section-title-wrapper {
+.wrapper {
   position: relative;
   filter: var(--shadow-section-title);
 }
 
-.section-title-card {
+.card {
   background: var(--surface-card);
   border-radius: var(--radius-torn);
   /* Torn bottom edge */

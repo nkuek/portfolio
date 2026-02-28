@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { sections } from "./constants";
+import styles from "./styles.module.css";
 import DSLink from "~/design-system/DSLink";
 import DSAnchor from "~/design-system/DSLink/DSAnchor";
 import ThemeToggle from "./ThemeToggle";
@@ -68,12 +69,9 @@ function MobileOverlay() {
           <li
             key={section.title}
             role="menuitem"
-            className="nav-link-in"
-            style={{
-              animation: open
-                ? `navLinkIn 0.4s var(--ease-spring) ${i * 50}ms both`
-                : "none",
-            }}
+            className={styles.linkIn}
+            data-open={open || undefined}
+            style={{ "--delay": `${i * 50}ms` } as React.CSSProperties}
             onClick={() => setOpen(false)}
           >
             {section.external ? (
@@ -89,12 +87,13 @@ function MobileOverlay() {
         ))}
         <li
           role="menuitem"
-          className="nav-link-in pt-4"
-          style={{
-            animation: open
-              ? `navLinkIn 0.4s var(--ease-spring) ${sections.length * 50}ms both`
-              : "none",
-          }}
+          className={`${styles.linkIn} pt-4`}
+          data-open={open || undefined}
+          style={
+            {
+              "--delay": `${sections.length * 50}ms`,
+            } as React.CSSProperties
+          }
         >
           <ThemeToggle />
         </li>

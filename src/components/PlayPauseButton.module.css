@@ -1,6 +1,6 @@
 /* ═══ Play/Pause button — mixed-duration transition ═══ */
 
-.play-pause-fragment {
+.button {
   transition:
     transform var(--duration-scatter) var(--ease-spring),
     background var(--duration-fast),

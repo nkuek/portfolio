@@ -28,3 +28,11 @@
     scale: 1;
   }
 }
+
+.ping {
+  animation: sonar-ping 3s ease-out infinite;
+}
+
+.squish {
+  animation: sonar-squish 3s linear infinite;
+}
