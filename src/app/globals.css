@@ -911,187 +911,76 @@ body {
   }
 }
 
-/* ═══ Navbar scroll morph ═══ */
+/* ═══ Navbar ═══ */
 
-:root {
-  --nav-pill-max-w: 40rem;
-}
-@media (max-width: 767px) {
-  :root {
-    --nav-pill-max-w: 100%;
-  }
-}
-
-/* Base styles (top of page) */
-.nav-bar {
-  padding: 0.75rem 1.25rem;
-  gap: 1.25rem;
-}
-.nav-pill-bg {
-  border-radius: 0.75rem;
-  border-color: transparent;
-  background: transparent;
-  -webkit-backdrop-filter: blur(0px);
-  backdrop-filter: blur(0px);
-  box-shadow: 0 0 0 transparent;
-}
-.nav-logo {
-  width: 2.5rem;
-}
-
-/* ── Fallback: data-scrolled transitions (no scroll-timeline) ── */
 .nav-shell {
+  padding-top: 0;
+  padding-inline: 0;
   transition:
-    padding 500ms var(--ease-spring),
-    padding-inline 500ms var(--ease-spring);
+    padding-top 0.35s ease,
+    padding-inline 0.35s ease;
 }
-.nav-bar {
-  transition:
-    padding 500ms var(--ease-spring),
-    gap 500ms var(--ease-spring);
-}
-.nav-pill-bg {
-  transition:
-    border-radius 500ms var(--ease-spring),
-    background-color 500ms var(--ease-spring),
-    border-color 500ms var(--ease-spring),
-    -webkit-backdrop-filter 500ms var(--ease-spring),
-    backdrop-filter 500ms var(--ease-spring),
-    box-shadow 500ms var(--ease-spring);
-}
-.nav-logo {
-  transition: width 500ms var(--ease-spring);
-}
-
 .nav-shell[data-scrolled] {
   padding-top: 1rem;
   padding-inline: 1rem;
 }
 @media (min-width: 768px) {
+  .nav-shell,
   .nav-shell[data-scrolled] {
     padding-inline: 0;
   }
 }
+
+.nav-bar {
+  width: 100%;
+  max-width: 100%;
+  padding: 12px 20px;
+  gap: 20px;
+  display: flex;
+  align-items: center;
+  transition:
+    max-width 0.35s ease,
+    padding 0.35s ease;
+}
 .nav-shell[data-scrolled] .nav-bar {
-  padding: 0.5rem 1.25rem;
-  gap: 1.25rem;
+  padding: 8px 20px;
+}
+@media (min-width: 768px) {
+  .nav-shell[data-scrolled] .nav-bar {
+    max-width: 40rem;
+  }
+}
+
+.nav-pill-bg {
+  border-radius: 12px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: 0 0 0 transparent;
+  -webkit-backdrop-filter: blur(0) saturate(1);
+  backdrop-filter: blur(0) saturate(1);
+  transition:
+    border-radius 0.35s ease,
+    border-color 0.35s ease,
+    background 0.35s ease,
+    box-shadow 0.35s ease,
+    -webkit-backdrop-filter 0.35s ease,
+    backdrop-filter 0.35s ease;
 }
 .nav-shell[data-scrolled] .nav-pill-bg {
   border-radius: 9999px;
-  background: var(--surface-overlay);
   border-color: var(--border-card);
+  background: var(--surface-overlay);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   -webkit-backdrop-filter: blur(24px) saturate(1.4);
   backdrop-filter: blur(24px) saturate(1.4);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.nav-logo {
+  width: 2.5rem;
+  transition: width 0.35s ease;
 }
 .nav-shell[data-scrolled] .nav-logo {
   width: 2.25rem;
-}
-
-/* ── Fallback for browsers without scroll-driven animations ── */
-@supports not (animation-timeline: scroll()) {
-  .nav-bar {
-    width: 75%;
-  }
-  .nav-logo {
-    margin-right: 1rem;
-  }
-}
-
-/* ── Primary: scroll-driven animation (overrides fallback) ── */
-@supports (animation-timeline: scroll()) {
-  .nav-shell,
-  .nav-bar,
-  .nav-pill-bg,
-  .nav-logo {
-    transition: none !important;
-  }
-
-  .nav-bar {
-    width: 100%;
-  }
-
-  .nav-shell,
-  .nav-bar,
-  .nav-pill-bg,
-  .nav-logo {
-    animation-duration: auto;
-    animation-timing-function: linear;
-    animation-fill-mode: both;
-    animation-timeline: scroll(root);
-    animation-range: 0px 80px;
-  }
-  .nav-shell {
-    animation-name: navShellMorph;
-  }
-  .nav-bar {
-    animation-name: navBarMorph;
-  }
-  .nav-pill-bg {
-    animation-name: navBgMorph;
-  }
-  .nav-logo {
-    animation-name: navLogoMorph;
-  }
-}
-
-@keyframes navShellMorph {
-  from {
-    padding-top: 0;
-    padding-inline: 0;
-  }
-  to {
-    padding-top: 1rem;
-    padding-inline: 1rem;
-  }
-}
-@media (min-width: 768px) {
-  @keyframes navShellMorph {
-    from {
-      padding-top: 0;
-    }
-    to {
-      padding-top: 1rem;
-    }
-  }
-}
-@keyframes navBarMorph {
-  from {
-    max-width: 100%;
-    padding: 0.75rem 1.5rem;
-    gap: 1.5rem;
-  }
-  to {
-    max-width: var(--nav-pill-max-w);
-    padding: 0.5rem 1.25rem;
-    gap: 1.25rem;
-  }
-}
-@keyframes navBgMorph {
-  from {
-    border-radius: 0.75rem;
-    border-color: transparent;
-    background: transparent;
-    -webkit-backdrop-filter: blur(0px);
-    backdrop-filter: blur(0px);
-    box-shadow: 0 0 0 transparent;
-  }
-  to {
-    border-radius: 9999px;
-    border-color: var(--border-card);
-    background: var(--surface-overlay);
-    -webkit-backdrop-filter: blur(24px) saturate(1.4);
-    backdrop-filter: blur(24px) saturate(1.4);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  }
-}
-@keyframes navLogoMorph {
-  from {
-    width: 2.5rem;
-  }
-  to {
-    width: 2.25rem;
-  }
 }
 
 .floating-label {
@@ -1664,14 +1553,6 @@ body {
     transition: none !important;
   }
 
-  /* Disable navbar scroll morph */
-  .nav-shell,
-  .nav-bar,
-  .nav-pill-bg,
-  .nav-logo {
-    animation: none !important;
-    transition: none !important;
-  }
 }
 
 /* ── Mobile sticky note overrides ── */

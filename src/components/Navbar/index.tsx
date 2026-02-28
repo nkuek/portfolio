@@ -1,45 +1,30 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
+import { useLenis } from "lenis/react";
 import Link from "next/link";
 import Logo from "../Logo";
 import DesktopNavbar from "./DesktopNavbar";
 import MobileNavbar, { useMobileNav } from "./MobileNavbar";
 
-const SCROLL_THRESHOLD = 50;
-
 export default function Navbar() {
-  // scrolled state is only used as fallback for browsers without scroll-timeline
-  const [scrolled, setScrolled] = useState(false);
-  const rafRef = useRef(0);
-
-  useEffect(() => {
-    function onScroll() {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => {
-        setScrolled(window.scrollY > SCROLL_THRESHOLD);
-      });
-    }
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(rafRef.current);
-    };
-  }, []);
-
   return (
     <MobileNavbar>
-      <NavShell scrolled={scrolled} />
+      <NavShell />
     </MobileNavbar>
   );
 }
 
-function NavShell({ scrolled }: { scrolled: boolean }) {
+function NavShell() {
   const { open } = useMobileNav();
+  const shellRef = useRef<HTMLDivElement>(null);
+
+  useLenis((lenis) => {
+    shellRef.current?.toggleAttribute("data-scrolled", lenis.targetScroll > 0);
+  });
 
   return (
     <div
-      data-scrolled={scrolled || undefined}
+      ref={shellRef}
       className={`nav-shell pointer-events-none fixed inset-x-0 flex justify-center ${open ? "z-4" : "z-2"}`}
     >
       <nav
@@ -50,7 +35,7 @@ function NavShell({ scrolled }: { scrolled: boolean }) {
           aria-hidden
           className="nav-pill-bg absolute inset-0 border"
         />
-        <div className="relative z-1 flex items-center">
+        <div className="nav-content relative z-1 flex w-full items-center justify-between">
           <Link
             href="/"
             aria-label="Go to the top of the page"
