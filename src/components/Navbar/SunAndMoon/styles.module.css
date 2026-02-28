@@ -46,6 +46,10 @@
   .sun-and-moon:hover > .sun-beams {
     transform: rotateZ(15deg);
   }
+
+  html[data-color-scheme="dark"] .sun-and-moon:hover > .sun {
+    transform: scale(1.75) rotate(-10deg);
+  }
 }
 
 html[data-color-scheme="dark"] .sun-and-moon > .sun {
