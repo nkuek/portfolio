@@ -4,8 +4,17 @@ import { useRef, useMemo, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { SoftShadows } from "@react-three/drei";
 import * as THREE from "three";
-import { generateTree, DEFAULT_SPINE_LENGTH, DEFAULT_SUB_BRANCH_LENGTH } from "./lsystem";
-import { createBranchGeometry, createBranchMaterial, createLeafData, type ClearingConfig } from "./tree";
+import {
+  generateTree,
+  DEFAULT_SPINE_LENGTH,
+  DEFAULT_SUB_BRANCH_LENGTH,
+} from "./lsystem";
+import {
+  createBranchGeometry,
+  createBranchMaterial,
+  createLeafData,
+  type ClearingConfig,
+} from "./tree";
 import {
   CAMERA_POSITION,
   LIGHT_POSITION,
@@ -114,7 +123,13 @@ function FrameThrottle({ reducedMotion }: { reducedMotion: boolean }) {
  * Ground plane — receives shadows.
  * White in light mode, dark in dark mode.
  */
-function Ground({ lerpToDark, lerpToLight }: { lerpToDark: number; lerpToLight: number }) {
+function Ground({
+  lerpToDark,
+  lerpToLight,
+}: {
+  lerpToDark: number;
+  lerpToLight: number;
+}) {
   const dark = isDarkMode();
   const materialRef = useRef<THREE.MeshStandardMaterial>(null);
   const initialColor = dark ? GROUND_COLOR_DARK : GROUND_COLOR_LIGHT;
@@ -128,7 +143,11 @@ function Ground({ lerpToDark, lerpToLight }: { lerpToDark: number; lerpToLight: 
   });
 
   return (
-    <mesh rotation-x={-Math.PI / 2} position-y={GROUND_POSITION_Y} receiveShadow>
+    <mesh
+      rotation-x={-Math.PI / 2}
+      position-y={GROUND_POSITION_Y}
+      receiveShadow
+    >
       <planeGeometry args={[GROUND_SIZE, GROUND_SIZE]} />
       <meshStandardMaterial ref={materialRef} color={initialColor} />
     </mesh>
@@ -148,7 +167,7 @@ function TreeCanopy({
   clearing,
 }: {
   reducedMotion: boolean;
-  position: [number, number, number];
+  position: readonly [number, number, number];
   spineLength: number;
   subBranchLength: number;
   clearing?: ClearingConfig;
@@ -157,14 +176,21 @@ function TreeCanopy({
   const dark = isDarkMode();
   const stretchX = useRef(dark ? LEAF_STRETCH_X_DARK : 1);
   const stretchZ = useRef(dark ? LEAF_STRETCH_Z_DARK : 1);
-  const leafColor = useRef(new THREE.Color(dark ? LEAF_COLOR_DARK : LEAF_COLOR_LIGHT));
+  const leafColor = useRef(
+    new THREE.Color(dark ? LEAF_COLOR_DARK : LEAF_COLOR_LIGHT),
+  );
 
   const tree = useMemo(() => {
     const treeData = generateTree({ spineLength, subBranchLength });
     const canopyBranchGeo = createBranchGeometry(treeData.branches);
     const branchMat = createBranchMaterial();
     const { mesh, baseMatrices } = createLeafData(treeData.leaves, clearing);
-    return { canopyBranchGeo, branchMat, leafMesh: mesh, leafBaseMatrices: baseMatrices };
+    return {
+      canopyBranchGeo,
+      branchMat,
+      leafMesh: mesh,
+      leafBaseMatrices: baseMatrices,
+    };
   }, [spineLength, subBranchLength, clearing]);
 
   // Wind blows from bottom to top in viewport (positive Z in world space)
@@ -174,7 +200,9 @@ function TreeCanopy({
 
   useFrame(({ clock }) => {
     const dark = isDarkMode();
-    const lerpSpeed = dark ? COLOR_LERP_SPEED_TO_DARK : COLOR_LERP_SPEED_TO_LIGHT;
+    const lerpSpeed = dark
+      ? COLOR_LERP_SPEED_TO_DARK
+      : COLOR_LERP_SPEED_TO_LIGHT;
 
     // Stretch leaf silhouettes along shadow direction in dark mode
     const targetX = dark ? LEAF_STRETCH_X_DARK : 1;
@@ -185,10 +213,16 @@ function TreeCanopy({
     // Darken leaf silhouettes
     const targetColor = dark ? LEAF_COLOR_DARK : LEAF_COLOR_LIGHT;
     leafColor.current.lerp(new THREE.Color(targetColor), lerpSpeed);
-    (tree.leafMesh.material as THREE.MeshBasicMaterial).color.copy(leafColor.current);
+    (tree.leafMesh.material as THREE.MeshBasicMaterial).color.copy(
+      leafColor.current,
+    );
 
     if (groupRef.current) {
-      groupRef.current.scale.set(stretchX.current, TREE_SCALE, stretchZ.current);
+      groupRef.current.scale.set(
+        stretchX.current,
+        TREE_SCALE,
+        stretchZ.current,
+      );
     }
 
     if (reducedMotion) return;
@@ -225,12 +259,12 @@ function TreeCanopy({
   });
 
   return (
-    <group
-      ref={groupRef}
-      position={position}
-      scale={TREE_SCALE}
-    >
-      <mesh geometry={tree.canopyBranchGeo} material={tree.branchMat} castShadow />
+    <group ref={groupRef} position={position} scale={TREE_SCALE}>
+      <mesh
+        geometry={tree.canopyBranchGeo}
+        material={tree.branchMat}
+        castShadow
+      />
       <primitive object={tree.leafMesh} />
     </group>
   );
@@ -264,8 +298,12 @@ function SunLight({
   const targetColor = useRef(new THREE.Color(initColor));
   const currentColor = useRef(new THREE.Color(initColor));
   const currentIntensity = useRef(initIntensity);
-  const currentPos = useRef(new THREE.Vector3(LIGHT_POSITION[0], initY, LIGHT_POSITION[2]));
-  const targetPos = useRef(new THREE.Vector3(LIGHT_POSITION[0], initY, LIGHT_POSITION[2]));
+  const currentPos = useRef(
+    new THREE.Vector3(LIGHT_POSITION[0], initY, LIGHT_POSITION[2]),
+  );
+  const targetPos = useRef(
+    new THREE.Vector3(LIGHT_POSITION[0], initY, LIGHT_POSITION[2]),
+  );
   const mobile = useMemo(() => isMobile(), []);
   const mapSize = mobile ? SHADOW_MAP_SIZE_MOBILE : SHADOW_MAP_SIZE;
 
@@ -277,8 +315,13 @@ function SunLight({
     const lerpSpeed = dark ? lerpToDark : lerpToLight;
     currentColor.current.lerp(targetColor.current, lerpSpeed);
     const targetIntensity = dark ? intensityDark : intensity;
-    currentIntensity.current += (targetIntensity - currentIntensity.current) * lerpSpeed;
-    targetPos.current.set(LIGHT_POSITION[0], dark ? lightYDark : lightY, LIGHT_POSITION[2]);
+    currentIntensity.current +=
+      (targetIntensity - currentIntensity.current) * lerpSpeed;
+    targetPos.current.set(
+      LIGHT_POSITION[0],
+      dark ? lightYDark : lightY,
+      LIGHT_POSITION[2],
+    );
     currentPos.current.lerp(targetPos.current, lerpSpeed);
     if (lightRef.current) {
       lightRef.current.color.copy(currentColor.current);
@@ -306,7 +349,15 @@ function SunLight({
   );
 }
 
-function AmbientLightColor({ intensity, lerpToDark, lerpToLight }: { intensity: number; lerpToDark: number; lerpToLight: number }) {
+function AmbientLightColor({
+  intensity,
+  lerpToDark,
+  lerpToLight,
+}: {
+  intensity: number;
+  lerpToDark: number;
+  lerpToLight: number;
+}) {
   const dark = isDarkMode();
   const initColor = dark ? AMBIENT_COLOR_DARK : AMBIENT_COLOR_LIGHT;
   const lightRef = useRef<THREE.AmbientLight>(null);
@@ -336,20 +387,27 @@ export default function DappledLightScene({
   const pcssSamples = mobile ? PCSS_SAMPLES_MOBILE : PCSS_SAMPLES;
   const pcssSize = mobile ? PCSS_SIZE_MOBILE : PCSS_SIZE;
 
-  const clearing = useMemo<ClearingConfig>(() => ({
-    center: [0, 0],
-    radiusX: CLEARING_RADIUS_X,
-    radiusZ: CLEARING_RADIUS_Z,
-    strength: CLEARING_STRENGTH,
-    treePosition: TREE_POSITION,
-    lightPosition: LIGHT_POSITION,
-  }), []);
+  const clearing = useMemo<ClearingConfig>(
+    () => ({
+      center: [0, 0],
+      radiusX: CLEARING_RADIUS_X,
+      radiusZ: CLEARING_RADIUS_Z,
+      strength: CLEARING_STRENGTH,
+      treePosition: TREE_POSITION,
+      lightPosition: LIGHT_POSITION,
+    }),
+    [],
+  );
 
   return (
     <>
       <CameraSetup />
       <SoftShadows focus={PCSS_FOCUS} samples={pcssSamples} size={pcssSize} />
-      <AmbientLightColor intensity={AMBIENT_INTENSITY} lerpToDark={COLOR_LERP_SPEED_TO_DARK} lerpToLight={COLOR_LERP_SPEED_TO_LIGHT} />
+      <AmbientLightColor
+        intensity={AMBIENT_INTENSITY}
+        lerpToDark={COLOR_LERP_SPEED_TO_DARK}
+        lerpToLight={COLOR_LERP_SPEED_TO_LIGHT}
+      />
       <SunLight
         intensity={LIGHT_INTENSITY}
         intensityDark={LIGHT_INTENSITY_DARK}
@@ -360,7 +418,10 @@ export default function DappledLightScene({
         lerpToDark={COLOR_LERP_SPEED_TO_DARK}
         lerpToLight={COLOR_LERP_SPEED_TO_LIGHT}
       />
-      <Ground lerpToDark={COLOR_LERP_SPEED_TO_DARK} lerpToLight={COLOR_LERP_SPEED_TO_LIGHT} />
+      <Ground
+        lerpToDark={COLOR_LERP_SPEED_TO_DARK}
+        lerpToLight={COLOR_LERP_SPEED_TO_LIGHT}
+      />
       <TreeCanopy
         reducedMotion={reducedMotion}
         position={TREE_POSITION}
