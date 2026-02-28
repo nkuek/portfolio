@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import HeroSection from "~/components/HeroSection";
+import HeroDappledZone from "~/components/HeroDappledZone";
 import ProjectSection from "~/components/ProjectSection";
 import InTheWild from "~/components/InTheWild";
 import SkillsSection from "~/components/SkillsSection";
@@ -42,7 +42,7 @@ export default function HomeClient() {
       <Crosshair dataRef={crosshairRef} />
       <XAxisTicks dataRef={xAxisRef} mouseOffsetRef={mouseOffsetRef} />
       <div className="relative z-1">
-        <HeroSection />
+        <HeroDappledZone />
         <ProjectSection
           highlightRef={highlightRef}
           crosshairRef={crosshairRef}

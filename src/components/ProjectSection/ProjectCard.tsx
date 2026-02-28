@@ -193,7 +193,7 @@ function PolaroidFragment({
         )}
         <div className="p-3 pb-0">{polaroidContent}</div>
         <div className="px-4 pt-3 pb-5">
-          <p className="polaroid-title text-center font-mono text-xl tracking-[0.02em]">
+          <p className="polaroid-title text-center font-serif text-base italic">
             {project.title}
           </p>
         </div>
@@ -498,7 +498,7 @@ function MobileProjectCard({
         />
         <div className="p-2.5 pb-0">{polaroidContent}</div>
         <div className="px-3 pt-2.5 pb-4">
-          <p className="polaroid-title text-center font-mono text-xl tracking-[0.02em]">
+          <p className="polaroid-title text-center font-serif text-base italic">
             {project.title}
           </p>
         </div>

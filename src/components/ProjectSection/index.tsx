@@ -67,6 +67,34 @@ export default function ProjectSection({
     const IDLE_THRESHOLD = 2000; // ms before spotlight starts fading
     const FADE_DURATION = 800; // ms to fully dissolve
 
+    // Cache label centers — they're absolutely positioned, so we only need to
+    // re-measure on resize/scroll (container offset changes), not every frame.
+    let labelCenters: { cx: number; cy: number }[] = [];
+    let cachedElements: HTMLElement[] = [];
+    let containerOffsetX = 0;
+    let containerOffsetY = 0;
+
+    function measureLabels() {
+      const container = labelsRef.current;
+      if (!container) return;
+      const containerRect = container.getBoundingClientRect();
+      containerOffsetX = containerRect.left;
+      containerOffsetY = containerRect.top;
+      const labels = container.children as HTMLCollectionOf<HTMLElement>;
+      labelCenters = [];
+      cachedElements = [];
+      for (let i = 0; i < labels.length; i++) {
+        const el = labels[i];
+        cachedElements.push(el);
+        // Use offsetLeft/offsetTop (no layout forced — cached by browser)
+        // plus half the element size for the center
+        labelCenters.push({
+          cx: containerOffsetX + el.offsetLeft + el.offsetWidth / 2,
+          cy: containerOffsetY + el.offsetTop + el.offsetHeight / 2,
+        });
+      }
+    }
+
     const onPointerMove = (e: PointerEvent) => {
       // Only reset idle timer if cursor actually moved (scroll shifts elements
       // under a stationary cursor, firing pointermove without real movement)
@@ -77,37 +105,40 @@ export default function ProjectSection({
       mouseY = e.clientY;
     };
 
+    let lastScrollY = -1;
     function tick() {
-      const container = labelsRef.current;
-      if (container) {
-        const idle = performance.now() - lastMoveTime;
-        const fadeFactor =
-          idle < IDLE_THRESHOLD
-            ? 1
-            : Math.max(0, 1 - (idle - IDLE_THRESHOLD) / FADE_DURATION);
-
-        const labels = container.children as HTMLCollectionOf<HTMLElement>;
-        for (let i = 0; i < labels.length; i++) {
-          const el = labels[i];
-          const rect = el.getBoundingClientRect();
-          const cx = rect.left + rect.width / 2;
-          const cy = rect.top + rect.height / 2;
-          const dx = cx - mouseX;
-          const dy = cy - mouseY;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const boost = Math.max(0, 1 - dist / PROXIMITY_RADIUS) * fadeFactor;
-
-          el.style.setProperty("--cursor-boost", String(boost));
-        }
+      // Re-measure when scroll position changes (container moves on screen)
+      const sy = window.scrollY;
+      if (sy !== lastScrollY || labelCenters.length === 0) {
+        measureLabels();
+        lastScrollY = sy;
       }
+
+      const idle = performance.now() - lastMoveTime;
+      const fadeFactor =
+        idle < IDLE_THRESHOLD
+          ? 1
+          : Math.max(0, 1 - (idle - IDLE_THRESHOLD) / FADE_DURATION);
+
+      for (let i = 0; i < cachedElements.length; i++) {
+        const { cx, cy } = labelCenters[i];
+        const dx = cx - mouseX;
+        const dy = cy - mouseY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const boost = Math.max(0, 1 - dist / PROXIMITY_RADIUS) * fadeFactor;
+        cachedElements[i].style.setProperty("--cursor-boost", String(boost));
+      }
+
       raf = requestAnimationFrame(tick);
     }
 
     window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("resize", measureLabels);
     raf = requestAnimationFrame(tick);
 
     return () => {
       window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("resize", measureLabels);
       cancelAnimationFrame(raf);
     };
   }, []);

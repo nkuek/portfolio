@@ -116,3 +116,19 @@ html[data-color-scheme="dark"] .sun-and-moon > .moon > circle {
     }
   }
 }
+
+/* Remove track-based translateX offset when used without the track.
+   Placed last to override all dark-mode translateX rules above. */
+.compact {
+  transform: translateX(0);
+}
+
+html[data-color-scheme="dark"] .compact {
+  transform: translateX(0);
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-color-scheme="light"]) .compact {
+    transform: translateX(0);
+  }
+}

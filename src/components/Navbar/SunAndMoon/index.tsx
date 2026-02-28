@@ -2,29 +2,31 @@ import { useId } from "react";
 import cn from "~/utils/cn";
 import styles from "./styles.module.css";
 
-export default function SunAndMoon() {
+export default function SunAndMoon({ compact = false }: { compact?: boolean }) {
   const id = useId();
+  const fill = compact ? "fill-text" : "fill-background";
+  const stroke = compact ? "stroke-text" : "stroke-background";
   return (
     <svg
-      className={styles["sun-and-moon"]}
+      className={cn(styles["sun-and-moon"], compact && styles.compact)}
       aria-hidden="true"
       width="24"
       height="24"
       viewBox="0 0 24 24"
       strokeLinecap="round"
     >
-      <mask className={cn(styles.moon, "fill-background")} id={id}>
+      <mask className={cn(styles.moon, fill)} id={id}>
         <rect x="0" y="0" width="100%" height="100%" fill="white" />
         <circle cx="24" cy="10" r="6" fill="black" />
       </mask>
       <circle
-        className={cn(styles.sun, "fill-background")}
+        className={cn(styles.sun, fill)}
         cx="12"
         cy="12"
         r="6"
         mask={`url(#${id})`}
       />
-      <g className={cn(styles["sun-beams"], "stroke-background")}>
+      <g className={cn(styles["sun-beams"], stroke)}>
         <line x1="12" y1="1" x2="12" y2="3" />
         <line x1="12" y1="21" x2="12" y2="23" />
         <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />

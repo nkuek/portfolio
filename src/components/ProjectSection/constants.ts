@@ -71,7 +71,7 @@ export const projects: Project[] = [
     ],
   },
   {
-    title: "Particle Displacement",
+    title: "particle displacement",
     description:
       "65,000 particles arranged on a sphere, scattered by mouse interaction via WebGPU compute shaders. Real-time physics with TSL.",
     technologies: ["Three.js", "React Three Fiber", "WebGPU", "TSL"],
@@ -103,7 +103,7 @@ export const projects: Project[] = [
     ],
   },
   {
-    title: "Corne Keyboard",
+    title: "corne keyboard",
     description:
       "A 3D interactive split keyboard model. Type on your physical keyboard and watch the keys respond in 3D space. A personal passion project bridging hardware and web.",
     technologies: ["Blender", "Three.js", "React Three Fiber", "GLSL"],
@@ -137,7 +137,7 @@ export const projects: Project[] = [
     ],
   },
   {
-    title: "Particle Morphing",
+    title: "particle morphing",
     description:
       "An interactive WebGL experiment built with React Three Fiber and custom GLSL shaders, where videos seamlessly morph between each other. Transitions are choreographed with GSAP and enhanced with bloom postprocessing.",
     technologies: ["Three.js", "React Three Fiber", "GLSL", "GSAP"],

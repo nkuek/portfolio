@@ -29,7 +29,7 @@ type WildProject = {
 
 const wildProjects: WildProject[] = [
   {
-    title: "Immersive Hero",
+    title: "immersive hero",
     company: "Mercury",
     caption: "A scroll-driven video experience that dissolves into the page.",
     videoSrc:
@@ -38,7 +38,7 @@ const wildProjects: WildProject[] = [
     x: 0,
   },
   {
-    title: "Gamified 404 Page",
+    title: "gamified 404 page",
     company: "Mercury",
     caption:
       "A 404 page you actually want to find. Sliding puzzle easter egg turns a dead-end into a moment of delight.",
@@ -48,7 +48,7 @@ const wildProjects: WildProject[] = [
     x: 2800,
   },
   {
-    title: "Fluid Simulation Button",
+    title: "fluid simulation button",
     company: "Mercury",
     caption:
       "Fluid simulation trapped inside a button. A microinteraction that packs a big punch.",
@@ -146,7 +146,7 @@ function WildCardFragments({
           </div>
           <div className="px-4 pt-3 pb-5">
             <div className="flex items-baseline justify-between gap-3">
-              <p className="polaroid-title font-mono text-[17px] tracking-[0.01em]">
+              <p className="polaroid-title font-serif text-base italic">
                 {project.title}
               </p>
               <span className="wild-company shrink-0 font-mono text-[12px] tracking-[0.08em] uppercase">
@@ -212,7 +212,7 @@ function MobileWildCard({ project }: { project: WildProject }) {
         </div>
         <div className="px-3 pt-2.5 pb-4">
           <div className="flex items-baseline justify-between gap-3">
-            <p className="polaroid-title font-mono text-xl tracking-[0.01em]">
+            <p className="polaroid-title font-serif text-base italic">
               {project.title}
             </p>
             <span className="wild-company shrink-0 font-mono text-[14px] tracking-[0.08em] uppercase">

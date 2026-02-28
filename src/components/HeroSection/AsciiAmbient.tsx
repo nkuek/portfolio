@@ -3,6 +3,7 @@
 import { useEffect, useRef, type RefObject } from "react";
 
 const CHARS = "{}[]·:.-+*<>/|";
+const HIGHLIGHT_CHARS = "{}[]<>+*/|";
 const FONT_SIZE = 16;
 const LINE_HEIGHT = FONT_SIZE * 1.7;
 const CHAR_WIDTH = FONT_SIZE * 0.62;
@@ -115,7 +116,15 @@ export default function AsciiAmbient({
           ctx.fillStyle = baseColor;
         }
 
-        ctx.fillText(chars[i], col * CHAR_WIDTH, row * LINE_HEIGHT);
+        const outlineChar =
+          (hlOutlineChar && hlOutlineChar[i]) ||
+          (fadingOutlineChar && fadingOutlineChar[i]);
+        const ch = inHighlight
+          ? HIGHLIGHT_CHARS[i % HIGHLIGHT_CHARS.length]
+          : outlineChar
+            ? outlineChar
+            : chars[i];
+        ctx.fillText(ch, col * CHAR_WIDTH, row * LINE_HEIGHT);
       }
 
       ctx.globalAlpha = 1;
@@ -125,6 +134,7 @@ export default function AsciiAmbient({
     const hlCanvas = document.createElement("canvas");
     const hlCtx = hlCanvas.getContext("2d", { willReadFrequently: true })!;
     let hlMask: Uint8Array | null = null;
+    let hlOutlineChar: (string | null)[] | null = null; // stroke char per cell
     let hlRevealThreshold: Float32Array | null = null; // per-cell random reveal order
     let hlMaskText = "";
 
@@ -132,6 +142,7 @@ export default function AsciiAmbient({
       const hl = highlightRef?.current;
       if (!hl || !hl.text) {
         hlMask = null;
+        hlOutlineChar = null;
         hlMaskText = "";
         return;
       }
@@ -149,8 +160,9 @@ export default function AsciiAmbient({
 
       // Brutalist: fixed massive font + fixed kerning, text overflows freely
       const text = hl.text.toUpperCase();
-      const fontSize = rows * 0.75;
-      const kerning = fontSize * 0.85; // fixed spacing between letter centers
+      const fontSize = rows * 0.85;
+      const kerning = fontSize * 0.95; // fixed spacing between letter centers
+      const stretchX = 1.4; // fatten each letter horizontally
       hlCtx.font = `900 ${fontSize}px monospace`;
 
       // Center the text horizontally — pin to left edge if it overflows
@@ -159,10 +171,13 @@ export default function AsciiAmbient({
       const startX = Math.max(halfChar, (cols - totalWidth) / 2);
       const centerY = rows / 2;
 
+      hlCtx.save();
+      hlCtx.scale(stretchX, 1);
       for (let i = 0; i < text.length; i++) {
-        const x = startX + i * kerning;
+        const x = (startX + i * kerning) / stretchX;
         hlCtx.fillText(text[i], x, centerY);
       }
+      hlCtx.restore();
 
       // Read pixels as mask + generate per-cell random reveal order
       const imgData = hlCtx.getImageData(0, 0, cols, rows);
@@ -174,6 +189,42 @@ export default function AsciiAmbient({
         // Deterministic hash per cell position
         const h = Math.sin(i * 127.1 + 311.7) * 43758.5453;
         hlRevealThreshold[i] = h - Math.floor(h); // 0–1
+      }
+
+      // Outline: 1-cell border around text with directional stroke characters.
+      // Compute gradient toward text interior to determine edge direction.
+      const EDGE_CHARS = ["-", "\\", "|", "/"]; // indexed by quantized angle
+      hlOutlineChar = new Array<string | null>(total).fill(null);
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const idx = row * cols + col;
+          if (hlMask[idx] > 20) continue;
+          // Sum neighbor offsets that are text cells → gradient toward text
+          let gx = 0;
+          let gy = 0;
+          let hasTextNeighbor = false;
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              if (dr === 0 && dc === 0) continue;
+              const nr = row + dr;
+              const nc = col + dc;
+              if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+              if (hlMask[nr * cols + nc] > 20) {
+                gx += dc;
+                gy += dr;
+                hasTextNeighbor = true;
+              }
+            }
+          }
+          if (!hasTextNeighbor) continue;
+          // Edge line is perpendicular to gradient
+          const edgeAngle = Math.atan2(gy, gx) + Math.PI / 2;
+          // Normalize to [0, π) — edge direction is bidirectional
+          const norm = ((edgeAngle % Math.PI) + Math.PI) % Math.PI;
+          // Quantize to 4 directions: - \ | /
+          const qi = Math.round((norm / Math.PI) * 4) % 4;
+          hlOutlineChar[idx] = EDGE_CHARS[qi];
+        }
       }
     }
 
@@ -247,6 +298,7 @@ export default function AsciiAmbient({
 
     // Old text fade-out — cells disappear in pseudo-random order
     let fadingMask: Uint8Array | null = null;
+    let fadingOutlineChar: (string | null)[] | null = null; // old outline chars
     let fadingThresholds: Float32Array | null = null;
     let fadeOutProgress = 0; // 0 = fully visible, advances to 1 = fully gone
     const FADE_OUT_SWEEP_SPEED = 0.035;
@@ -279,6 +331,13 @@ export default function AsciiAmbient({
       const textChanging = hlText !== hlPrevText;
       if (textChanging && hlMask) {
         fadingMask = new Uint8Array(hlMask);
+        // Mark outline cells in the fading mask so they get swept too
+        if (hlOutlineChar) {
+          for (let i = 0; i < hlOutlineChar.length; i++) {
+            if (hlOutlineChar[i]) fadingMask[i] = 255;
+          }
+        }
+        fadingOutlineChar = hlOutlineChar ? [...hlOutlineChar] : null;
         fadingThresholds = hlRevealThreshold
           ? new Float32Array(hlRevealThreshold)
           : null;
@@ -317,6 +376,7 @@ export default function AsciiAmbient({
 
         if (!anyLeft || fadeOutProgress >= 1) {
           fadingMask = null;
+          fadingOutlineChar = null;
           fadingThresholds = null;
         }
       }
@@ -372,9 +432,19 @@ export default function AsciiAmbient({
 
           if (inTextRegion) {
             const hlAlphaBase = dark ? 0.82 : 0.85;
-            const hlAlpha = (maskVal / 255) * cellReveal * hlAlphaBase;
+            const maskFactor = Math.min(1, maskVal / 80);
+            const hlAlpha = maskFactor * cellReveal * hlAlphaBase;
             if (hlAlpha > brightness[idx]) brightness[idx] = hlAlpha;
           } else {
+            // Stroke outline around text — boost brightness for edge cells
+            const hasOutline =
+              hlOutlineChar && hlRevealProgress > 0 && hlOutlineChar[idx];
+            if (hasOutline && cellReveal > 0) {
+              const outlineAlpha = cellReveal * (dark ? 0.7 : 0.75);
+              if (outlineAlpha > brightness[idx])
+                brightness[idx] = outlineAlpha;
+            }
+
             const nearText = maskVal > 0 && cellReveal > 0;
             const suppressFactor = nearText
               ? 1 - (maskVal / 255) * cellReveal

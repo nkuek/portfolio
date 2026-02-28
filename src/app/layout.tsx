@@ -10,6 +10,7 @@ import Navbar from "~/components/Navbar";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ReactLenis } from "lenis/react";
+import { Agentation } from "agentation";
 
 const poppins = Poppins({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -157,6 +158,7 @@ export default function RootLayout({
         <SpeedInsights />
         <Navbar />
         {children}
+        {process.env.NODE_ENV === "development" && <Agentation />}
       </body>
     </html>
   );

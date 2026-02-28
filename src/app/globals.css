@@ -10,6 +10,7 @@
   --caption-dark: var(--color-stone-300);
   --inline-code: var(--color-neutral-300);
   --inline-code-dark: var(--color-neutral-600);
+  --vignette-bg: var(--background);
 
   --primary: var(--color-teal-600);
   --track-color: oklch(0.4318 0.0865 166.91);
@@ -25,7 +26,7 @@
   --surface-card: #fafaf9;
   --surface-card-alt: #f0f0f0;
   --surface-media: #171717;
-  --surface-overlay: rgb(250 250 249 / 0.92);
+  --surface-overlay: rgb(250 250 249);
 
   /* ── Accent ── */
   --accent: #2d7d9a;
@@ -161,6 +162,7 @@
 
 @utility dark-tokens {
   --background: var(--color-background-dark);
+  --vignette-bg: color-mix(in srgb, var(--background) 70%, transparent);
   --text: var(--color-text-dark);
   --caption: var(--color-stone-300);
   --caption-dark: var(--color-caption-dark);
@@ -170,7 +172,7 @@
 
   --surface-card: #242424;
   --surface-card-alt: #1a1a2e;
-  --surface-overlay: rgb(28 28 28 / 0.92);
+  --surface-overlay: rgb(28 28 28 / 0.72);
   --text-muted: #a3a3a3;
   --text-subtle: #a3a3a3;
   --text-card-title: #a3a3a3;
@@ -186,6 +188,12 @@
     drop-shadow(0 8px 20px rgb(0 0 0 / 0.25));
   --shadow-control: 0 1px 3px rgb(0 0 0 / 0.2), 0 4px 10px rgb(0 0 0 / 0.15);
   --shadow-sticky: 0 2px 6px rgb(0 0 0 / 0.25), 0 1px 2px rgb(0 0 0 / 0.15);
+
+  /* ── Dappled light (CSS mobile fallback) ── */
+  --dappled-ground: #3a2828;
+  --dappled-shadow: rgba(20, 12, 8, 0.35);
+  --dappled-shadow-deep: rgba(15, 8, 4, 0.45);
+  --dappled-light-patch: rgba(240, 160, 96, 0.08);
 }
 
 @utility clip-path-* {
@@ -576,6 +584,513 @@ body {
     opacity: 1;
     filter: blur(0px);
     transform: translateY(0);
+  }
+}
+
+@keyframes navLinkIn {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0);
+  }
+}
+
+/* ═══ Dappled light — CSS mobile fallback ═══ */
+
+.dappled-root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.dappled-ground {
+  position: absolute;
+  inset: 0;
+  background: var(--dappled-ground);
+  transition: background 400ms ease;
+}
+
+/* ── Drift wrappers (GPU-composited transform animation) ── */
+
+.dappled-drift-1,
+.dappled-drift-2,
+.dappled-drift-3 {
+  position: absolute;
+  inset: -20%;
+  will-change: transform;
+}
+
+.dappled-drift-1 {
+  animation: dappledDrift1 25s ease-in-out infinite;
+}
+.dappled-drift-2 {
+  animation: dappledDrift2 18s ease-in-out infinite;
+}
+.dappled-drift-3 {
+  animation: dappledDrift3 12s ease-in-out infinite;
+}
+
+/* ── Shadow layers (static, filtered — rasterize once) ── */
+
+.dappled-shadows-1,
+.dappled-shadows-2,
+.dappled-shadows-3 {
+  position: absolute;
+  inset: 0;
+  filter: url(#dappled);
+}
+
+.dappled-shadows-1 {
+  background:
+    radial-gradient(
+      ellipse 18% 22% at 12% 20%,
+      var(--dappled-shadow) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 22% 16% at 35% 15%,
+      var(--dappled-shadow-deep) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 15% 20% at 60% 30%,
+      var(--dappled-shadow) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 20% 18% at 80% 22%,
+      var(--dappled-shadow-deep) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 16% 24% at 25% 65%,
+      var(--dappled-shadow) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 22% 15% at 70% 70%,
+      var(--dappled-shadow) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 14% 20% at 90% 55%,
+      var(--dappled-shadow-deep) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 18% 16% at 48% 80%,
+      var(--dappled-shadow) 0%,
+      transparent 70%
+    );
+}
+
+.dappled-shadows-2 {
+  background:
+    radial-gradient(
+      ellipse 12% 14% at 8% 35%,
+      var(--dappled-shadow) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 14% 10% at 22% 50%,
+      var(--dappled-shadow-deep) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 10% 16% at 42% 18%,
+      var(--dappled-shadow) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 16% 12% at 55% 55%,
+      var(--dappled-shadow-deep) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 12% 14% at 72% 40%,
+      var(--dappled-shadow) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 14% 10% at 88% 25%,
+      var(--dappled-shadow) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 10% 16% at 30% 80%,
+      var(--dappled-shadow-deep) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 16% 12% at 65% 85%,
+      var(--dappled-shadow) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 11% 13% at 15% 72%,
+      var(--dappled-shadow) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 13% 11% at 82% 68%,
+      var(--dappled-shadow-deep) 0%,
+      transparent 65%
+    );
+}
+
+.dappled-shadows-3 {
+  background:
+    radial-gradient(
+      ellipse 8% 10% at 5% 15%,
+      var(--dappled-shadow) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 10% 7% at 18% 40%,
+      var(--dappled-shadow-deep) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 7% 11% at 32% 25%,
+      var(--dappled-shadow) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 11% 8% at 48% 45%,
+      var(--dappled-shadow) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 9% 10% at 62% 15%,
+      var(--dappled-shadow-deep) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 10% 8% at 78% 35%,
+      var(--dappled-shadow) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 8% 12% at 88% 50%,
+      var(--dappled-shadow-deep) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 12% 9% at 25% 70%,
+      var(--dappled-shadow) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 9% 11% at 55% 75%,
+      var(--dappled-shadow-deep) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 7% 9% at 72% 60%,
+      var(--dappled-shadow) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 10% 7% at 40% 88%,
+      var(--dappled-shadow) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 8% 10% at 92% 78%,
+      var(--dappled-shadow-deep) 0%,
+      transparent 60%
+    );
+}
+
+/* Light patches — warm sunbeams */
+.dappled-shadows-1::after,
+.dappled-shadows-2::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  filter: url(#dappled);
+}
+.dappled-shadows-1::after {
+  background:
+    radial-gradient(
+      ellipse 20% 25% at 45% 40%,
+      var(--dappled-light-patch) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 15% 18% at 20% 55%,
+      var(--dappled-light-patch) 0%,
+      transparent 70%
+    );
+}
+.dappled-shadows-2::after {
+  background:
+    radial-gradient(
+      ellipse 18% 22% at 65% 30%,
+      var(--dappled-light-patch) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 14% 16% at 38% 72%,
+      var(--dappled-light-patch) 0%,
+      transparent 70%
+    );
+}
+
+/* ── Central clearing for hero text readability ── */
+
+.dappled-clearing {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 50% 40% at 50% 45%,
+    var(--dappled-ground) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* ── Drift keyframes ── */
+
+@keyframes dappledDrift1 {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  25% {
+    transform: translate3d(12px, -8px, 0);
+  }
+  50% {
+    transform: translate3d(-6px, 12px, 0);
+  }
+  75% {
+    transform: translate3d(-12px, -4px, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes dappledDrift2 {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  33% {
+    transform: translate3d(-10px, -10px, 0);
+  }
+  66% {
+    transform: translate3d(8px, 6px, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes dappledDrift3 {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  20% {
+    transform: translate3d(5px, -7px, 0);
+  }
+  40% {
+    transform: translate3d(-7px, 3px, 0);
+  }
+  60% {
+    transform: translate3d(4px, 7px, 0);
+  }
+  80% {
+    transform: translate3d(-5px, -4px, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ═══ Navbar scroll morph ═══ */
+
+:root {
+  --nav-pill-max-w: 40rem;
+}
+@media (max-width: 767px) {
+  :root {
+    --nav-pill-max-w: 100%;
+  }
+}
+
+/* Base styles (top of page) */
+.nav-bar {
+  padding: 0.75rem 1.25rem;
+  gap: 1.25rem;
+}
+.nav-pill-bg {
+  border-radius: 0.75rem;
+  border-color: transparent;
+  background: transparent;
+  -webkit-backdrop-filter: blur(0px);
+  backdrop-filter: blur(0px);
+  box-shadow: 0 0 0 transparent;
+}
+.nav-logo {
+  width: 2.5rem;
+}
+
+/* ── Fallback: data-scrolled transitions (no scroll-timeline) ── */
+.nav-shell {
+  transition:
+    padding 500ms var(--ease-spring),
+    padding-inline 500ms var(--ease-spring);
+}
+.nav-bar {
+  transition:
+    padding 500ms var(--ease-spring),
+    gap 500ms var(--ease-spring);
+}
+.nav-pill-bg {
+  transition:
+    border-radius 500ms var(--ease-spring),
+    background-color 500ms var(--ease-spring),
+    border-color 500ms var(--ease-spring),
+    -webkit-backdrop-filter 500ms var(--ease-spring),
+    backdrop-filter 500ms var(--ease-spring),
+    box-shadow 500ms var(--ease-spring);
+}
+.nav-logo {
+  transition: width 500ms var(--ease-spring);
+}
+
+.nav-shell[data-scrolled] {
+  padding-top: 1rem;
+  padding-inline: 1rem;
+}
+@media (min-width: 768px) {
+  .nav-shell[data-scrolled] {
+    padding-inline: 0;
+  }
+}
+.nav-shell[data-scrolled] .nav-bar {
+  padding: 0.5rem 1.25rem;
+  gap: 1.25rem;
+}
+.nav-shell[data-scrolled] .nav-pill-bg {
+  border-radius: 9999px;
+  background: var(--surface-overlay);
+  border-color: var(--border-card);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.nav-shell[data-scrolled] .nav-logo {
+  width: 2.25rem;
+}
+
+/* ── Fallback for browsers without scroll-driven animations ── */
+@supports not (animation-timeline: scroll()) {
+  .nav-bar {
+    width: 75%;
+  }
+  .nav-logo {
+    margin-right: 1rem;
+  }
+}
+
+/* ── Primary: scroll-driven animation (overrides fallback) ── */
+@supports (animation-timeline: scroll()) {
+  .nav-shell,
+  .nav-bar,
+  .nav-pill-bg,
+  .nav-logo {
+    transition: none !important;
+  }
+
+  .nav-bar {
+    width: 100%;
+  }
+
+  .nav-shell,
+  .nav-bar,
+  .nav-pill-bg,
+  .nav-logo {
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(root);
+    animation-range: 0px 80px;
+  }
+  .nav-shell {
+    animation-name: navShellMorph;
+  }
+  .nav-bar {
+    animation-name: navBarMorph;
+  }
+  .nav-pill-bg {
+    animation-name: navBgMorph;
+  }
+  .nav-logo {
+    animation-name: navLogoMorph;
+  }
+}
+
+@keyframes navShellMorph {
+  from {
+    padding-top: 0;
+    padding-inline: 0;
+  }
+  to {
+    padding-top: 1rem;
+    padding-inline: 1rem;
+  }
+}
+@media (min-width: 768px) {
+  @keyframes navShellMorph {
+    from {
+      padding-top: 0;
+    }
+    to {
+      padding-top: 1rem;
+    }
+  }
+}
+@keyframes navBarMorph {
+  from {
+    max-width: 100%;
+    padding: 0.75rem 1.5rem;
+    gap: 1.5rem;
+  }
+  to {
+    max-width: var(--nav-pill-max-w);
+    padding: 0.5rem 1.25rem;
+    gap: 1.25rem;
+  }
+}
+@keyframes navBgMorph {
+  from {
+    border-radius: 0.75rem;
+    border-color: transparent;
+    background: transparent;
+    -webkit-backdrop-filter: blur(0px);
+    backdrop-filter: blur(0px);
+    box-shadow: 0 0 0 transparent;
+  }
+  to {
+    border-radius: 9999px;
+    border-color: var(--border-card);
+    background: var(--surface-overlay);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    backdrop-filter: blur(24px) saturate(1.4);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+}
+@keyframes navLogoMorph {
+  from {
+    width: 2.5rem;
+  }
+  to {
+    width: 2.25rem;
   }
 }
 
@@ -1122,7 +1637,8 @@ body {
   .project-desc-reveal,
   .project-pill,
   .project-links-reveal,
-  .section-header-reveal {
+  .section-header-reveal,
+  .nav-link-in {
     animation: none !important;
     opacity: 1 !important;
     filter: none !important;
@@ -1145,6 +1661,15 @@ body {
   .polaroid-tape,
   .info-pin,
   .sticky-note {
+    transition: none !important;
+  }
+
+  /* Disable navbar scroll morph */
+  .nav-shell,
+  .nav-bar,
+  .nav-pill-bg,
+  .nav-logo {
+    animation: none !important;
     transition: none !important;
   }
 }

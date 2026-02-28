@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
+import cn from "~/utils/cn";
 import SunAndMoon from "./SunAndMoon";
 
 export type ThemePreference = "light" | "dark";
 
-export default function ThemeToggle() {
+export default function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const [preference, setPreference] = useState<ThemePreference>("light");
   function updatePreference(next?: ThemePreference, persist = false) {
     setPreference((prev) => {
@@ -61,18 +62,22 @@ export default function ThemeToggle() {
 
   return (
     <>
-      <div className="relative mx-[17.5px] flex justify-center">
+      <div className={cn("relative flex justify-center", !compact && "mx-[17.5px]")}>
         <button
           type="button"
           role="switch"
           aria-checked={preference === "dark"}
-          className="before:bg-track-color group block aspect-square rounded-full transition-transform duration-200 ease-out before:absolute before:m-auto before:flex before:h-[125%] before:w-[250%] before:translate-x-[-25%] before:translate-y-[-12.5%] before:rounded-2xl before:transition-colors before:group-focus-visible:outline hover:cursor-pointer focus-visible:outline-offset-[5px] focus-visible:outline-none active:scale-97"
+          className={cn(
+            "group block aspect-square rounded-full transition-transform duration-200 ease-out hover:cursor-pointer focus-visible:outline-offset-[5px] focus-visible:outline-none active:scale-97",
+            !compact &&
+              "before:bg-track-color before:absolute before:m-auto before:flex before:h-[125%] before:w-[250%] before:translate-x-[-25%] before:translate-y-[-12.5%] before:rounded-2xl before:transition-colors before:group-focus-visible:outline",
+          )}
           title="Toggles light & dark"
           aria-live="polite"
           onClick={() => updatePreference(undefined, true)}
         >
           <span className="sr-only">{`Toggle Theme: ${preference}`}</span>
-          <SunAndMoon />
+          <SunAndMoon compact={compact} />
         </button>
       </div>
     </>

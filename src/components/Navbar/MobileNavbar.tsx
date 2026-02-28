@@ -1,77 +1,108 @@
 "use client";
-import { useState } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { sections } from "./constants";
 import DSLink from "~/design-system/DSLink";
 import DSAnchor from "~/design-system/DSLink/DSAnchor";
 import ThemeToggle from "./ThemeToggle";
 
-export default function MobileNavbar() {
-  const [showNavDrawer, setShowNavDrawer] = useState(false);
+const MobileNavContext = createContext<{
+  open: boolean;
+  setOpen: (v: boolean | ((prev: boolean) => boolean)) => void;
+}>({ open: false, setOpen: () => {} });
+
+export function useMobileNav() {
+  return useContext(MobileNavContext);
+}
+
+/**
+ * Provider wrapper — place around the <nav> so both the hamburger (inside nav)
+ * and the overlay (portaled to document.body) share state.
+ */
+function MobileNavbar({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false);
   return (
-    <>
-      <div className="md:hidden">
-        <div className="right-0 left-0 flex min-h-14 justify-end">
-          <button
-            className="group z-3 flex flex-col p-4 transition-transform duration-150 ease-out hover:cursor-pointer active:scale-97"
-            onClick={() => {
-              setShowNavDrawer((prev) => !prev);
-            }}
-            aria-haspopup
-            aria-expanded={showNavDrawer}
-            aria-controls="nav-menu"
-            aria-label="open navigation menu"
-          >
-            <div className="[&>div]:bg-text flex flex-col gap-1.5 text-inherit transition-transform duration-200 ease-out [&>div]:h-[2px] [&>div]:w-[23.5px] [&>div]:transition-transform group-aria-expanded:[&>div]:duration-200 group-aria-expanded:[&>div]:ease-out">
-              <div className="origin-center group-aria-expanded:translate-y-[7.5px] group-aria-expanded:rotate-45" />
-              <div className="origin-center group-aria-expanded:scale-0 group-aria-expanded:opacity-0" />
-              <div className="origin-center group-aria-expanded:-translate-y-[7.5px] group-aria-expanded:-rotate-45" />
-            </div>
-          </button>
-        </div>
-        <div
-          aria-hidden="true"
-          data-visible={showNavDrawer}
-          className="fixed inset-0 z-1 h-screen w-full bg-neutral-800 opacity-0 transition-[visibility,opacity] duration-500 ease-in-out data-[visible=false]:invisible data-[visible=true]:visible data-[visible=true]:opacity-50"
-          onClick={() => setShowNavDrawer(false)}
-        />
+    <MobileNavContext.Provider value={{ open, setOpen }}>
+      {children}
+      <MobileOverlay />
+    </MobileNavContext.Provider>
+  );
+}
+
+/** Hamburger toggle — rendered inside the <nav> pill, doubles as close button. */
+function Hamburger() {
+  const { open, setOpen } = useContext(MobileNavContext);
+  return (
+    <button
+      className="group relative ml-auto flex flex-col p-2 transition-transform duration-150 ease-out hover:cursor-pointer active:scale-97 md:hidden"
+      onClick={() => setOpen((prev) => !prev)}
+      aria-haspopup
+      aria-expanded={open}
+      aria-controls="nav-menu"
+      aria-label={open ? "close navigation menu" : "open navigation menu"}
+    >
+      <div className="[&>div]:bg-text flex flex-col gap-1.5 text-inherit [&>div]:h-[2px] [&>div]:w-5 [&>div]:transition-[translate,rotate,scale,opacity] [&>div]:duration-300 [&>div]:ease-[var(--ease-spring)]">
+        <div className="origin-center group-aria-expanded:translate-y-2 group-aria-expanded:rotate-45" />
+        <div className="origin-center group-aria-expanded:scale-0 group-aria-expanded:opacity-0" />
+        <div className="origin-center group-aria-expanded:-translate-y-2 group-aria-expanded:-rotate-45" />
       </div>
-      <ul
-        aria-hidden={!showNavDrawer}
-        className="ease bg-background fixed top-0 left-0 z-3 flex h-screen w-[max(40vw,266px)] flex-col items-start gap-0 overflow-y-auto overscroll-contain pt-6 transition-transform duration-250 aria-hidden:-translate-x-full md:hidden"
-        role="menu"
-        id="nav-menu"
-      >
-        {sections.map((section) => (
+    </button>
+  );
+}
+
+/** Fullscreen overlay — portaled to document.body to escape nav's transform containing block. */
+function MobileOverlay() {
+  const { open, setOpen } = useContext(MobileNavContext);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      id="nav-menu"
+      role="menu"
+      aria-hidden={!open}
+      className="bg-surface-overlay fixed inset-0 z-3 flex flex-col items-center justify-center backdrop-blur-xl transition-[opacity,visibility] duration-300 ease-[var(--ease-spring)] aria-hidden:invisible aria-hidden:opacity-0 md:hidden"
+    >
+      <ul className="flex flex-col items-center gap-6">
+        {sections.map((section, i) => (
           <li
             key={section.title}
-            className="flex w-full items-center px-4"
-            onClick={() => setShowNavDrawer(false)}
             role="menuitem"
+            className="nav-link-in"
+            style={{
+              animation: open
+                ? `navLinkIn 0.4s var(--ease-spring) ${i * 50}ms both`
+                : "none",
+            }}
+            onClick={() => setOpen(false)}
           >
             {section.external ? (
-              <DSAnchor
-                href={section.href}
-                className="w-full border-b border-zinc-700 p-3"
-              >
+              <DSAnchor href={section.href} className="text-2xl">
                 {section.title}
               </DSAnchor>
             ) : (
-              <DSLink
-                href={section.href}
-                className="w-full border-b border-zinc-700 p-3"
-              >
+              <DSLink href={section.href} className="text-2xl">
                 {section.title}
               </DSLink>
             )}
           </li>
         ))}
         <li
-          className="flex w-full items-center justify-center py-6"
           role="menuitem"
+          className="nav-link-in pt-4"
+          style={{
+            animation: open
+              ? `navLinkIn 0.4s var(--ease-spring) ${sections.length * 50}ms both`
+              : "none",
+          }}
         >
           <ThemeToggle />
         </li>
       </ul>
-    </>
+    </div>,
+    document.body,
   );
 }
+
+MobileNavbar.Hamburger = Hamburger;
+export default MobileNavbar;

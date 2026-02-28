@@ -5,22 +5,18 @@ import ThemeToggle from "./ThemeToggle";
 
 export default function DesktopNavbar() {
   return (
-    <ul className="hidden justify-end gap-6 px-6 py-4 text-lg md:flex">
+    <ul className="hidden flex-1 items-center justify-end gap-5 text-sm md:flex">
       {sections.map((section) => (
         <li key={section.title} className="flex">
           {section.external ? (
-            <DSAnchor href={section.href} className="h-full">
-              {section.title}
-            </DSAnchor>
+            <DSAnchor href={section.href}>{section.title}</DSAnchor>
           ) : (
-            <DSLink href={section.href} className="h-full">
-              {section.title}
-            </DSLink>
+            <DSLink href={section.href}>{section.title}</DSLink>
           )}
         </li>
       ))}
-      <li>
-        <ThemeToggle />
+      <li className="flex">
+        <ThemeToggle compact />
       </li>
     </ul>
   );
