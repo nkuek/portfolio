@@ -1,0 +1,35 @@
+/* ═══ Section title card — torn-edge clip-path + filter ═══ */
+
+.section-title-wrapper {
+  position: relative;
+  filter: var(--shadow-section-title);
+}
+
+.section-title-card {
+  background: var(--surface-card);
+  border-radius: var(--radius-torn);
+  /* Torn bottom edge */
+  clip-path: polygon(
+    0% 0%,
+    100% 0%,
+    100% calc(100% - 10px),
+    96% 100%,
+    91% calc(100% - 5px),
+    86% 100%,
+    80% calc(100% - 7px),
+    74% 100%,
+    68% calc(100% - 4px),
+    62% 100%,
+    56% calc(100% - 8px),
+    50% 100%,
+    44% calc(100% - 3px),
+    38% 100%,
+    32% calc(100% - 6px),
+    26% 100%,
+    20% calc(100% - 4px),
+    14% 100%,
+    8% calc(100% - 7px),
+    3% 100%,
+    0% calc(100% - 5px)
+  );
+}

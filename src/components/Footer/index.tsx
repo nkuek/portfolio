@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import ScrollReveal from "~/components/shared/ScrollReveal";
 import useTyper from "~/hooks/useTyper";
 
 const contactLinks = [
@@ -39,7 +40,7 @@ export default function Footer() {
       aria-label="Get in touch"
       className="flex min-h-screen flex-col items-center justify-center gap-16 px-4 pb-24"
     >
-      <h2 className="scroll-stagger-in text-text text-center text-[clamp(1.75rem,4vw,3.5rem)] font-light tracking-[-0.02em]">
+      <ScrollReveal variant="stagger" as="h2" className="text-text text-center text-[clamp(1.75rem,4vw,3.5rem)] font-light tracking-[-0.02em]">
         Let&apos;s build something <br />
         <span className="relative inline-block">
           {/* Invisible longest word reserves line height */}
@@ -52,21 +53,21 @@ export default function Footer() {
               {display}
               <span
                 className="bg-primary absolute top-[0.15em] -right-2.5 h-[1.1em] w-1.5"
-                style={{ opacity: cursorVisible ? 1 : 0 }}
+                style={{ opacity: display && cursorVisible ? 1 : 0 }}
               />
             </span>
           </span>
         </span>
-      </h2>
+      </ScrollReveal>
 
-      <nav aria-label="Contact links" className="scroll-stagger-in flex gap-10">
+      <ScrollReveal variant="stagger" as="nav" aria-label="Contact links" className="flex gap-10">
         {contactLinks.map((link) => (
           <Link
             key={link.label}
             href={link.href}
             target={link.href.startsWith("mailto:") ? undefined : "_blank"}
             rel={link.href.startsWith("mailto:") ? undefined : "noopener"}
-            className="contact-link group text-text-muted hover:text-accent relative font-mono text-[clamp(0.875rem,1.5vw,1.125rem)] font-light tracking-[0.05em] uppercase transition-colors duration-200"
+            className="group text-text-muted hover:text-accent relative font-mono text-[clamp(0.875rem,1.5vw,1.125rem)] font-light tracking-[0.05em] uppercase transition-colors duration-200"
           >
             <span className="inline-flex items-center">
               <span
@@ -86,7 +87,7 @@ export default function Footer() {
             <span className="bg-accent ease-smooth absolute -bottom-1 left-1/2 h-px w-0 -translate-x-1/2 transition-[width] duration-200 group-hover:w-full" />
           </Link>
         ))}
-      </nav>
+      </ScrollReveal>
     </section>
   );
 }

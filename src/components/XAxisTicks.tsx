@@ -1,5 +1,5 @@
 "use client";
-
+import "./GridTicks.css";
 import { useEffect, useRef, type RefObject } from "react";
 import { type MouseOffset } from "~/components/GridTicks";
 

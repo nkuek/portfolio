@@ -1,19 +1,17 @@
 "use client";
-
 import { useEffect, useRef, useState, type RefObject } from "react";
 import PlayPauseButton from "~/components/PlayPauseButton";
 import AutoplayVideo from "~/components/AutoplayVideo";
 import SectionTitleCard from "~/components/SectionTitleCard";
+import Tape from "~/components/shared/Tape";
+import Pin from "~/components/shared/Pin";
+import FloatingLabel from "~/components/shared/FloatingLabel";
 import type { CrosshairData } from "~/components/Crosshair";
 import type { XAxisData } from "~/components/XAxisTicks";
 import type { YAxisData } from "~/components/GridTicks";
 import useReducedMotion from "~/hooks/useReducedMotion";
 import useTilt, { TILT_INNER_TRANSITION } from "~/hooks/useTilt";
-import {
-  fragmentTransform,
-  childScatter,
-  LABEL_SIZES,
-} from "~/utils/scatterTransforms";
+import { fragmentTransform, childScatter } from "~/utils/scatterTransforms";
 import type { HighlightData } from "~/types/highlight";
 import { cameraWaypoints } from "~/components/ProjectSection/constants";
 
@@ -96,7 +94,7 @@ function WildCardFragments({
       >
         <div
           ref={tiltRef}
-          className="polaroid-card relative"
+          className="relative bg-surface-card border border-border-card rounded-torn shadow-card hover:scale-[1.02] hover:shadow-card-hover"
           style={{ transition: TILT_INNER_TRANSITION }}
         >
           {/* Sheen overlay */}
@@ -105,13 +103,11 @@ function WildCardFragments({
             className="pointer-events-none absolute inset-0 z-5 rounded-[3px]"
           />
           {/* Tape */}
-          <div
-            className="polaroid-tape polaroid-tape-teal"
-            style={{
-              width: `calc(88px + 8vw)`,
-              rotate: "3deg",
-              transform: tapeScatter,
-            }}
+          <Tape
+            color="teal"
+            width="calc(88px + 8vw)"
+            rotate="3deg"
+            style={{ transform: tapeScatter }}
           />
           {/* Play/Pause on polaroid */}
           {isVideo && !reducedMotion && (
@@ -146,10 +142,10 @@ function WildCardFragments({
           </div>
           <div className="px-4 pt-3 pb-5">
             <div className="flex items-baseline justify-between gap-3">
-              <p className="polaroid-title font-serif text-base italic">
+              <p className="text-text-card-title font-serif text-base italic">
                 {project.title}
               </p>
-              <span className="wild-company shrink-0 font-mono text-[12px] tracking-[0.08em] uppercase">
+              <span className="text-accent shrink-0 font-mono text-[12px] tracking-[0.08em] uppercase">
                 {project.company}
               </span>
             </div>
@@ -159,14 +155,11 @@ function WildCardFragments({
 
       {/* Info fragment */}
       <div
-        className="info-fragment absolute top-1/2 left-1/2 z-2 flex w-[min(400px,72vw)] flex-col gap-3 px-6 py-5"
+        className="absolute top-1/2 left-1/2 z-2 flex w-[min(400px,72vw)] flex-col gap-3 px-6 py-5 rounded-info border border-border-light bg-surface-overlay backdrop-blur-[14px] shadow-info hover:scale-[1.015] hover:shadow-info-hover"
         style={{ transform: infoTransform }}
       >
-        <div
-          className="info-pin"
-          style={{ transform: childScatter([0, -50], 16, focus) }}
-        />
-        <p className="info-desc text-[clamp(1rem,1.2vw,1.1rem)] leading-[1.7] font-light">
+        <Pin style={{ transform: childScatter([0, -50], 16, focus) }} />
+        <p className="text-caption text-[clamp(1rem,1.2vw,1.1rem)] leading-[1.7] font-light">
           {project.caption}
         </p>
       </div>
@@ -185,13 +178,10 @@ function MobileWildCard({ project }: { project: WildProject }) {
     <div className="flex flex-col gap-4">
       {/* Polaroid */}
       <div
-        className="polaroid-card relative mx-auto w-full max-w-[400px]"
+        className="relative mx-auto w-full max-w-[400px] bg-surface-card border border-border-card rounded-torn shadow-card hover:scale-[1.02] hover:shadow-card-hover"
         style={{ rotate: `${project.rotate * 0.4}deg` }}
       >
-        <div
-          className="polaroid-tape polaroid-tape-teal"
-          style={{ width: 88, rotate: "3deg" }}
-        />
+        <Tape color="teal" width={88} rotate="3deg" />
         <div className="p-2.5 pb-0">
           {isVideo ? (
             <div className="bg-surface-media relative aspect-16/10 overflow-hidden">
@@ -212,10 +202,10 @@ function MobileWildCard({ project }: { project: WildProject }) {
         </div>
         <div className="px-3 pt-2.5 pb-4">
           <div className="flex items-baseline justify-between gap-3">
-            <p className="polaroid-title font-serif text-base italic">
+            <p className="text-text-card-title font-serif text-base italic">
               {project.title}
             </p>
-            <span className="wild-company shrink-0 font-mono text-[14px] tracking-[0.08em] uppercase">
+            <span className="text-accent shrink-0 font-mono text-[14px] tracking-[0.08em] uppercase">
               {project.company}
             </span>
           </div>
@@ -235,11 +225,11 @@ function MobileWildCard({ project }: { project: WildProject }) {
 
       {/* Info card */}
       <div
-        className="info-fragment relative mx-auto flex w-full max-w-[380px] flex-col gap-3 px-5 py-4"
+        className="relative mx-auto flex w-full max-w-[380px] flex-col gap-3 px-5 py-4 rounded-info border border-border-light bg-surface-overlay backdrop-blur-[14px] shadow-info hover:scale-[1.015] hover:shadow-info-hover"
         style={{ rotate: `${-project.rotate * 0.3}deg` }}
       >
-        <div className="info-pin" />
-        <p className="info-desc text-base leading-[1.7] font-light">
+        <Pin />
+        <p className="text-caption text-base leading-[1.7] font-light">
           {project.caption}
         </p>
       </div>
@@ -494,19 +484,16 @@ export default function InTheWild({
                   const driftDuration = 6 + (i % 4) * 1.6;
 
                   return (
-                    <div
+                    <FloatingLabel
                       key={i}
-                      className={`floating-label pointer-events-none absolute font-mono uppercase ${LABEL_SIZES[label.size]}`}
-                      style={{
-                        ["--cursor-boost" as string]: "0",
-                        ["--base-opacity" as string]: "0.28",
-                        left: label.x,
-                        top: `calc(50% + ${label.y}px)`,
-                        animation: `labelFloat ${driftDuration}s ease-in-out ${-phase}s infinite`,
-                      }}
-                    >
-                      {label.text}
-                    </div>
+                      text={label.text}
+                      size={label.size}
+                      baseOpacity={0.28}
+                      x={label.x}
+                      y={`calc(50% + ${label.y}px)`}
+                      driftDuration={driftDuration}
+                      driftPhase={phase}
+                    />
                   );
                 })}
               </div>

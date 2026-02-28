@@ -1,5 +1,5 @@
 "use client";
-
+import "~/components/shared/Tape.css";
 import { useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import useReducedMotion from "~/hooks/useReducedMotion";
@@ -194,7 +194,7 @@ export default function HeroDappledZone() {
         {/* z-3: Caption — "afternoon light" / "evening light" */}
         <div
           ref={captionRef}
-          className="polaroid-title pointer-events-none absolute font-serif text-sm italic"
+          className="text-text-card-title pointer-events-none absolute font-serif text-sm italic"
           style={{
             opacity: 0,
             zIndex: 3,

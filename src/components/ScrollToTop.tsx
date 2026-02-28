@@ -1,5 +1,5 @@
 "use client";
-
+import "./ScrollToTop.css";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import useReducedMotion from "~/hooks/useReducedMotion";

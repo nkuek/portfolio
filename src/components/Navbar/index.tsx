@@ -1,4 +1,5 @@
 "use client";
+import "./styles.css";
 import { useRef } from "react";
 import { useLenis } from "lenis/react";
 import Link from "next/link";

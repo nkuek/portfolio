@@ -1,5 +1,5 @@
 "use client";
-
+import "./GridTicks.css";
 import { useEffect, useRef, type RefObject } from "react";
 
 const TICK_INTERVAL = 200;

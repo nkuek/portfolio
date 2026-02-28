@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import type { Project, FragmentLayout, StickyNote } from "./constants";
+import type { Project, FragmentLayout, StickyNote as StickyNoteType } from "./constants";
 import PlayPauseButton from "~/components/PlayPauseButton";
 import AutoplayVideo from "~/components/AutoplayVideo";
 import ArrowUpRight from "~/components/ArrowUpRight";
+import Tape from "~/components/shared/Tape";
+import Pin from "~/components/shared/Pin";
+import StickyNote from "~/components/shared/StickyNote";
 import useReducedMotion from "~/hooks/useReducedMotion";
 import useTilt, { TILT_INNER_TRANSITION } from "~/hooks/useTilt";
 import {
@@ -144,7 +147,6 @@ function PolaroidFragment({
     </Link>
   ) : null;
 
-  const tapeClass = `polaroid-tape polaroid-tape-${tapePlacement.color}`;
   // Play/pause scatters to the right when unfocused
   const playPauseScatter = childScatter([80 * s, 40 * s], -10, focus);
 
@@ -161,7 +163,7 @@ function PolaroidFragment({
     >
       <div
         ref={tiltRef}
-        className="polaroid-card relative"
+        className="relative bg-surface-card border border-border-card rounded-torn shadow-card hover:scale-[1.02] hover:shadow-card-hover"
         style={{ transition: TILT_INNER_TRANSITION }}
       >
         {/* Sheen — light-catch highlight driven by tilt RAF */}
@@ -170,13 +172,11 @@ function PolaroidFragment({
           className="pointer-events-none absolute inset-0 z-5 rounded-[3px]"
         />
         {/* Tape — centered on top edge, width/rotation randomized per project */}
-        <div
-          className={tapeClass}
-          style={{
-            width: `calc(${tapePlacement.width}px + 3vw)`,
-            rotate: tapePlacement.rotate,
-            transform: tapeScatter,
-          }}
+        <Tape
+          color={tapePlacement.color}
+          width={`calc(${tapePlacement.width}px + 3vw)`}
+          rotate={tapePlacement.rotate}
+          style={{ transform: tapeScatter }}
         />
         {/* Play/Pause — bottom-right of polaroid, scatters like tape */}
         {isVideo && !reducedMotion && (
@@ -193,7 +193,7 @@ function PolaroidFragment({
         )}
         <div className="p-3 pb-0">{polaroidContent}</div>
         <div className="px-4 pt-3 pb-5">
-          <p className="polaroid-title text-center font-serif text-base italic">
+          <p className="text-text-card-title text-center font-serif text-base italic">
             {project.title}
           </p>
         </div>
@@ -251,11 +251,11 @@ function InfoFragment({
     >
       <div
         ref={tiltRef}
-        className="info-fragment relative flex flex-col gap-3 px-6 py-5"
+        className="relative flex flex-col gap-3 px-6 py-5 rounded-info border border-border-light bg-surface-overlay backdrop-blur-[14px] shadow-info hover:scale-[1.015] hover:shadow-info-hover"
         style={{ transition: TILT_INNER_TRANSITION }}
       >
-        {/* Pin — CSS positioned on the card, scatters via its own transform */}
-        <div className="info-pin" style={{ transform: pinScatter }} />
+        {/* Pin — positioned on the card, scatters via its own transform */}
+        <Pin style={{ transform: pinScatter }} />
 
         {/* Links */}
         <div className="flex gap-5">
@@ -264,7 +264,7 @@ function InfoFragment({
               href={project.liveLink}
               target="_blank"
               rel="noopener"
-              className="info-link group relative inline-flex items-center gap-1.5 text-base font-light tracking-wide"
+              className="text-text transition-colors duration-(--duration-fast) hover:text-accent group relative inline-flex items-center gap-1.5 text-base font-light tracking-wide"
               aria-label={`View ${project.title} on live site`}
             >
               <span>Experience</span>
@@ -276,7 +276,7 @@ function InfoFragment({
               href={project.githubLink}
               target="_blank"
               rel="noopener"
-              className="info-link-secondary group relative inline-flex items-center gap-1.5 text-base font-light tracking-wide"
+              className="text-caption transition-colors duration-(--duration-fast) hover:text-accent group relative inline-flex items-center gap-1.5 text-base font-light tracking-wide"
               aria-label={`View ${project.title} on GitHub"}`}
             >
               <span>Source</span>
@@ -286,10 +286,10 @@ function InfoFragment({
         </div>
 
         {/* Hairline */}
-        <div className="info-hairline h-px" />
+        <div className="bg-border-light h-px" />
 
         {/* Description */}
-        <p className="info-desc font-300 text-[clamp(1rem,1.2vw,1.1rem)] leading-[1.7]">
+        <p className="text-caption font-300 text-[clamp(1rem,1.2vw,1.1rem)] leading-[1.7]">
           {project.description}
         </p>
 
@@ -298,7 +298,7 @@ function InfoFragment({
           {project.technologies.map((tech) => (
             <span
               key={tech}
-              className="tech-pill font-300 rounded px-2.5 py-1 text-[16px]"
+              className="bg-surface-card-alt text-text-subtle font-300 rounded px-2.5 py-1 text-[16px]"
             >
               {tech}
             </span>
@@ -320,7 +320,7 @@ function StickyNoteItem({
   hoverSpread,
   reducedMotion,
 }: {
-  note: StickyNote;
+  note: StickyNoteType;
   index: number;
   focus: number;
   hovered: boolean;
@@ -356,9 +356,10 @@ function StickyNoteItem({
       }}
       {...tiltHandlers}
     >
-      <div
+      <StickyNote
         ref={tiltRef}
-        className={`sticky-note sticky-note-${note.color} font-mono text-[clamp(1rem,1.2vw,1.5rem)]`}
+        color={note.color}
+        className="font-mono text-[clamp(1rem,1.2vw,1.5rem)]"
         style={{
           position: "relative",
           left: 0,
@@ -367,7 +368,7 @@ function StickyNoteItem({
         }}
       >
         {note.text}
-      </div>
+      </StickyNote>
     </div>
   );
 }
@@ -380,7 +381,7 @@ function StickyNotes({
   hoverSpread,
   reducedMotion,
 }: {
-  notes: StickyNote[];
+  notes: StickyNoteType[];
   focus: number;
   hovered: boolean;
   scale: number;
@@ -416,7 +417,6 @@ function MobileProjectCard({
 }) {
   const [videoPaused, setVideoPaused] = useState(false);
   const tape = computeTapePlacement(index * 7 + 13);
-  const tapeClass = `polaroid-tape polaroid-tape-${tape.color}`;
   const isVideo = project.src?.includes("/video/");
   const reducedMotion = useReducedMotion();
 
@@ -484,21 +484,15 @@ function MobileProjectCard({
     <div className="flex flex-col gap-4">
       {/* Polaroid */}
       <div
-        className="polaroid-card relative mx-auto w-full max-w-[680px]"
+        className="relative mx-auto w-full max-w-[680px] bg-surface-card border border-border-card rounded-torn shadow-card hover:scale-[1.02] hover:shadow-card-hover"
         style={{
           rotate: `${project.fragments.mobileImageRotate ?? project.fragments.imageRotate * 0.4}deg`,
         }}
       >
-        <div
-          className={tapeClass}
-          style={{
-            width: tape.width,
-            rotate: tape.rotate,
-          }}
-        />
+        <Tape color={tape.color} width={tape.width} rotate={tape.rotate} />
         <div className="p-2.5 pb-0">{polaroidContent}</div>
         <div className="px-3 pt-2.5 pb-4">
-          <p className="polaroid-title text-center font-serif text-base italic">
+          <p className="text-text-card-title text-center font-serif text-base italic">
             {project.title}
           </p>
         </div>
@@ -517,19 +511,19 @@ function MobileProjectCard({
 
       {/* Info card */}
       <div
-        className="info-fragment relative mx-auto flex w-full max-w-[360px] flex-col gap-3 px-5 py-4"
+        className="relative mx-auto flex w-full max-w-[360px] flex-col gap-3 px-5 py-4 rounded-info border border-border-light bg-surface-overlay backdrop-blur-[14px] shadow-info hover:scale-[1.015] hover:shadow-info-hover"
         style={{
           rotate: `${project.fragments.mobileInfoRotate ?? project.fragments.infoRotate * 0.3}deg`,
         }}
       >
-        <div className="info-pin" />
+        <Pin />
         <div className="flex gap-5">
           {project.liveLink && (
             <Link
               href={project.liveLink}
               target="_blank"
               rel="noopener"
-              className="info-link group font-300 relative inline-flex items-center gap-1.5 text-base tracking-wide"
+              className="text-text transition-colors duration-(--duration-fast) hover:text-accent group font-300 relative inline-flex items-center gap-1.5 text-base tracking-wide"
               aria-label={`View ${project.title} on "live site"}`}
             >
               <span>Experience</span>
@@ -541,7 +535,7 @@ function MobileProjectCard({
               href={project.githubLink}
               target="_blank"
               rel="noopener"
-              className="info-link-secondary group font-300 relative inline-flex items-center gap-1.5 text-base tracking-wide"
+              className="text-caption transition-colors duration-(--duration-fast) hover:text-accent group font-300 relative inline-flex items-center gap-1.5 text-base tracking-wide"
               aria-label={`View ${project.title} on GitHub`}
             >
               <span>Source</span>
@@ -549,15 +543,15 @@ function MobileProjectCard({
             </Link>
           )}
         </div>
-        <div className="info-hairline h-px" />
-        <p className="info-desc font-300 text-base leading-[1.7]">
+        <div className="bg-border-light h-px" />
+        <p className="text-caption font-300 text-base leading-[1.7]">
           {project.description}
         </p>
         <div className="flex flex-wrap gap-1.5">
           {project.technologies.map((tech) => (
             <span
               key={tech}
-              className="tech-pill font-300 rounded px-2.5 py-1 text-[16px]"
+              className="bg-surface-card-alt text-text-subtle font-300 rounded px-2.5 py-1 text-[16px]"
             >
               {tech}
             </span>
@@ -567,18 +561,16 @@ function MobileProjectCard({
       {/* Sticky notes row */}
       <div className="flex flex-wrap justify-center gap-2 px-4">
         {project.stickyNotes.map((note, i) => (
-          <div
+          <StickyNote
             key={i}
-            className={`sticky-note sticky-note-${note.color} font-mono`}
+            color={note.color}
+            className="font-mono"
             style={{
               rotate: `${note.mobileRotate ?? note.rotate * 0.5}deg`,
-              position: "relative",
-              left: "auto",
-              top: "auto",
             }}
           >
             {note.text}
-          </div>
+          </StickyNote>
         ))}
       </div>
     </div>

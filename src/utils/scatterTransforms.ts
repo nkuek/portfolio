@@ -44,10 +44,3 @@ export function childScatter(
   const s = landed ? 1 : scaleRange ? scaleRange[0] : 1;
   return `translate(${ox}px, ${oy}px) rotate(${r}deg) scale(${s})`;
 }
-
-/** Label size classes shared between ProjectSection and InTheWild */
-export const LABEL_SIZES = {
-  sm: "text-[16px] tracking-[0.1em]",
-  md: "text-[24px] tracking-[0.06em]",
-  lg: "text-[34px] tracking-[0.04em] font-light",
-} as const;

@@ -1,0 +1,95 @@
+/* ═══ Navbar — scroll-morph styles ═══ */
+
+.nav-shell {
+  padding-top: 0;
+  padding-inline: 0;
+  transition:
+    padding-top 0.35s ease,
+    padding-inline 0.35s ease;
+}
+.nav-shell[data-scrolled] {
+  padding-top: 1rem;
+  padding-inline: 1rem;
+}
+@media (min-width: 768px) {
+  .nav-shell,
+  .nav-shell[data-scrolled] {
+    padding-inline: 0;
+  }
+}
+
+.nav-bar {
+  width: 100%;
+  max-width: 100%;
+  padding: 12px 20px;
+  gap: 20px;
+  display: flex;
+  align-items: center;
+  transition:
+    max-width 0.35s ease,
+    padding 0.35s ease;
+}
+.nav-shell[data-scrolled] .nav-bar {
+  padding: 8px 20px;
+}
+@media (min-width: 768px) {
+  .nav-shell[data-scrolled] .nav-bar {
+    max-width: 40rem;
+  }
+}
+
+.nav-pill-bg {
+  border-radius: 12px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: 0 0 0 transparent;
+  -webkit-backdrop-filter: blur(0) saturate(1);
+  backdrop-filter: blur(0) saturate(1);
+  transition:
+    border-radius 0.35s ease,
+    border-color 0.35s ease,
+    background 0.35s ease,
+    box-shadow 0.35s ease,
+    -webkit-backdrop-filter 0.35s ease,
+    backdrop-filter 0.35s ease;
+}
+.nav-shell[data-scrolled] .nav-pill-bg {
+  border-radius: 9999px;
+  border-color: var(--border-card);
+  background: var(--surface-overlay);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(24px) saturate(1.4);
+}
+
+.nav-logo {
+  width: 2.5rem;
+  transition: width 0.35s ease;
+}
+.nav-shell[data-scrolled] .nav-logo {
+  width: 2.25rem;
+}
+
+@keyframes navLinkIn {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0);
+  }
+}
+
+/* ── Reduced motion ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-link-in {
+    animation: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+}

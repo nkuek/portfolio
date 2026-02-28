@@ -1,4 +1,5 @@
 import SectionTitleCard from "~/components/SectionTitleCard";
+import ScrollReveal from "~/components/shared/ScrollReveal";
 
 // ── Data: skills with hand-written annotations ──
 
@@ -35,17 +36,18 @@ export default function SkillsSection() {
       {/* Skills list */}
       <div className="flex flex-col gap-10 px-16 md:gap-15 md:pr-0 md:pl-12 lg:px-20">
         {skills.map((skill) => (
-          <div
+          <ScrollReveal
             key={skill.name}
-            className="skill-reveal flex text-center max-md:flex-col max-md:items-center md:items-baseline md:gap-3"
+            variant="skill"
+            className="flex text-center max-md:flex-col max-md:items-center md:items-baseline md:gap-3"
           >
             <span className="text-text text-[clamp(3.5rem,8vw,7rem)] leading-[1.15] font-extralight tracking-[-0.02em]">
               {skill.name}
             </span>
-            <span className="skill-annotation shrink-0 font-mono text-[clamp(1rem,1.2vw,1.25rem)] tracking-[0.02em] italic">
+            <span className="shrink-0 font-mono text-[clamp(1rem,1.2vw,1.25rem)] tracking-[0.02em] italic text-accent opacity-60">
               {skill.note}
             </span>
-          </div>
+          </ScrollReveal>
         ))}
       </div>
 

@@ -1,5 +1,4 @@
 "use client";
-
 import {
   useCallback,
   useEffect,
@@ -15,12 +14,12 @@ import {
 } from "./constants";
 import { interpolatePath } from "./cameraPath";
 import ProjectCard, { MobileProjectCard } from "./ProjectCard";
+import FloatingLabel from "~/components/shared/FloatingLabel";
 import type { HighlightData } from "~/types/highlight";
 import SectionTitleCard from "~/components/SectionTitleCard";
 import type { CrosshairData } from "~/components/Crosshair";
 import type { XAxisData } from "~/components/XAxisTicks";
 import type { MouseOffset } from "~/components/GridTicks";
-import { LABEL_SIZES } from "~/utils/scatterTransforms";
 
 const MOBILE_BREAKPOINT = 768;
 
@@ -426,19 +425,16 @@ export default function ProjectSection({
                       Math.round(visibility * 0.4 * 100) / 100;
 
                     return (
-                      <div
+                      <FloatingLabel
                         key={i}
-                        className={`floating-label pointer-events-none absolute font-mono uppercase ${LABEL_SIZES[label.size]}`}
-                        style={{
-                          ["--cursor-boost" as string]: "0",
-                          ["--base-opacity" as string]: String(baseOpacity),
-                          left: `${label.position.x}px`,
-                          top: `${label.position.y}px`,
-                          animation: `labelFloat ${driftDuration}s ease-in-out ${-phase}s infinite`,
-                        }}
-                      >
-                        {label.text}
-                      </div>
+                        text={label.text}
+                        size={label.size}
+                        baseOpacity={baseOpacity}
+                        x={`${label.position.x}px`}
+                        y={`${label.position.y}px`}
+                        driftDuration={driftDuration}
+                        driftPhase={phase}
+                      />
                     );
                   })}
                 </div>

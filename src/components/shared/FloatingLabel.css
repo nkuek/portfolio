@@ -1,0 +1,42 @@
+/* ═══ Floating label — cursor-proximity glow ═══ */
+
+.floating-label {
+  --boost: var(--cursor-boost, 0);
+  --base: var(--base-opacity, 0.3);
+  transform: translate(-50%, -50%);
+  opacity: calc(var(--base) + var(--boost) * (1 - var(--base)));
+  color: var(--accent);
+  transition: opacity var(--duration-fast) var(--ease-smooth);
+  text-shadow:
+    0 0 8px rgb(255 255 255 / 0.9),
+    0 0 20px rgb(255 255 255 / 0.6),
+    0 0 40px rgb(255 255 255 / 0.3);
+}
+
+:root[data-color-scheme="dark"] .floating-label {
+  text-shadow:
+    0 0 8px rgb(0 0 0 / 1),
+    0 0 20px rgb(0 0 0 / 0.8),
+    0 0 40px rgb(0 0 0 / 0.4);
+}
+
+@keyframes labelFloat {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translateY(0px);
+  }
+  33% {
+    transform: translate(-50%, -50%) translateY(-6px) translateX(3px);
+  }
+  66% {
+    transform: translate(-50%, -50%) translateY(4px) translateX(-2px);
+  }
+}
+
+/* ── Reduced motion ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-label {
+    animation: none !important;
+  }
+}
