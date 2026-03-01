@@ -384,7 +384,7 @@ export default function ProjectSection({
                           y2={pb.y + 500}
                           stroke="currentColor"
                           strokeWidth="1"
-                          className="text-[#a3a3a3] dark:text-[#525252]"
+                          className="text-border-hairline"
                           style={{ opacity: baseOpacity }}
                         />
                         {/* Filled portion */}

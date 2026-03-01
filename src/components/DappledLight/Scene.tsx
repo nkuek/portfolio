@@ -59,6 +59,7 @@ const _tempQuat = new THREE.Quaternion();
 const _tempQuat2 = new THREE.Quaternion();
 const _tempWindMatrix = new THREE.Matrix4();
 const _windRotMatrix = new THREE.Matrix4();
+const _tempColor = new THREE.Color();
 
 function isMobile() {
   return typeof navigator !== "undefined" && navigator.maxTouchPoints > 0;
@@ -139,7 +140,7 @@ function Ground({
     const d = isDarkMode();
     const lerpSpeed = d ? lerpToDark : lerpToLight;
     const target = d ? GROUND_COLOR_DARK : GROUND_COLOR_LIGHT;
-    materialRef.current.color.lerp(new THREE.Color(target), lerpSpeed);
+    materialRef.current.color.lerp(_tempColor.set(target), lerpSpeed);
   });
 
   return (
@@ -212,7 +213,7 @@ function TreeCanopy({
 
     // Darken leaf silhouettes
     const targetColor = dark ? LEAF_COLOR_DARK : LEAF_COLOR_LIGHT;
-    leafColor.current.lerp(new THREE.Color(targetColor), lerpSpeed);
+    leafColor.current.lerp(_tempColor.set(targetColor), lerpSpeed);
     (tree.leafMesh.material as THREE.MeshBasicMaterial).color.copy(
       leafColor.current,
     );

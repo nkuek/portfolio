@@ -277,7 +277,7 @@ function InfoFragment({
               target="_blank"
               rel="noopener"
               className="text-caption transition-colors duration-(--duration-fast) hover:text-accent group relative inline-flex items-center gap-1.5 text-base font-light tracking-wide"
-              aria-label={`View ${project.title} on GitHub"}`}
+              aria-label={`View ${project.title} on GitHub`}
             >
               <span>Source</span>
               <ArrowUpRight className={ARROW_CLASSES} />
@@ -289,7 +289,7 @@ function InfoFragment({
         <div className="bg-border-light h-px" />
 
         {/* Description */}
-        <p className="text-caption font-300 text-[clamp(1rem,1.2vw,1.1rem)] leading-[1.7]">
+        <p className="text-caption font-light text-[clamp(1rem,1.2vw,1.1rem)] leading-[1.7]">
           {project.description}
         </p>
 
@@ -298,7 +298,7 @@ function InfoFragment({
           {project.technologies.map((tech) => (
             <span
               key={tech}
-              className="bg-surface-card-alt text-text-subtle font-300 rounded px-2.5 py-1 text-[16px]"
+              className="bg-surface-card-alt text-text-subtle font-light rounded px-2.5 py-1 text-base"
             >
               {tech}
             </span>
@@ -523,8 +523,8 @@ function MobileProjectCard({
               href={project.liveLink}
               target="_blank"
               rel="noopener"
-              className="text-text transition-colors duration-(--duration-fast) hover:text-accent group font-300 relative inline-flex items-center gap-1.5 text-base tracking-wide"
-              aria-label={`View ${project.title} on "live site"}`}
+              className="text-text transition-colors duration-(--duration-fast) hover:text-accent group font-light relative inline-flex items-center gap-1.5 text-base tracking-wide"
+              aria-label={`View ${project.title} on live site`}
             >
               <span>Experience</span>
               <ArrowUpRight className={ARROW_CLASSES} />
@@ -535,7 +535,7 @@ function MobileProjectCard({
               href={project.githubLink}
               target="_blank"
               rel="noopener"
-              className="text-caption transition-colors duration-(--duration-fast) hover:text-accent group font-300 relative inline-flex items-center gap-1.5 text-base tracking-wide"
+              className="text-caption transition-colors duration-(--duration-fast) hover:text-accent group font-light relative inline-flex items-center gap-1.5 text-base tracking-wide"
               aria-label={`View ${project.title} on GitHub`}
             >
               <span>Source</span>
@@ -544,14 +544,14 @@ function MobileProjectCard({
           )}
         </div>
         <div className="bg-border-light h-px" />
-        <p className="text-caption font-300 text-base leading-[1.7]">
+        <p className="text-caption font-light text-base leading-[1.7]">
           {project.description}
         </p>
         <div className="flex flex-wrap gap-1.5">
           {project.technologies.map((tech) => (
             <span
               key={tech}
-              className="bg-surface-card-alt text-text-subtle font-300 rounded px-2.5 py-1 text-[16px]"
+              className="bg-surface-card-alt text-text-subtle font-light rounded px-2.5 py-1 text-base"
             >
               {tech}
             </span>

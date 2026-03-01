@@ -3,6 +3,8 @@ import { join } from "path";
 
 const RESUME_PATH = join(process.cwd(), "public", "Kuek_Resume_2026.pdf");
 
+export const dynamic = "force-static";
+
 export async function GET() {
   const file = await readFile(RESUME_PATH);
 
@@ -10,6 +12,7 @@ export async function GET() {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": 'inline; filename="Kuek_Resume_2026.pdf"',
+      "Cache-Control": "public, max-age=86400",
     },
   });
 }

@@ -1,8 +1,8 @@
 import styles from "./FloatingLabel.module.css";
 
 const LABEL_SIZES: Record<string, string> = {
-  sm: "text-[16px] tracking-[0.1em]",
-  md: "text-[24px] tracking-[0.06em]",
+  sm: "text-base tracking-widest",
+  md: "text-2xl tracking-[0.06em]",
   lg: "text-[34px] tracking-[0.04em] font-light",
 };
 

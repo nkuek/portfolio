@@ -4,12 +4,10 @@ import { useRef } from "react";
 import HeroDappledZone from "~/components/HeroDappledZone";
 import ProjectSection from "~/components/ProjectSection";
 import InTheWild from "~/components/InTheWild";
-import SkillsSection from "~/components/SkillsSection";
 import Footer from "~/components/Footer";
 import ScrollToTop from "~/components/ScrollToTop";
-import AsciiAmbient, {
-  type HighlightData,
-} from "~/components/HeroSection/AsciiAmbient";
+import AsciiAmbient from "~/components/HeroSection/AsciiAmbient";
+import type { HighlightData } from "~/types/highlight";
 import GridTicks, {
   type MouseOffset,
   type YAxisData,
@@ -17,7 +15,11 @@ import GridTicks, {
 import Crosshair, { type CrosshairData } from "~/components/Crosshair";
 import XAxisTicks, { type XAxisData } from "~/components/XAxisTicks";
 
-export default function HomeClient() {
+export default function HomeClient({
+  children,
+}: {
+  children?: React.ReactNode;
+}) {
   const highlightRef = useRef<HighlightData>({ text: "", intensity: 0 });
   const crosshairRef = useRef<CrosshairData>({
     label: "",
@@ -55,7 +57,7 @@ export default function HomeClient() {
           xAxisRef={xAxisRef}
           yAxisRef={yAxisRef}
         />
-        <SkillsSection />
+        {children}
         <Footer />
         <ScrollToTop />
       </div>

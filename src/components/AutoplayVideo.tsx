@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useReducedMotion from "~/hooks/useReducedMotion";
 
 /**
@@ -35,24 +35,23 @@ export default function AutoplayVideo({
   className?: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const reducedMotion = useReducedMotion();
 
   const blurSrc = getBlurredPoster(src);
 
-  const observerRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (!node) return;
-      const observer = new IntersectionObserver(
-        ([entry]) => setVisible(entry.isIntersecting),
-        { threshold },
-      );
-      observer.observe(node);
-      return () => observer.disconnect();
-    },
-    [threshold],
-  );
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setVisible(entry.isIntersecting),
+      { threshold },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [threshold]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -65,7 +64,7 @@ export default function AutoplayVideo({
   }, [visible, paused, reducedMotion]);
 
   return (
-    <div ref={observerRef} className="relative h-full w-full">
+    <div ref={containerRef} className="relative h-full w-full">
       <video
         ref={videoRef}
         src={src}

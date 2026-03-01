@@ -94,7 +94,7 @@ function WildCardFragments({
       >
         <div
           ref={tiltRef}
-          className="relative bg-surface-card border border-border-card rounded-torn shadow-card hover:scale-[1.02] hover:shadow-card-hover"
+          className="bg-surface-card border-border-card rounded-torn shadow-card hover:shadow-card-hover relative border hover:scale-[1.02]"
           style={{ transition: TILT_INNER_TRANSITION }}
         >
           {/* Sheen overlay */}
@@ -145,7 +145,7 @@ function WildCardFragments({
               <p className="text-text-card-title font-serif text-base italic">
                 {project.title}
               </p>
-              <span className="text-accent shrink-0 font-mono text-[12px] tracking-[0.08em] uppercase">
+              <span className="text-accent shrink-0 font-mono text-xs tracking-[0.08em] uppercase">
                 {project.company}
               </span>
             </div>
@@ -155,7 +155,7 @@ function WildCardFragments({
 
       {/* Info fragment */}
       <div
-        className="absolute top-1/2 left-1/2 z-2 flex w-[min(400px,72vw)] flex-col gap-3 px-6 py-5 rounded-info border border-border-light bg-surface-overlay backdrop-blur-[14px] shadow-info hover:scale-[1.015] hover:shadow-info-hover"
+        className="rounded-info border-border-light bg-surface-overlay shadow-info hover:shadow-info-hover absolute top-1/2 left-1/2 z-2 flex w-[min(400px,72vw)] flex-col gap-3 border px-6 py-5 backdrop-blur-[14px] hover:scale-[1.015]"
         style={{ transform: infoTransform }}
       >
         <Pin style={{ transform: childScatter([0, -50], 16, focus) }} />
@@ -178,7 +178,7 @@ function MobileWildCard({ project }: { project: WildProject }) {
     <div className="flex flex-col gap-4">
       {/* Polaroid */}
       <div
-        className="relative mx-auto w-full max-w-[400px] bg-surface-card border border-border-card rounded-torn shadow-card hover:scale-[1.02] hover:shadow-card-hover"
+        className="bg-surface-card border-border-card rounded-torn shadow-card hover:shadow-card-hover relative mx-auto w-full max-w-[400px] border hover:scale-[1.02]"
         style={{ rotate: `${project.rotate * 0.4}deg` }}
       >
         <Tape color="teal" width={88} rotate="3deg" />
@@ -205,7 +205,7 @@ function MobileWildCard({ project }: { project: WildProject }) {
             <p className="text-text-card-title font-serif text-base italic">
               {project.title}
             </p>
-            <span className="text-accent shrink-0 font-mono text-[14px] tracking-[0.08em] uppercase">
+            <span className="text-accent shrink-0 font-mono text-sm tracking-[0.08em] uppercase">
               {project.company}
             </span>
           </div>
@@ -225,7 +225,7 @@ function MobileWildCard({ project }: { project: WildProject }) {
 
       {/* Info card */}
       <div
-        className="relative mx-auto flex w-full max-w-[380px] flex-col gap-3 px-5 py-4 rounded-info border border-border-light bg-surface-overlay backdrop-blur-[14px] shadow-info hover:scale-[1.015] hover:shadow-info-hover"
+        className="rounded-info border-border-light bg-surface-overlay shadow-info hover:shadow-info-hover relative mx-auto flex w-full max-w-[380px] flex-col gap-3 border px-5 py-4 backdrop-blur-[14px] hover:scale-[1.015]"
         style={{ rotate: `${-project.rotate * 0.3}deg` }}
       >
         <Pin />
@@ -290,6 +290,27 @@ export default function InTheWild({
     const IDLE_THRESHOLD = 2000;
     const FADE_DURATION = 800;
 
+    // Cache label centers — re-measure on scroll/resize, not every frame
+    let labelCenters: { cx: number; cy: number }[] = [];
+    let cachedElements: HTMLElement[] = [];
+
+    function measureLabels() {
+      const container = labelsRef.current;
+      if (!container) return;
+      const containerRect = container.getBoundingClientRect();
+      const labels = container.children as HTMLCollectionOf<HTMLElement>;
+      labelCenters = [];
+      cachedElements = [];
+      for (let i = 0; i < labels.length; i++) {
+        const el = labels[i];
+        cachedElements.push(el);
+        labelCenters.push({
+          cx: containerRect.left + el.offsetLeft + el.offsetWidth / 2,
+          cy: containerRect.top + el.offsetTop + el.offsetHeight / 2,
+        });
+      }
+    }
+
     const onPointerMove = (e: PointerEvent) => {
       if (e.clientX !== mouseX || e.clientY !== mouseY) {
         lastMoveTime = performance.now();
@@ -298,37 +319,40 @@ export default function InTheWild({
       mouseY = e.clientY;
     };
 
+    let lastScrollY = -1;
     function tick() {
-      const container = labelsRef.current;
-      if (container) {
-        const idle = performance.now() - lastMoveTime;
-        const fadeFactor =
-          idle < IDLE_THRESHOLD
-            ? 1
-            : Math.max(0, 1 - (idle - IDLE_THRESHOLD) / FADE_DURATION);
-
-        const labels = container.children as HTMLCollectionOf<HTMLElement>;
-        for (let i = 0; i < labels.length; i++) {
-          const el = labels[i];
-          const rect = el.getBoundingClientRect();
-          const cx = rect.left + rect.width / 2;
-          const cy = rect.top + rect.height / 2;
-          const dx = cx - mouseX;
-          const dy = cy - mouseY;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const boost = Math.max(0, 1 - dist / PROXIMITY_RADIUS) * fadeFactor;
-
-          el.style.setProperty("--cursor-boost", String(boost));
-        }
+      // Re-measure when scroll position changes (container moves on screen)
+      const sy = window.scrollY;
+      if (sy !== lastScrollY || labelCenters.length === 0) {
+        measureLabels();
+        lastScrollY = sy;
       }
+
+      const idle = performance.now() - lastMoveTime;
+      const fadeFactor =
+        idle < IDLE_THRESHOLD
+          ? 1
+          : Math.max(0, 1 - (idle - IDLE_THRESHOLD) / FADE_DURATION);
+
+      for (let i = 0; i < cachedElements.length; i++) {
+        const { cx, cy } = labelCenters[i];
+        const dx = cx - mouseX;
+        const dy = cy - mouseY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const boost = Math.max(0, 1 - dist / PROXIMITY_RADIUS) * fadeFactor;
+        cachedElements[i].style.setProperty("--cursor-boost", String(boost));
+      }
+
       raf = requestAnimationFrame(tick);
     }
 
     window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("resize", measureLabels);
     raf = requestAnimationFrame(tick);
 
     return () => {
       window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("resize", measureLabels);
       cancelAnimationFrame(raf);
     };
   }, []);
@@ -535,7 +559,7 @@ export default function InTheWild({
                         y2={0}
                         stroke="currentColor"
                         strokeWidth="1"
-                        className="text-[#a3a3a3] dark:text-[#525252]"
+                        className="text-border-hairline"
                         style={{ opacity: baseOpacity }}
                       />
                       {filledLen > 0 && (

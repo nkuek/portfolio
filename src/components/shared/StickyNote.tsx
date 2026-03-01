@@ -20,7 +20,7 @@ export default function StickyNote({
   return (
     <div
       ref={ref}
-      className={`${STICKY_COLORS[color]} max-w-[360px] w-fit px-[21px] py-[18px] italic leading-[1.4] rounded-torn pointer-events-none z-3 shadow-sticky max-md:text-[16px] ${className}`}
+      className={`${STICKY_COLORS[color]} max-w-[360px] w-fit px-[21px] py-[18px] italic leading-[1.4] rounded-torn pointer-events-none z-3 shadow-sticky max-md:text-base ${className}`}
       style={style}
     >
       {children}

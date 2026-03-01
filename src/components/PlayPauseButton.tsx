@@ -20,7 +20,7 @@ export default function PlayPauseButton({
       type="button"
       onClick={onToggle}
       aria-label={paused ? "Play video" : "Pause video"}
-      className={`${styles.button} cursor-pointer rounded-control border border-border-light bg-surface-card px-5 py-2.5 font-mono text-[20px] tracking-[0.05em] uppercase text-text-subtle shadow-control hover:border-accent hover:bg-accent hover:text-white ${className}`}
+      className={`${styles.button} cursor-pointer rounded-control border border-border-light bg-surface-card px-5 py-2.5 font-mono text-xl tracking-wider uppercase text-text-subtle shadow-control hover:border-accent hover:bg-accent hover:text-white ${className}`}
       style={style}
     >
       <span className="relative block overflow-hidden">

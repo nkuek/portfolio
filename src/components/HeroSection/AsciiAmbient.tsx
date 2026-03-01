@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type RefObject } from "react";
+import type { HighlightData } from "~/types/highlight";
 
 const CHARS = "{}[]·:.-+*<>/|";
 const HIGHLIGHT_CHARS = "{}[]<>+*/|";
@@ -21,12 +22,6 @@ const BRIGHT_ALPHA_DARK = 0.3;
 function randomChar() {
   return CHARS[Math.floor(Math.random() * CHARS.length)];
 }
-
-export type HighlightData = {
-  text: string;
-  intensity: number; // 0–1, how visible the highlight is
-  owner?: string;
-};
 
 export default function AsciiAmbient({
   highlightRef,
@@ -288,6 +283,7 @@ export default function AsciiAmbient({
     }
 
     let raf = 0;
+    let isVisible = true;
     const DAPPLE_ALPHA_LIGHT = 0.2;
     const DAPPLE_ALPHA_DARK = 0.3;
 
@@ -458,7 +454,9 @@ export default function AsciiAmbient({
       }
 
       renderFrame();
-      raf = requestAnimationFrame(tick);
+      if (isVisible) {
+        raf = requestAnimationFrame(tick);
+      }
     }
 
     const spotlightSections = document.querySelectorAll(
@@ -625,6 +623,18 @@ export default function AsciiAmbient({
       }
     });
 
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const wasVisible = isVisible;
+        isVisible = entry.isIntersecting;
+        if (isVisible && !wasVisible && !prefersReducedMotion) {
+          raf = requestAnimationFrame(tick);
+        }
+      },
+      { threshold: 0 },
+    );
+    observer.observe(canvas);
+
     window.addEventListener("resize", setupCanvas);
 
     const hasFinePointer = window.matchMedia("(pointer: fine)").matches;
@@ -636,6 +646,7 @@ export default function AsciiAmbient({
     return () => {
       cancelAnimationFrame(raf);
       if (driftTimer) clearInterval(driftTimer);
+      observer.disconnect();
       window.removeEventListener("resize", setupCanvas);
       if (hasFinePointer) {
         window.removeEventListener("pointermove", onPointerMove);

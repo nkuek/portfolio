@@ -162,12 +162,6 @@
   background-color: var(--grainy-background-color);
 }
 
-@utility image-grain {
-  background-image: url("/overlay.png");
-  inset: 0;
-  position: absolute;
-}
-
 @utility dark-tokens {
   --background: var(--color-background-dark);
   --vignette-bg: color-mix(in srgb, var(--background) 70%, transparent);

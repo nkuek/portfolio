@@ -10,10 +10,10 @@ import Navbar from "~/components/Navbar";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ReactLenis } from "lenis/react";
-import { Agentation } from "agentation";
+import Agentation from "~/components/Agentation";
 
 const poppins = Poppins({
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  weight: ["200", "300", "400", "500"],
   variable: "--font-poppins",
   subsets: ["latin"],
 });
