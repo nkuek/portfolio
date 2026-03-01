@@ -12,15 +12,13 @@ import useReducedMotion from "~/hooks/useReducedMotion";
 import useTilt, { TILT_INNER_TRANSITION } from "~/hooks/useTilt";
 import {
   FOCUS_SNAP,
+  SCATTER_TRANSITION,
   fragmentTransform,
   childScatter,
 } from "~/utils/scatterTransforms";
 
 /** How much extra spread when the group is hovered (1.0 = no change) */
 const HOVER_SPREAD = 1.25;
-
-/** Inline scatter transition — matches the one in .polaroid-card / .info-fragment CSS */
-const SCATTER_TRANSITION = "transform 500ms cubic-bezier(0.16, 1, 0.3, 1)";
 
 /** Seeded pseudo-random 0-1 from an integer seed */
 function seededRand(seed: number): number {

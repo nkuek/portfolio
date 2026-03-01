@@ -11,7 +11,7 @@ import type { XAxisData } from "~/components/XAxisTicks";
 import type { YAxisData } from "~/components/GridTicks";
 import useReducedMotion from "~/hooks/useReducedMotion";
 import useTilt, { TILT_INNER_TRANSITION } from "~/hooks/useTilt";
-import { fragmentTransform, childScatter } from "~/utils/scatterTransforms";
+import { SCATTER_TRANSITION, fragmentTransform, childScatter } from "~/utils/scatterTransforms";
 import type { HighlightData } from "~/types/highlight";
 import { cameraWaypoints } from "~/components/ProjectSection/constants";
 
@@ -74,7 +74,12 @@ function WildCardFragments({
   const reducedMotion = useReducedMotion();
 
   const imageTransform = fragmentTransform(-20, -40, project.rotate, focus);
-  const infoTransform = fragmentTransform(0, 400, -project.rotate * 0.5, focus);
+  const infoTransform = fragmentTransform(
+    0,
+    "min(400px, 28.125vw)",
+    -project.rotate * 0.5,
+    focus,
+  );
   const tapeScatter = childScatter([0, -70], 12, focus);
   const playPauseScatter = childScatter([70, 30], -8, focus);
 
@@ -89,7 +94,7 @@ function WildCardFragments({
       {/* Polaroid */}
       <div
         className="absolute top-1/2 left-1/2 w-[min(1280px,90vw)]"
-        style={{ transform: imageTransform, perspective }}
+        style={{ transform: imageTransform, transition: SCATTER_TRANSITION, perspective }}
         {...tiltHandlers}
       >
         <div
@@ -107,7 +112,7 @@ function WildCardFragments({
             color="teal"
             width="calc(88px + 8vw)"
             rotate="3deg"
-            style={{ transform: tapeScatter }}
+            style={{ transform: tapeScatter, transition: SCATTER_TRANSITION }}
           />
           {/* Play/Pause on polaroid */}
           {isVideo && !reducedMotion && (
@@ -119,7 +124,7 @@ function WildCardFragments({
                 setPaused((p) => !p);
               }}
               className="absolute right-6 bottom-20 z-3"
-              style={{ transform: playPauseScatter, rotate: "-3deg" }}
+              style={{ transform: playPauseScatter, transition: SCATTER_TRANSITION, rotate: "-3deg" }}
             />
           )}
           <div className="p-3 pb-0">
@@ -155,13 +160,18 @@ function WildCardFragments({
 
       {/* Info fragment */}
       <div
-        className="rounded-info border-border-light bg-surface-overlay shadow-info hover:shadow-info-hover absolute top-1/2 left-1/2 z-2 flex w-[min(400px,72vw)] flex-col gap-3 border px-6 py-5 backdrop-blur-[14px] hover:scale-[1.015]"
-        style={{ transform: infoTransform }}
+        className="absolute top-1/2 left-1/2 z-2 w-[min(400px,72vw)]"
+        style={{ transform: infoTransform, transition: SCATTER_TRANSITION }}
       >
-        <Pin style={{ transform: childScatter([0, -50], 16, focus) }} />
-        <p className="text-caption text-[clamp(1rem,1.2vw,1.1rem)] leading-[1.7] font-light">
-          {project.caption}
-        </p>
+        <div
+          className="rounded-info border-border-light bg-surface-overlay shadow-info hover:shadow-info-hover relative flex flex-col gap-3 border px-6 py-5 backdrop-blur-[14px] hover:scale-[1.015]"
+          style={{ transition: TILT_INNER_TRANSITION }}
+        >
+          <Pin style={{ transform: childScatter([0, -50], 16, focus), transition: SCATTER_TRANSITION }} />
+          <p className="text-caption text-[clamp(1rem,1.2vw,1.1rem)] leading-[1.7] font-light">
+            {project.caption}
+          </p>
+        </div>
       </div>
     </div>
   );
