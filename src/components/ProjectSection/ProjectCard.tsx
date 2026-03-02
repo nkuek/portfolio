@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import type { Project, FragmentLayout, StickyNote as StickyNoteType } from "./constants";
+import type {
+  Project,
+  FragmentLayout,
+  StickyNote as StickyNoteType,
+} from "./constants";
 import PlayPauseButton from "~/components/PlayPauseButton";
 import AutoplayVideo from "~/components/AutoplayVideo";
 import ArrowUpRight from "~/components/ArrowUpRight";
@@ -85,30 +89,37 @@ function PolaroidFragment({
 
   const isVideo = project.src?.includes("/video/");
 
+  const { tiltRef, sheenRef, parallaxRef, tiltHandlers, perspective } = useTilt(
+    reducedMotion,
+    cameraOffset,
+  );
+
   const polaroidContent = project.src ? (
     <Link
       href={project.liveLink || project.githubLink || "#"}
       target="_blank"
       rel="noopener"
-      className="group block"
+      className="group outline-accent block rounded focus-visible:outline-2 focus-visible:outline-offset-2"
       aria-label={`View ${project.title} on ${project.liveLink ? "live site" : "GitHub"}`}
     >
       <div className="bg-surface-media relative aspect-square overflow-hidden">
-        {isVideo ? (
-          <AutoplayVideo
-            src={project.src}
-            paused={videoPaused}
-            threshold={0.9}
-          />
-        ) : (
-          <Image
-            src={project.src}
-            alt={`Screenshot of ${project.title}`}
-            fill
-            className="ease-smooth object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-            sizes="(max-width: 768px) 72vw, 380px"
-          />
-        )}
+        <div ref={parallaxRef} className="relative h-full w-full scale-[1.04]">
+          {isVideo ? (
+            <AutoplayVideo
+              src={project.src}
+              paused={videoPaused}
+              threshold={0.9}
+            />
+          ) : (
+            <Image
+              src={project.src}
+              alt={`Screenshot of ${project.title}`}
+              fill
+              className="ease-smooth object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+              sizes="(max-width: 768px) 72vw, 380px"
+            />
+          )}
+        </div>
       </div>
     </Link>
   ) : project.isShowcase ? (
@@ -116,7 +127,7 @@ function PolaroidFragment({
       href={project.liveLink || "#"}
       target="_blank"
       rel="noopener"
-      className="group block"
+      className="group outline-accent block rounded focus-visible:outline-2 focus-visible:outline-offset-2"
     >
       <div className="aspect-square overflow-hidden">
         <div className="bg-surface-media flex h-full w-full items-center justify-center">
@@ -148,11 +159,6 @@ function PolaroidFragment({
   // Play/pause scatters to the right when unfocused
   const playPauseScatter = childScatter([80 * s, 40 * s], -10, focus);
 
-  const { tiltRef, sheenRef, tiltHandlers, perspective } = useTilt(
-    reducedMotion,
-    cameraOffset,
-  );
-
   return (
     <div
       className="absolute top-1/2 left-1/2 w-[min(760px,60vw)]"
@@ -161,7 +167,7 @@ function PolaroidFragment({
     >
       <div
         ref={tiltRef}
-        className="relative bg-surface-card border border-border-card rounded-torn shadow-card hover:scale-[1.02] hover:shadow-card-hover"
+        className="bg-surface-card border-border-card rounded-torn shadow-card hover:shadow-card-hover relative border hover:scale-[1.02]"
         style={{ transition: TILT_INNER_TRANSITION }}
       >
         {/* Sheen — light-catch highlight driven by tilt RAF */}
@@ -177,7 +183,7 @@ function PolaroidFragment({
           style={{ transform: tapeScatter }}
         />
         {/* Play/Pause — bottom-right of polaroid, scatters like tape */}
-        {isVideo && !reducedMotion && (
+        {isVideo && (
           <PlayPauseButton
             paused={videoPaused}
             onToggle={(e) => {
@@ -249,7 +255,7 @@ function InfoFragment({
     >
       <div
         ref={tiltRef}
-        className="relative flex flex-col gap-3 px-6 py-5 rounded-info border border-border-light bg-surface-overlay backdrop-blur-[14px] shadow-info hover:scale-[1.015] hover:shadow-info-hover"
+        className="rounded-info border-border-light bg-surface-overlay shadow-info hover:shadow-info-hover relative flex flex-col gap-3 border px-6 py-5 backdrop-blur-[14px] hover:scale-[1.015]"
         style={{ transition: TILT_INNER_TRANSITION }}
       >
         {/* Pin — positioned on the card, scatters via its own transform */}
@@ -262,7 +268,7 @@ function InfoFragment({
               href={project.liveLink}
               target="_blank"
               rel="noopener"
-              className="text-text transition-colors duration-(--duration-fast) hover:text-accent group relative inline-flex items-center gap-1.5 text-base font-light tracking-wide"
+              className="text-text hover:text-accent outline-accent group relative inline-flex items-center gap-1.5 rounded text-base font-light tracking-wide transition-colors duration-(--duration-fast) focus-visible:outline-2 focus-visible:outline-offset-2"
               aria-label={`View ${project.title} on live site`}
             >
               <span>Experience</span>
@@ -274,7 +280,7 @@ function InfoFragment({
               href={project.githubLink}
               target="_blank"
               rel="noopener"
-              className="text-caption transition-colors duration-(--duration-fast) hover:text-accent group relative inline-flex items-center gap-1.5 text-base font-light tracking-wide"
+              className="text-caption hover:text-accent outline-accent group relative inline-flex items-center gap-1.5 rounded text-base font-light tracking-wide transition-colors duration-(--duration-fast) focus-visible:outline-2 focus-visible:outline-offset-2"
               aria-label={`View ${project.title} on GitHub`}
             >
               <span>Source</span>
@@ -287,7 +293,7 @@ function InfoFragment({
         <div className="bg-border-light h-px" />
 
         {/* Description */}
-        <p className="text-caption font-light text-[clamp(1rem,1.2vw,1.1rem)] leading-[1.7]">
+        <p className="text-caption text-[clamp(1rem,1.2vw,1.1rem)] leading-[1.7] font-light">
           {project.description}
         </p>
 
@@ -296,7 +302,7 @@ function InfoFragment({
           {project.technologies.map((tech) => (
             <span
               key={tech}
-              className="bg-surface-card-alt text-text-subtle font-light rounded px-2.5 py-1 text-base"
+              className="bg-surface-card-alt text-text-subtle rounded px-2.5 py-1 text-base font-light"
             >
               {tech}
             </span>
@@ -413,17 +419,20 @@ function MobileProjectCard({
   project: Project;
   index: number;
 }) {
-  const [videoPaused, setVideoPaused] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const [videoPaused, setVideoPaused] = useState(true);
+  useEffect(() => {
+    if (!reducedMotion) setVideoPaused(false);
+  }, [reducedMotion]);
   const tape = computeTapePlacement(index * 7 + 13);
   const isVideo = project.src?.includes("/video/");
-  const reducedMotion = useReducedMotion();
 
   const polaroidContent = project.src ? (
     <Link
       href={project.liveLink || project.githubLink || "#"}
       target="_blank"
       rel="noopener"
-      className="group block"
+      className="group outline-accent block rounded focus-visible:outline-2 focus-visible:outline-offset-2"
       aria-label={`View ${project.title} on ${project.liveLink ? "live site" : "GitHub"}`}
     >
       <div className="bg-surface-media relative aspect-square overflow-hidden">
@@ -449,7 +458,7 @@ function MobileProjectCard({
       href={project.liveLink || "#"}
       target="_blank"
       rel="noopener"
-      className="group block"
+      className="group outline-accent block rounded focus-visible:outline-2 focus-visible:outline-offset-2"
     >
       <div className="aspect-square overflow-hidden">
         <div className="bg-surface-media flex h-full w-full items-center justify-center">
@@ -482,7 +491,7 @@ function MobileProjectCard({
     <div className="flex flex-col gap-4">
       {/* Polaroid */}
       <div
-        className="relative mx-auto w-full max-w-[680px] bg-surface-card border border-border-card rounded-torn shadow-card hover:scale-[1.02] hover:shadow-card-hover"
+        className="bg-surface-card border-border-card rounded-torn shadow-card hover:shadow-card-hover relative mx-auto w-full max-w-[680px] border hover:scale-[1.02]"
         style={{
           rotate: `${project.fragments.mobileImageRotate ?? project.fragments.imageRotate * 0.4}deg`,
         }}
@@ -497,7 +506,7 @@ function MobileProjectCard({
       </div>
 
       {/* Play/Pause for mobile — inline button */}
-      {isVideo && !reducedMotion && (
+      {isVideo && (
         <div className="flex justify-center">
           <PlayPauseButton
             paused={videoPaused}
@@ -509,7 +518,7 @@ function MobileProjectCard({
 
       {/* Info card */}
       <div
-        className="relative mx-auto flex w-full max-w-[360px] flex-col gap-3 px-5 py-4 rounded-info border border-border-light bg-surface-overlay backdrop-blur-[14px] shadow-info hover:scale-[1.015] hover:shadow-info-hover"
+        className="rounded-info border-border-light bg-surface-overlay shadow-info hover:shadow-info-hover relative mx-auto flex w-full max-w-[360px] flex-col gap-3 border px-5 py-4 backdrop-blur-[14px] hover:scale-[1.015]"
         style={{
           rotate: `${project.fragments.mobileInfoRotate ?? project.fragments.infoRotate * 0.3}deg`,
         }}
@@ -521,7 +530,7 @@ function MobileProjectCard({
               href={project.liveLink}
               target="_blank"
               rel="noopener"
-              className="text-text transition-colors duration-(--duration-fast) hover:text-accent group font-light relative inline-flex items-center gap-1.5 text-base tracking-wide"
+              className="text-text hover:text-accent outline-accent group relative inline-flex items-center gap-1.5 rounded text-base font-light tracking-wide transition-colors duration-(--duration-fast) focus-visible:outline-2 focus-visible:outline-offset-2"
               aria-label={`View ${project.title} on live site`}
             >
               <span>Experience</span>
@@ -533,7 +542,7 @@ function MobileProjectCard({
               href={project.githubLink}
               target="_blank"
               rel="noopener"
-              className="text-caption transition-colors duration-(--duration-fast) hover:text-accent group font-light relative inline-flex items-center gap-1.5 text-base tracking-wide"
+              className="text-caption hover:text-accent outline-accent group relative inline-flex items-center gap-1.5 rounded text-base font-light tracking-wide transition-colors duration-(--duration-fast) focus-visible:outline-2 focus-visible:outline-offset-2"
               aria-label={`View ${project.title} on GitHub`}
             >
               <span>Source</span>
@@ -542,14 +551,14 @@ function MobileProjectCard({
           )}
         </div>
         <div className="bg-border-light h-px" />
-        <p className="text-caption font-light text-base leading-[1.7]">
+        <p className="text-caption text-base leading-[1.7] font-light">
           {project.description}
         </p>
         <div className="flex flex-wrap gap-1.5">
           {project.technologies.map((tech) => (
             <span
               key={tech}
-              className="bg-surface-card-alt text-text-subtle font-light rounded px-2.5 py-1 text-base"
+              className="bg-surface-card-alt text-text-subtle rounded px-2.5 py-1 text-base font-light"
             >
               {tech}
             </span>
@@ -596,8 +605,11 @@ export default function ProjectCard({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
-  const [videoPaused, setVideoPaused] = useState(false);
   const reducedMotion = useReducedMotion();
+  const [videoPaused, setVideoPaused] = useState(true);
+  useEffect(() => {
+    if (!reducedMotion) setVideoPaused(false);
+  }, [reducedMotion]);
   const layout = project.fragments;
   const tapePlacement = computeTapePlacement(index * 7 + 13);
   // Scale the hover spread so fragments don't fly off-edge on smaller screens

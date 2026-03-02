@@ -52,6 +52,7 @@ export default function useTilt(
 ) {
   const innerRef = useRef<HTMLDivElement>(null);
   const sheenRef = useRef<HTMLDivElement>(null);
+  const parallaxRef = useRef<HTMLDivElement>(null);
   const targetRef = useRef({ rx: 0, ry: 0 });
   const currentRef = useRef({ rx: 0, ry: 0 });
   const rafRef = useRef(0);
@@ -106,6 +107,7 @@ export default function useTilt(
             0,
             cameraOffsetRef.current,
           );
+        if (parallaxRef.current) parallaxRef.current.style.transform = "";
         rafRef.current = 0;
         return;
       }
@@ -120,6 +122,10 @@ export default function useTilt(
           c.ry,
           cameraOffsetRef.current,
         );
+      }
+
+      if (parallaxRef.current) {
+        parallaxRef.current.style.transform = `translate(${(-c.ry * 0.5).toFixed(2)}px, ${(c.rx * 0.5).toFixed(2)}px)`;
       }
 
       rafRef.current = requestAnimationFrame(tick);
@@ -159,6 +165,7 @@ export default function useTilt(
   return {
     tiltRef: innerRef,
     sheenRef,
+    parallaxRef,
     tiltHandlers: { onPointerEnter, onPointerLeave, onPointerMove },
     perspective: reducedMotion ? undefined : ("1200px" as const),
   };

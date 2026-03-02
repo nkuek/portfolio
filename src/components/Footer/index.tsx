@@ -40,7 +40,11 @@ export default function Footer() {
       aria-label="Get in touch"
       className="flex min-h-screen flex-col items-center justify-center gap-16 px-4 pb-24"
     >
-      <ScrollReveal variant="stagger" as="h2" className="text-text text-center text-[clamp(1.75rem,4vw,3.5rem)] font-light tracking-[-0.02em]">
+      <ScrollReveal
+        variant="stagger"
+        as="h2"
+        className="text-text text-center text-[clamp(1.75rem,4vw,3.5rem)] font-light tracking-[-0.02em]"
+      >
         Let&apos;s build something <br />
         <span className="relative inline-block">
           {/* Invisible longest word reserves line height */}
@@ -60,14 +64,19 @@ export default function Footer() {
         </span>
       </ScrollReveal>
 
-      <ScrollReveal variant="stagger" as="nav" aria-label="Contact links" className="flex gap-10">
+      <ScrollReveal
+        variant="stagger"
+        as="nav"
+        aria-label="Contact links"
+        className="flex gap-10"
+      >
         {contactLinks.map((link) => (
           <Link
             key={link.label}
             href={link.href}
             target={link.href.startsWith("mailto:") ? undefined : "_blank"}
             rel={link.href.startsWith("mailto:") ? undefined : "noopener"}
-            className="group text-text-muted hover:text-accent relative font-mono text-[clamp(0.875rem,1.5vw,1.125rem)] font-light tracking-[0.05em] uppercase transition-colors duration-200"
+            className="group text-text-muted hover:text-accent outline-accent relative rounded font-mono text-[clamp(0.875rem,1.5vw,1.125rem)] font-light tracking-[0.05em] uppercase transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2"
           >
             <span className="inline-flex items-center">
               <span

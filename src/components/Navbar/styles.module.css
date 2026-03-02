@@ -87,6 +87,30 @@
   animation: navLinkIn 0.4s var(--ease-spring) var(--delay) both;
 }
 
+/* ── Desktop link hover underline ── */
+
+.navLink {
+  position: relative;
+}
+
+.navLink::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background-color: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 200ms ease;
+}
+
+.navLink:hover::after,
+.navLink:focus-within::after {
+  transform: scaleX(1);
+}
+
 /* ── Reduced motion ── */
 
 @media (prefers-reduced-motion: reduce) {

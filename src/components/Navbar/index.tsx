@@ -30,7 +30,7 @@ function NavShell() {
     >
       <nav
         aria-label="Main navigation"
-        className={`${styles.bar} pointer-events-auto relative [&_a]:outline-offset-[5px]`}
+        className={`${styles.bar} pointer-events-auto relative`}
       >
         <div
           aria-hidden
@@ -40,7 +40,7 @@ function NavShell() {
           <Link
             href="/"
             aria-label="Go to the top of the page"
-            className="group"
+            className="group outline-accent rounded focus-visible:outline-2 focus-visible:outline-offset-4"
           >
             <Logo className={`${styles.logo} h-auto group-active:scale-97`} />
           </Link>

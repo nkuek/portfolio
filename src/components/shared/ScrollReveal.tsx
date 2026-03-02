@@ -1,7 +1,7 @@
 import styles from "./ScrollReveal.module.css";
 
 type ScrollRevealProps = {
-  variant: "skill" | "stagger";
+  variant: "skill" | "stagger" | "card";
   as?: keyof React.JSX.IntrinsicElements;
   children: React.ReactNode;
   className?: string;
@@ -10,6 +10,7 @@ type ScrollRevealProps = {
 const VARIANT_CLASS = {
   skill: styles.skill,
   stagger: styles.stagger,
+  card: styles.card,
 };
 
 export default function ScrollReveal({

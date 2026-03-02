@@ -8,7 +8,13 @@ export function DSLinkContainer({
   ...props
 }: Omit<DSLinkProps, "size">) {
   return (
-    <Link {...props} className={cn("hover:text-link-hover", className)}>
+    <Link
+      {...props}
+      className={cn(
+        "hover:text-link-hover outline-accent rounded focus-visible:outline-2 focus-visible:outline-offset-2",
+        className,
+      )}
+    >
       {children}
     </Link>
   );

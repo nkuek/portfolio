@@ -311,7 +311,7 @@ export default function ValentineForm() {
             setAccepted(true);
           }}
           style={yesStyle}
-          className="bg-primary text-text-on-button hover:bg-primary-hover cursor-pointer rounded-xl px-8 py-3 text-lg font-medium transition-colors"
+          className="bg-primary text-text-on-button hover:bg-primary-hover outline-accent cursor-pointer rounded-xl px-8 py-3 text-lg font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           Yes! 💕
         </button>

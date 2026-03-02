@@ -15,6 +15,7 @@ import {
 import { interpolatePath } from "./cameraPath";
 import ProjectCard, { MobileProjectCard } from "./ProjectCard";
 import FloatingLabel from "~/components/shared/FloatingLabel";
+import ScrollReveal from "~/components/shared/ScrollReveal";
 import type { HighlightData } from "~/types/highlight";
 import SectionTitleCard from "~/components/SectionTitleCard";
 import type { CrosshairData } from "~/components/Crosshair";
@@ -301,11 +302,9 @@ export default function ProjectSection({
         </div>
         <div className="mx-auto flex max-w-[400px] flex-col gap-36 md:max-w-[500px]">
           {projects.map((project, i) => (
-            <MobileProjectCard
-              key={project.title}
-              project={project}
-              index={i}
-            />
+            <ScrollReveal key={project.title} variant="card">
+              <MobileProjectCard project={project} index={i} />
+            </ScrollReveal>
           ))}
         </div>
       </div>
@@ -503,7 +502,7 @@ export default function ProjectSection({
                   key={i}
                   type="button"
                   aria-label={`Go to project ${projects[i].title}`}
-                  className="group relative flex h-10 w-10 cursor-pointer items-center justify-center"
+                  className="group outline-accent relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2"
                   onClick={() => {
                     const section = sectionRef.current;
                     if (!section) return;

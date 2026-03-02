@@ -2,15 +2,12 @@
 export const FOCUS_SNAP = 0.5;
 
 /** Shared transition for scatter/converge animations */
-export const SCATTER_TRANSITION = "transform 500ms cubic-bezier(0.16, 1, 0.3, 1)";
+export const SCATTER_TRANSITION = "transform 500ms var(--ease-spring)";
 
 const SCATTER_SCALE = 1.5;
 
 /** Format a single offset axis for use inside calc(). */
-function fmtOffset(
-  value: number | string,
-  scale: number,
-): string {
+function fmtOffset(value: number | string, scale: number): string {
   if (typeof value === "number") return `${value * scale}px`;
   return scale === 1 ? value : `(${value}) * ${scale}`;
 }

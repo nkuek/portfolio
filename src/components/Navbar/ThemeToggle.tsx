@@ -5,7 +5,11 @@ import SunAndMoon from "./SunAndMoon";
 
 export type ThemePreference = "light" | "dark";
 
-export default function ThemeToggle({ compact = false }: { compact?: boolean }) {
+export default function ThemeToggle({
+  compact = false,
+}: {
+  compact?: boolean;
+}) {
   const [preference, setPreference] = useState<ThemePreference>("light");
   function updatePreference(next?: ThemePreference, persist = false) {
     setPreference((prev) => {
@@ -62,15 +66,22 @@ export default function ThemeToggle({ compact = false }: { compact?: boolean }) 
 
   return (
     <>
-      <div className={cn("relative flex justify-center", !compact && "mx-[17.5px]")}>
+      <div
+        className={cn(
+          "relative flex justify-center",
+          !compact && "mx-[17.5px]",
+        )}
+      >
         <button
           type="button"
           role="switch"
           aria-checked={preference === "dark"}
           className={cn(
-            "group block aspect-square rounded-full transition-transform duration-200 ease-out hover:cursor-pointer focus-visible:outline-offset-[5px] focus-visible:outline-none active:scale-97",
+            "group block aspect-square rounded-full transition-transform duration-200 ease-out hover:cursor-pointer active:scale-97",
+            compact &&
+              "outline-accent focus-visible:outline-2 focus-visible:outline-offset-4",
             !compact &&
-              "before:bg-track-color before:absolute before:m-auto before:flex before:h-[125%] before:w-[250%] before:translate-x-[-25%] before:translate-y-[-12.5%] before:rounded-2xl before:transition-colors before:group-focus-visible:outline",
+              "before:bg-track-color before:outline-accent before:absolute before:m-auto before:flex before:h-[125%] before:w-[250%] before:translate-x-[-25%] before:translate-y-[-12.5%] before:rounded-2xl before:transition-colors before:group-focus-visible:outline-2 focus-visible:outline-none",
           )}
           title="Toggles light & dark"
           aria-live="polite"

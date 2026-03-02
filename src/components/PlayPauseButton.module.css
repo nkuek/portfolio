@@ -3,6 +3,7 @@
 .button {
   transition:
     transform var(--duration-scatter) var(--ease-spring),
+    scale var(--duration-fast),
     background var(--duration-fast),
     color var(--duration-fast);
 }

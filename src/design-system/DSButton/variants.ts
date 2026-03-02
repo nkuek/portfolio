@@ -1,7 +1,7 @@
 import { tv } from "tailwind-variants";
 
 export const buttonVariants = tv({
-  base: "text-text-on-button transition-[color,transform] duration-150 ease-out active:scale-97",
+  base: "text-text-on-button outline-accent transition-[color,transform] duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-97",
   variants: {
     variant: {
       primary: "bg-primary hover:bg-primary-hover",

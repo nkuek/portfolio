@@ -70,8 +70,11 @@ function WildCardFragments({
   focus: number;
   cameraOffset?: [number, number];
 }) {
-  const [paused, setPaused] = useState(false);
   const reducedMotion = useReducedMotion();
+  const [paused, setPaused] = useState(true);
+  useEffect(() => {
+    if (!reducedMotion) setPaused(false);
+  }, [reducedMotion]);
 
   const imageTransform = fragmentTransform(-20, -40, project.rotate, focus);
   const infoTransform = fragmentTransform(
@@ -115,7 +118,7 @@ function WildCardFragments({
             style={{ transform: tapeScatter, transition: SCATTER_TRANSITION }}
           />
           {/* Play/Pause on polaroid */}
-          {isVideo && !reducedMotion && (
+          {isVideo && (
             <PlayPauseButton
               paused={paused}
               onToggle={(e) => {
@@ -180,8 +183,11 @@ function WildCardFragments({
 /* ── Mobile wild card — vertical stack like MobileProjectCard ── */
 
 function MobileWildCard({ project }: { project: WildProject }) {
-  const [paused, setPaused] = useState(false);
   const reducedMotion = useReducedMotion();
+  const [paused, setPaused] = useState(true);
+  useEffect(() => {
+    if (!reducedMotion) setPaused(false);
+  }, [reducedMotion]);
   const isVideo = !!project.videoSrc;
 
   return (
@@ -223,7 +229,7 @@ function MobileWildCard({ project }: { project: WildProject }) {
       </div>
 
       {/* Play/Pause */}
-      {isVideo && !reducedMotion && (
+      {isVideo && (
         <div className="flex justify-center">
           <PlayPauseButton
             paused={paused}

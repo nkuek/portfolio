@@ -1,5 +1,11 @@
 "use client";
-import { createContext, useContext, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import { sections } from "./constants";
 import styles from "./styles.module.css";
@@ -35,7 +41,7 @@ function Hamburger() {
   const { open, setOpen } = useContext(MobileNavContext);
   return (
     <button
-      className="group relative ml-auto flex flex-col p-2 transition-transform duration-150 ease-out hover:cursor-pointer active:scale-97 md:hidden"
+      className="group outline-accent relative ml-auto flex flex-col rounded p-2 transition-transform duration-150 ease-out hover:cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-97 md:hidden"
       onClick={() => setOpen((prev) => !prev)}
       aria-haspopup
       aria-expanded={open}
@@ -54,8 +60,10 @@ function Hamburger() {
 /** Fullscreen overlay — portaled to document.body to escape nav's transform containing block. */
 function MobileOverlay() {
   const { open, setOpen } = useContext(MobileNavContext);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  if (typeof document === "undefined") return null;
+  if (!mounted) return null;
 
   return createPortal(
     <div

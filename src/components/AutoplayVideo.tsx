@@ -55,8 +55,11 @@ export default function AutoplayVideo({
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || reducedMotion) return;
-    if (visible && !paused) {
+    if (!video) return;
+    // Reduced-motion users can still manually play/pause,
+    // but visibility-based autoplay is disabled for them.
+    const shouldPlay = reducedMotion ? !paused : visible && !paused;
+    if (shouldPlay) {
       video.play().catch(() => {});
     } else {
       video.pause();
