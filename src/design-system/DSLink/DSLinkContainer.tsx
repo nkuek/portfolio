@@ -11,7 +11,7 @@ export function DSLinkContainer({
     <Link
       {...props}
       className={cn(
-        "hover:text-link-hover outline-accent rounded focus-visible:outline-2 focus-visible:outline-offset-2",
+        "hover:text-link-hover outline-accent rounded focus-visible:outline-2 focus-visible:outline-offset-4",
         className,
       )}
     >

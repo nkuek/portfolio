@@ -227,7 +227,7 @@ export default function ScrollToTop() {
       onMouseMove={handleButtonMouseMove}
       onMouseLeave={handleButtonMouseLeave}
       aria-label="Scroll to top"
-      className="border-text-muted bg-surface-overlay text-text-muted ease-spring hover:border-accent hover:text-accent outline-accent fixed right-5 bottom-5 z-99 flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm border font-mono text-lg backdrop-blur-sm transition-[color,border-color,opacity,translate,scale] duration-[200ms,200ms,600ms,600ms,600ms] focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-97 data-[visible=false]:pointer-events-none data-[visible=false]:translate-y-4 data-[visible=false]:scale-95 data-[visible=false]:opacity-0 md:right-10 md:bottom-10"
+      className="border-text-muted bg-surface-overlay text-text-muted ease-spring hover:border-accent hover:text-accent outline-accent fixed right-5 bottom-5 z-99 flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm border font-mono text-lg backdrop-blur-sm transition-[color,border-color,opacity,translate,scale] duration-[200ms,200ms,600ms,600ms,600ms] focus-visible:outline-2 focus-visible:outline-offset-4 active:scale-97 data-[visible=false]:pointer-events-none data-[visible=false]:translate-y-4 data-[visible=false]:scale-95 data-[visible=false]:opacity-0 md:right-10 md:bottom-10"
     >
       <span
         ref={pingRef}

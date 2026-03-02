@@ -76,7 +76,7 @@ export default function Footer() {
             href={link.href}
             target={link.href.startsWith("mailto:") ? undefined : "_blank"}
             rel={link.href.startsWith("mailto:") ? undefined : "noopener"}
-            className="group text-text-muted hover:text-accent outline-accent relative rounded font-mono text-[clamp(0.875rem,1.5vw,1.125rem)] font-light tracking-[0.05em] uppercase transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="group text-text-muted hover:text-accent outline-accent relative rounded font-mono text-[clamp(0.875rem,1.5vw,1.125rem)] font-light tracking-[0.05em] uppercase transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-4"
           >
             <span className="inline-flex items-center">
               <span

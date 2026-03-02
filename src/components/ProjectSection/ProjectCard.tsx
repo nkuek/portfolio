@@ -99,7 +99,7 @@ function PolaroidFragment({
       href={project.liveLink || project.githubLink || "#"}
       target="_blank"
       rel="noopener"
-      className="group outline-accent block rounded focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="group outline-accent block rounded focus-visible:outline-2 focus-visible:outline-offset-4"
       aria-label={`View ${project.title} on ${project.liveLink ? "live site" : "GitHub"}`}
     >
       <div className="bg-surface-media relative aspect-square overflow-hidden">
@@ -127,7 +127,7 @@ function PolaroidFragment({
       href={project.liveLink || "#"}
       target="_blank"
       rel="noopener"
-      className="group outline-accent block rounded focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="group outline-accent block rounded focus-visible:outline-2 focus-visible:outline-offset-4"
     >
       <div className="aspect-square overflow-hidden">
         <div className="bg-surface-media flex h-full w-full items-center justify-center">
@@ -268,7 +268,7 @@ function InfoFragment({
               href={project.liveLink}
               target="_blank"
               rel="noopener"
-              className="text-text hover:text-accent outline-accent group relative inline-flex items-center gap-1.5 rounded text-base font-light tracking-wide transition-colors duration-(--duration-fast) focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="text-text hover:text-accent outline-accent group relative inline-flex items-center gap-1.5 rounded text-base font-light tracking-wide transition-colors duration-(--duration-fast) focus-visible:outline-2 focus-visible:outline-offset-4"
               aria-label={`View ${project.title} on live site`}
             >
               <span>Experience</span>
@@ -280,7 +280,7 @@ function InfoFragment({
               href={project.githubLink}
               target="_blank"
               rel="noopener"
-              className="text-caption hover:text-accent outline-accent group relative inline-flex items-center gap-1.5 rounded text-base font-light tracking-wide transition-colors duration-(--duration-fast) focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="text-caption hover:text-accent outline-accent group relative inline-flex items-center gap-1.5 rounded text-base font-light tracking-wide transition-colors duration-(--duration-fast) focus-visible:outline-2 focus-visible:outline-offset-4"
               aria-label={`View ${project.title} on GitHub`}
             >
               <span>Source</span>
@@ -432,7 +432,7 @@ function MobileProjectCard({
       href={project.liveLink || project.githubLink || "#"}
       target="_blank"
       rel="noopener"
-      className="group outline-accent block rounded focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="group outline-accent block rounded focus-visible:outline-2 focus-visible:outline-offset-4"
       aria-label={`View ${project.title} on ${project.liveLink ? "live site" : "GitHub"}`}
     >
       <div className="bg-surface-media relative aspect-square overflow-hidden">
@@ -458,7 +458,7 @@ function MobileProjectCard({
       href={project.liveLink || "#"}
       target="_blank"
       rel="noopener"
-      className="group outline-accent block rounded focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="group outline-accent block rounded focus-visible:outline-2 focus-visible:outline-offset-4"
     >
       <div className="aspect-square overflow-hidden">
         <div className="bg-surface-media flex h-full w-full items-center justify-center">
@@ -530,7 +530,7 @@ function MobileProjectCard({
               href={project.liveLink}
               target="_blank"
               rel="noopener"
-              className="text-text hover:text-accent outline-accent group relative inline-flex items-center gap-1.5 rounded text-base font-light tracking-wide transition-colors duration-(--duration-fast) focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="text-text hover:text-accent outline-accent group relative inline-flex items-center gap-1.5 rounded text-base font-light tracking-wide transition-colors duration-(--duration-fast) focus-visible:outline-2 focus-visible:outline-offset-4"
               aria-label={`View ${project.title} on live site`}
             >
               <span>Experience</span>
@@ -542,7 +542,7 @@ function MobileProjectCard({
               href={project.githubLink}
               target="_blank"
               rel="noopener"
-              className="text-caption hover:text-accent outline-accent group relative inline-flex items-center gap-1.5 rounded text-base font-light tracking-wide transition-colors duration-(--duration-fast) focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="text-caption hover:text-accent outline-accent group relative inline-flex items-center gap-1.5 rounded text-base font-light tracking-wide transition-colors duration-(--duration-fast) focus-visible:outline-2 focus-visible:outline-offset-4"
               aria-label={`View ${project.title} on GitHub`}
             >
               <span>Source</span>

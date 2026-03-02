@@ -502,7 +502,7 @@ export default function ProjectSection({
                   key={i}
                   type="button"
                   aria-label={`Go to project ${projects[i].title}`}
-                  className="group outline-accent relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2"
+                  className="group outline-accent relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-4"
                   onClick={() => {
                     const section = sectionRef.current;
                     if (!section) return;

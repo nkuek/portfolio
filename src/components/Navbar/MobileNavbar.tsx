@@ -41,7 +41,7 @@ function Hamburger() {
   const { open, setOpen } = useContext(MobileNavContext);
   return (
     <button
-      className="group outline-accent relative ml-auto flex flex-col rounded p-2 transition-transform duration-150 ease-out hover:cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-97 md:hidden"
+      className="group outline-accent relative ml-auto flex flex-col rounded p-2 transition-transform duration-150 ease-out hover:cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 active:scale-97 md:hidden"
       onClick={() => setOpen((prev) => !prev)}
       aria-haspopup
       aria-expanded={open}
