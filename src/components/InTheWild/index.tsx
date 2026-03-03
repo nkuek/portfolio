@@ -11,7 +11,11 @@ import type { XAxisData } from "~/components/XAxisTicks";
 import type { YAxisData } from "~/components/GridTicks";
 import useReducedMotion from "~/hooks/useReducedMotion";
 import useTilt, { TILT_INNER_TRANSITION } from "~/hooks/useTilt";
-import { SCATTER_TRANSITION, fragmentTransform, childScatter } from "~/utils/scatterTransforms";
+import {
+  SCATTER_TRANSITION,
+  fragmentTransform,
+  childScatter,
+} from "~/utils/scatterTransforms";
 import type { HighlightData } from "~/types/highlight";
 import { cameraWaypoints } from "~/components/ProjectSection/constants";
 
@@ -97,7 +101,11 @@ function WildCardFragments({
       {/* Polaroid */}
       <div
         className="absolute top-1/2 left-1/2 w-[min(1280px,90vw)]"
-        style={{ transform: imageTransform, transition: SCATTER_TRANSITION, perspective }}
+        style={{
+          transform: imageTransform,
+          transition: SCATTER_TRANSITION,
+          perspective,
+        }}
         {...tiltHandlers}
       >
         <div
@@ -127,7 +135,11 @@ function WildCardFragments({
                 setPaused((p) => !p);
               }}
               className="absolute right-6 bottom-20 z-3"
-              style={{ transform: playPauseScatter, transition: SCATTER_TRANSITION, rotate: "-3deg" }}
+              style={{
+                transform: playPauseScatter,
+                transition: SCATTER_TRANSITION,
+                rotate: "-3deg",
+              }}
             />
           )}
           <div className="p-3 pb-0">
@@ -170,7 +182,12 @@ function WildCardFragments({
           className="rounded-info border-border-light bg-surface-overlay shadow-info hover:shadow-info-hover relative flex flex-col gap-3 border px-6 py-5 backdrop-blur-[14px] hover:scale-[1.015]"
           style={{ transition: TILT_INNER_TRANSITION }}
         >
-          <Pin style={{ transform: childScatter([0, -50], 16, focus), transition: SCATTER_TRANSITION }} />
+          <Pin
+            style={{
+              transform: childScatter([0, -50], 16, focus),
+              transition: SCATTER_TRANSITION,
+            }}
+          />
           <p className="text-caption text-[clamp(1rem,1.2vw,1.1rem)] leading-[1.7] font-light">
             {project.caption}
           </p>
@@ -511,123 +528,121 @@ export default function InTheWild({
         <div className="sticky top-0 h-svh w-full overflow-hidden">
           {/* Gate on real viewport so the world doesn't render at the wrong
               translateX before useEffect measures dimensions */}
-          {viewport.w > 0 && (
-            <div
-              className="absolute top-0 h-full will-change-transform"
-              style={{ transform: `translateX(${tx}px)` }}
+          <div
+            className="absolute top-0 h-full will-change-transform"
+            style={{
+              transform: `translateX(${tx}px)`,
+              ...(viewport.w === 0 && { opacity: 0 }),
+            }}
+          >
+            {/* Floating labels */}
+            <div ref={labelsRef}>
+              {wildLabels.map((label, i) => {
+                const seed = Math.sin(i * 73.17 + 3.91) * 43758.5453;
+                const phase = (seed - Math.floor(seed)) * 10;
+                const driftDuration = 6 + (i % 4) * 1.6;
+
+                return (
+                  <FloatingLabel
+                    key={i}
+                    text={label.text}
+                    size={label.size}
+                    baseOpacity={0.28}
+                    x={label.x}
+                    y={`calc(50% + ${label.y}px)`}
+                    driftDuration={driftDuration}
+                    driftPhase={phase}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Connection lines between projects */}
+            <svg
+              className="pointer-events-none absolute top-1/2 left-0"
+              style={{ overflow: "visible" }}
             >
-              {/* Floating labels */}
-              <div ref={labelsRef}>
-                {wildLabels.map((label, i) => {
-                  const seed = Math.sin(i * 73.17 + 3.91) * 43758.5453;
-                  const phase = (seed - Math.floor(seed)) * 10;
-                  const driftDuration = 6 + (i % 4) * 1.6;
+              {wildProjects.slice(0, -1).map((project, i) => {
+                const next = wildProjects[i + 1];
+                const midX = (project.x + next.x) / 2;
+                const dist = Math.abs(midX - cameraX);
+                const baseOpacity = Math.max(0, 1 - dist / 1200) * 0.4;
 
-                  return (
-                    <FloatingLabel
-                      key={i}
-                      text={label.text}
-                      size={label.size}
-                      baseOpacity={0.28}
-                      x={label.x}
-                      y={`calc(50% + ${label.y}px)`}
-                      driftDuration={driftDuration}
-                      driftPhase={phase}
-                    />
+                const lineLen = Math.abs(next.x - project.x);
+                const n = wildProjects.length - 1;
+                const lineStartProgress = i / n;
+                const lineEndProgress = (i + 1) / n;
+                const lineRange = lineEndProgress - lineStartProgress;
+
+                let fillFraction = 0;
+                if (lineRange > 0) {
+                  fillFraction = Math.max(
+                    0,
+                    Math.min(1, (progress - lineStartProgress) / lineRange),
                   );
-                })}
-              </div>
+                }
 
-              {/* Connection lines between projects */}
-              <svg
-                className="pointer-events-none absolute top-1/2 left-0"
-                style={{ overflow: "visible" }}
-              >
-                {wildProjects.slice(0, -1).map((project, i) => {
-                  const next = wildProjects[i + 1];
-                  const midX = (project.x + next.x) / 2;
-                  const dist = Math.abs(midX - cameraX);
-                  const baseOpacity = Math.max(0, 1 - dist / 1200) * 0.4;
+                const filledLen = fillFraction * lineLen;
+                const unfilledLen = lineLen - filledLen;
 
-                  const lineLen = Math.abs(next.x - project.x);
-                  const n = wildProjects.length - 1;
-                  const lineStartProgress = i / n;
-                  const lineEndProgress = (i + 1) / n;
-                  const lineRange = lineEndProgress - lineStartProgress;
-
-                  let fillFraction = 0;
-                  if (lineRange > 0) {
-                    fillFraction = Math.max(
-                      0,
-                      Math.min(1, (progress - lineStartProgress) / lineRange),
-                    );
-                  }
-
-                  const filledLen = fillFraction * lineLen;
-                  const unfilledLen = lineLen - filledLen;
-
-                  return (
-                    <g key={i}>
+                return (
+                  <g key={i}>
+                    <line
+                      x1={project.x}
+                      y1={0}
+                      x2={next.x}
+                      y2={0}
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      className="text-border-hairline"
+                      style={{ opacity: baseOpacity }}
+                    />
+                    {filledLen > 0 && (
                       <line
                         x1={project.x}
                         y1={0}
                         x2={next.x}
                         y2={0}
-                        stroke="currentColor"
-                        strokeWidth="1"
-                        className="text-border-hairline"
-                        style={{ opacity: baseOpacity }}
+                        stroke="var(--accent)"
+                        strokeWidth="2"
+                        strokeDasharray={`${filledLen} ${unfilledLen}`}
+                        strokeLinecap="round"
+                        style={{ opacity: Math.max(baseOpacity, 0.6) }}
                       />
-                      {filledLen > 0 && (
-                        <line
-                          x1={project.x}
-                          y1={0}
-                          x2={next.x}
-                          y2={0}
-                          stroke="var(--accent)"
-                          strokeWidth="2"
-                          strokeDasharray={`${filledLen} ${unfilledLen}`}
-                          strokeLinecap="round"
-                          style={{ opacity: Math.max(baseOpacity, 0.6) }}
-                        />
-                      )}
-                    </g>
-                  );
-                })}
-              </svg>
-
-              {/* Project cards */}
-              {wildProjects.map((project) => {
-                const dist = Math.abs(project.x - cameraX);
-                const focus = Math.max(0, 1 - dist / FOCUS_RADIUS);
-                const offset: [number, number] = [
-                  Math.max(
-                    -1,
-                    Math.min(1, (cameraX - project.x) / FOCUS_RADIUS),
-                  ),
-                  0,
-                ];
-
-                return (
-                  <div
-                    key={project.title}
-                    className="absolute"
-                    style={{
-                      left: project.x,
-                      top: "50%",
-                      transform: "translate(-50%, -50%)",
-                    }}
-                  >
-                    <WildCardFragments
-                      project={project}
-                      focus={focus}
-                      cameraOffset={offset}
-                    />
-                  </div>
+                    )}
+                  </g>
                 );
               })}
-            </div>
-          )}
+            </svg>
+
+            {/* Project cards */}
+            {wildProjects.map((project) => {
+              const dist = Math.abs(project.x - cameraX);
+              const focus = Math.max(0, 1 - dist / FOCUS_RADIUS);
+              const offset: [number, number] = [
+                Math.max(-1, Math.min(1, (cameraX - project.x) / FOCUS_RADIUS)),
+                0,
+              ];
+
+              return (
+                <div
+                  key={project.title}
+                  className="absolute"
+                  style={{
+                    left: project.x,
+                    top: "50%",
+                    transform: "translate(-50%, -50%)",
+                  }}
+                >
+                  <WildCardFragments
+                    project={project}
+                    focus={focus}
+                    cameraOffset={offset}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
