@@ -22,24 +22,6 @@
   }
 }
 
-.skill {
-  animation-name: scrollSkillReveal;
-  animation-duration: auto;
-  animation-timing-function: linear;
-  animation-fill-mode: both;
-  animation-timeline: view();
-  animation-range: entry 0% cover 40%;
-}
-
-.stagger {
-  animation-name: scrollStaggerIn;
-  animation-duration: auto;
-  animation-timing-function: linear;
-  animation-fill-mode: both;
-  animation-timeline: view();
-  animation-range: entry 0% cover 35%;
-}
-
 @keyframes scrollCardReveal {
   from {
     opacity: 0;
@@ -53,13 +35,43 @@
   }
 }
 
+/* Content visible by default for crawlers and unsupported browsers */
+.skill,
+.stagger,
 .card {
-  animation-name: scrollCardReveal;
-  animation-duration: auto;
-  animation-timing-function: linear;
-  animation-fill-mode: both;
-  animation-timeline: view();
-  animation-range: entry 0% cover 30%;
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* Progressive enhancement: animate only when scroll timelines are supported */
+@supports (animation-timeline: view()) {
+  .skill {
+    animation-name: scrollSkillReveal;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 40%;
+  }
+
+  .stagger {
+    animation-name: scrollStaggerIn;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 35%;
+  }
+
+  .card {
+    animation-name: scrollCardReveal;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 30%;
+  }
 }
 
 /* ── Reduced motion ── */
