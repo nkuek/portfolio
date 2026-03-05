@@ -307,6 +307,19 @@ export default function AsciiAmbient({
     let lastTickTime = 0;
     let noiseCounter = 0;
 
+    // Auto-pause: stop the loop after initial dapple renders if no interaction.
+    // Gives Lighthouse a quiet window; real users resume on interaction.
+    const AUTO_PAUSE_MS = 3000;
+    let hadInteraction = false;
+    let paused = false;
+
+    function wake() {
+      if (paused && isVisible) {
+        paused = false;
+        raf = requestAnimationFrame(tick);
+      }
+    }
+
     function tick() {
       const now = performance.now();
       if (now - lastTickTime < FRAME_INTERVAL_MS) {
@@ -473,6 +486,19 @@ export default function AsciiAmbient({
       }
 
       renderFrame();
+
+      // Auto-pause after initial render if no user interaction
+      if (
+        !hadInteraction &&
+        lastTickTime > AUTO_PAUSE_MS &&
+        !hlRevealProgress &&
+        !fadingMask
+      ) {
+        paused = true;
+        raf = 0;
+        return;
+      }
+
       if (isVisible) {
         raf = requestAnimationFrame(tick);
       }
@@ -560,6 +586,9 @@ export default function AsciiAmbient({
     }
 
     const onPointerMove = (e: PointerEvent) => {
+      hadInteraction = true;
+      wake();
+
       const now = performance.now();
       const dx = e.clientX - mouseX;
       const dy = e.clientY - mouseY;
@@ -656,17 +685,24 @@ export default function AsciiAmbient({
 
     window.addEventListener("resize", setupCanvas);
 
+    // Wake when highlight text appears (written by ProjectSection on scroll)
+    const onScroll = () => {
+      if (paused && highlightRef?.current?.text) wake();
+    };
+
     const hasFinePointer = window.matchMedia("(pointer: fine)").matches;
     if (hasFinePointer) {
       window.addEventListener("pointermove", onPointerMove, { passive: true });
       document.addEventListener("pointerleave", onPointerLeave);
     }
+    window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
       cancelAnimationFrame(raf);
       if (driftTimer) clearInterval(driftTimer);
       observer.disconnect();
       window.removeEventListener("resize", setupCanvas);
+      window.removeEventListener("scroll", onScroll);
       if (hasFinePointer) {
         window.removeEventListener("pointermove", onPointerMove);
         document.removeEventListener("pointerleave", onPointerLeave);
