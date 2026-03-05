@@ -379,9 +379,9 @@ function SunLight({
   const mapSize = useMemo(() => {
     if (shadowFrustum <= baseFrustum) return baseMapSize;
     const scaled = Math.round(baseMapSize * (shadowFrustum / baseFrustum));
-    // Round up to nearest power of 2, capped at 16384 (GPU max)
+    // Round up to nearest power of 2, capped at 8192
     const pot = Math.pow(2, Math.ceil(Math.log2(scaled)));
-    return Math.min(pot, 16384);
+    return Math.min(pot, 8192);
   }, [shadowFrustum, baseFrustum, baseMapSize]);
 
   // Update shadow camera and map size when frustum changes

@@ -15,9 +15,7 @@ export default function DappledLight() {
   // doesn't block FCP/LCP during hydration.
   useEffect(() => {
     if ("requestIdleCallback" in window) {
-      const id = window.requestIdleCallback(() => setMounted(true), {
-        timeout: 200,
-      });
+      const id = window.requestIdleCallback(() => setMounted(true));
       return () => window.cancelIdleCallback(id);
     } else {
       const id = requestAnimationFrame(() => setMounted(true));

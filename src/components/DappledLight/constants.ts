@@ -9,12 +9,12 @@ export const LEAF_SUBDIVISIONS = 8;
 export const LEAVES_PER_TIP = 3;
 
 /* ── Shadow — PCSS via drei SoftShadows ── */
-export const SHADOW_MAP_SIZE = 8192;
-export const SHADOW_MAP_SIZE_MOBILE = 4096;
-export const PCSS_SAMPLES = 15;
+export const SHADOW_MAP_SIZE = 4096;
+export const SHADOW_MAP_SIZE_MOBILE = 2048;
+export const PCSS_SAMPLES = 20;
 export const PCSS_SAMPLES_MOBILE = 15;
-export const PCSS_SIZE = 70;
-export const PCSS_SIZE_MOBILE = 35;
+export const PCSS_SIZE = 30;
+export const PCSS_SIZE_MOBILE = 15;
 export const PCSS_FOCUS = 0;
 
 /* ── Light — angled for natural shadow direction ── */
