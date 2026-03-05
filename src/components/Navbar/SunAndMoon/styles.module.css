@@ -1,5 +1,4 @@
 .sun-and-moon {
-  --size: 22px;
   transform: translateX(50%);
   transition:
     transform 500ms ease,

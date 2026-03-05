@@ -1,11 +1,10 @@
 import styles from "./ScrollReveal.module.css";
 
-type ScrollRevealProps = {
+type ScrollRevealProps = React.HTMLAttributes<HTMLElement> & {
   variant: "skill" | "stagger" | "card";
   as?: keyof React.JSX.IntrinsicElements;
   children: React.ReactNode;
-  className?: string;
-} & Record<string, unknown>;
+};
 
 const VARIANT_CLASS = {
   skill: styles.skill,

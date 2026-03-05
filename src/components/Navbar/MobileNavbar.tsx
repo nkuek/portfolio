@@ -43,7 +43,7 @@ function Hamburger() {
     <button
       className="group outline-accent relative ml-auto flex flex-col rounded p-2 transition-transform duration-150 ease-out hover:cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 active:scale-97 md:hidden"
       onClick={() => setOpen((prev) => !prev)}
-      aria-haspopup
+      aria-haspopup="menu"
       aria-expanded={open}
       aria-controls="nav-menu"
       aria-label={open ? "close navigation menu" : "open navigation menu"}
@@ -63,12 +63,22 @@ function MobileOverlay() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  // Close on Escape
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open, setOpen]);
+
   if (!mounted) return null;
 
   return createPortal(
-    <div
+    <nav
       id="nav-menu"
-      role="menu"
+      aria-label="Mobile navigation"
       aria-hidden={!open}
       className="bg-surface-overlay fixed inset-0 z-3 flex flex-col items-center justify-center backdrop-blur-xl transition-[opacity,visibility] duration-300 ease-[var(--ease-spring)] aria-hidden:invisible aria-hidden:opacity-0 md:hidden"
     >
@@ -76,25 +86,30 @@ function MobileOverlay() {
         {sections.map((section, i) => (
           <li
             key={section.title}
-            role="menuitem"
             className={styles.linkIn}
             data-open={open || undefined}
             style={{ "--delay": `${i * 50}ms` } as React.CSSProperties}
-            onClick={() => setOpen(false)}
           >
             {section.external ? (
-              <DSAnchor href={section.href} className="text-2xl">
+              <DSAnchor
+                href={section.href}
+                className="text-2xl"
+                onClick={() => setOpen(false)}
+              >
                 {section.title}
               </DSAnchor>
             ) : (
-              <DSLink href={section.href} className="text-2xl">
+              <DSLink
+                href={section.href}
+                className="text-2xl"
+                onClick={() => setOpen(false)}
+              >
                 {section.title}
               </DSLink>
             )}
           </li>
         ))}
         <li
-          role="menuitem"
           className={`${styles.linkIn} pt-4`}
           data-open={open || undefined}
           style={
@@ -106,7 +121,7 @@ function MobileOverlay() {
           <ThemeToggle />
         </li>
       </ul>
-    </div>,
+    </nav>,
     document.body,
   );
 }

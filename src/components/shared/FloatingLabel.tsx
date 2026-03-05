@@ -1,6 +1,6 @@
 import styles from "./FloatingLabel.module.css";
 
-const LABEL_SIZES: Record<string, string> = {
+const LABEL_SIZES: Record<"sm" | "md" | "lg", string> = {
   sm: "text-base tracking-widest",
   md: "text-2xl tracking-[0.06em]",
   lg: "text-[34px] tracking-[0.04em] font-light",
@@ -17,7 +17,7 @@ export default function FloatingLabel({
   className = "",
 }: {
   text: string;
-  size?: string;
+  size?: "sm" | "md" | "lg";
   baseOpacity: number;
   x: number | string;
   y: number | string;

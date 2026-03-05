@@ -36,7 +36,7 @@ function NavShell() {
           aria-hidden
           className={`${styles.pillBg} absolute inset-0 border`}
         />
-        <div className="nav-content relative z-1 flex w-full items-center justify-between">
+        <div className="relative z-1 flex w-full items-center justify-between">
           <Link
             href="/"
             aria-label="Go to the top of the page"

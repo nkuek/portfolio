@@ -128,6 +128,7 @@ function PolaroidFragment({
       target="_blank"
       rel="noopener"
       className="group outline-accent block rounded focus-visible:outline-2 focus-visible:outline-offset-4"
+      aria-label={`Launch ${project.title} experience`}
     >
       <div className="aspect-square overflow-hidden">
         <div className="bg-surface-media flex h-full w-full items-center justify-center">
@@ -459,6 +460,7 @@ function MobileProjectCard({
       target="_blank"
       rel="noopener"
       className="group outline-accent block rounded focus-visible:outline-2 focus-visible:outline-offset-4"
+      aria-label={`Launch ${project.title} experience`}
     >
       <div className="aspect-square overflow-hidden">
         <div className="bg-surface-media flex h-full w-full items-center justify-center">
@@ -617,7 +619,9 @@ export default function ProjectCard({
   const isLanded = focus > FOCUS_SNAP;
 
   // Clear hover if project scrolls out of focus
-  if (!isLanded && hovered) setHovered(false);
+  useEffect(() => {
+    if (!isLanded && hovered) setHovered(false);
+  }, [isLanded, hovered]);
 
   // If the cursor is already inside when the card lands, scatter immediately
   useEffect(() => {
