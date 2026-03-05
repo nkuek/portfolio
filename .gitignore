@@ -27,6 +27,7 @@ CLAUDE.md
 
 # lock files (project uses bun)
 package-lock.json
+yarn.lock
 
 # debug
 npm-debug.log*
