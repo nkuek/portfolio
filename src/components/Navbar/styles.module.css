@@ -66,10 +66,18 @@
   content: "";
   position: absolute;
   inset: 0 0 auto;
-  height: 4rem;
-  background: linear-gradient(to bottom, var(--background), transparent);
+  height: 8rem;
+  background: linear-gradient(
+    to bottom,
+    var(--background) 0%,
+    color-mix(in srgb, var(--background) 85%, transparent) 20%,
+    color-mix(in srgb, var(--background) 55%, transparent) 45%,
+    color-mix(in srgb, var(--background) 25%, transparent) 65%,
+    color-mix(in srgb, var(--background) 8%, transparent) 82%,
+    transparent 100%
+  );
   pointer-events: none;
-  opacity: 0.5;
+  opacity: 0.8;
   transition: opacity 0.35s ease;
 }
 .shell[data-scrolled]::before {
