@@ -105,18 +105,46 @@ function CameraSetup() {
   return null;
 }
 
-/** 24fps throttle — invalidates the demand-mode canvas at a fixed interval */
+/** 24fps throttle — invalidates the demand-mode canvas at a fixed interval.
+ *  Pauses when the canvas is scrolled out of view so the page can reach idle. */
 function FrameThrottle({ reducedMotion }: { reducedMotion: boolean }) {
-  const { invalidate } = useThree();
+  const { invalidate, gl } = useThree();
 
   useEffect(() => {
     if (reducedMotion) {
       invalidate();
       return;
     }
-    const id = setInterval(() => invalidate(), FRAME_INTERVAL);
-    return () => clearInterval(id);
-  }, [invalidate, reducedMotion]);
+
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const start = () => {
+      if (!intervalId) {
+        invalidate();
+        intervalId = setInterval(() => invalidate(), FRAME_INTERVAL);
+      }
+    };
+    const stop = () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) start();
+        else stop();
+      },
+      { threshold: 0 },
+    );
+
+    observer.observe(gl.domElement);
+    return () => {
+      stop();
+      observer.disconnect();
+    };
+  }, [invalidate, reducedMotion, gl]);
 
   useEffect(() => {
     const observer = new MutationObserver(() => {
