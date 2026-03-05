@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/be-mine", "/be-mine/"],
     },
-    sitemap: "https://www.nkuek.dev/sitemap.xml",
+    sitemap: "https://nkuek.dev/sitemap.xml",
   };
 }

@@ -35,7 +35,7 @@ const libreBaskerville = Libre_Baskerville({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.nkuek.dev"),
+  metadataBase: new URL("https://nkuek.dev"),
   title: {
     default: "Nick Kuek | Design Engineer",
     template: "%s | Nick Kuek",
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     "Interactive Web",
     "Portfolio",
   ],
-  authors: [{ name: "Nick Kuek", url: "https://www.nkuek.dev" }],
+  authors: [{ name: "Nick Kuek", url: "https://nkuek.dev" }],
   creator: "Nick Kuek",
   publisher: "Nick Kuek",
   alternates: {
@@ -110,7 +110,7 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Person",
   name: "Nick Kuek",
-  url: "https://www.nkuek.dev",
+  url: "https://nkuek.dev",
   jobTitle: "Design Engineer",
   description:
     "Design Engineer crafting scroll-driven narratives, WebGPU experiences, and creative interfaces.",
