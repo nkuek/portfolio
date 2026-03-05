@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: "/be-mine/",
+      disallow: "/be-mine",
     },
     sitemap: "https://www.nkuek.dev/sitemap.xml",
   };

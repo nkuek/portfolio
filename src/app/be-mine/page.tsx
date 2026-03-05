@@ -9,6 +9,9 @@ export const metadata: Metadata = {
     title: "Be Mine? 💌",
     description: "A very important question...",
   },
+  alternates: {
+    canonical: "/be-mine",
+  },
 };
 
 export default function BeMinePage() {
