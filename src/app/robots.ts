@@ -4,8 +4,8 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/be-mine-song.mp3"],
-      disallow: "/be-mine",
+      allow: "/",
+      disallow: ["/be-mine", "/be-mine/"],
     },
     sitemap: "https://www.nkuek.dev/sitemap.xml",
   };
