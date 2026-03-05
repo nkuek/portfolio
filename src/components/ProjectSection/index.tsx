@@ -235,9 +235,9 @@ export default function ProjectSection({
   }, [highlightRef, crosshairRef, xAxisRef]);
 
   // ── Mouse-follow camera offset (desktop only) ──
-  // Runs in a separate rAF loop, reads refs — zero React re-renders from mouse moves.
+  // Self-stopping rAF loop — reads refs, zero React re-renders from mouse moves.
   // Applies a subtle translate to the mouse-layer wrapper that sits inside the
-  // scroll-driven world container.
+  // scroll-driven world container. Stops when offset settles, restarts on pointer move.
   const onWorldPointerMove = useCallback((e: PointerEvent) => {
     mouseNxRef.current = (e.clientX / window.innerWidth - 0.5) * 2;
     mouseNyRef.current = (e.clientY / window.innerHeight - 0.5) * 2;
@@ -251,6 +251,8 @@ export default function ProjectSection({
     let offsetX = 0;
     let offsetY = 0;
     let raf = 0;
+
+    let settled = false;
 
     function tick() {
       const el = mouseLayerRef.current;
@@ -274,7 +276,18 @@ export default function ProjectSection({
       ) {
         offsetX = 0;
         offsetY = 0;
+        if (!settled) {
+          el.style.transform = "translate(0px, 0px)";
+          mouseOffsetRef.current.x = 0;
+          mouseOffsetRef.current.y = 0;
+          settled = true;
+        }
+        // Stop the loop when fully settled
+        raf = 0;
+        return;
       }
+
+      settled = false;
 
       // Camera follows mouse → world shifts opposite direction
       el.style.transform = `translate(${-offsetX}px, ${-offsetY}px)`;
@@ -286,13 +299,17 @@ export default function ProjectSection({
       raf = requestAnimationFrame(tick);
     }
 
-    window.addEventListener("pointermove", onWorldPointerMove, {
-      passive: true,
-    });
+    // Restart the loop on pointer move if it settled
+    const onMove = (e: PointerEvent) => {
+      onWorldPointerMove(e);
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: true });
     raf = requestAnimationFrame(tick);
 
     return () => {
-      window.removeEventListener("pointermove", onWorldPointerMove);
+      window.removeEventListener("pointermove", onMove);
       cancelAnimationFrame(raf);
     };
   }, [viewport.w, onWorldPointerMove, mouseOffsetRef]);

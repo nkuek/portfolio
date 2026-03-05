@@ -15,7 +15,7 @@ export type YAxisData = {
 
 /**
  * Fixed Y-axis grid tick marks along the left edge of the viewport.
- * Continuous rAF loop so ticks respond to both scroll and mouse parallax.
+ * Scroll-driven updates so ticks respond to both scroll and mouse parallax.
  * When a section locks the y-axis (horizontal scroll), reads from yAxisRef
  * instead of live scroll position.
  */
@@ -69,10 +69,7 @@ export default function GridTicks({
 
     function tick() {
       const ct = yContainerRef.current;
-      if (!ct) {
-        raf = requestAnimationFrame(tick);
-        return;
-      }
+      if (!ct) return;
 
       // Rebuild if viewport width changed (resize)
       const w = window.innerWidth;
@@ -85,8 +82,6 @@ export default function GridTicks({
       const h = window.innerHeight;
       const centerY = h / 2;
 
-      // Apply mouse offset as a container transform (decoupled from tick math
-      // to avoid jitter from rAF timing differences with the parallax loop)
       ct.style.transform = `translateY(${-mouseOffsetRef.current.y}px)`;
 
       const yData = yAxisRef.current;
@@ -123,13 +118,22 @@ export default function GridTicks({
         const label = children[i].lastElementChild;
         if (label) label.textContent = String(val);
       }
+    }
 
+    function onScroll() {
+      cancelAnimationFrame(raf);
       raf = requestAnimationFrame(tick);
     }
 
-    raf = requestAnimationFrame(tick);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    onScroll();
 
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      cancelAnimationFrame(raf);
+    };
   }, [mouseOffsetRef, yAxisRef]);
 
   return (

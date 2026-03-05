@@ -27,7 +27,7 @@ export default function Crosshair({
   useEffect(() => {
     let raf = 0;
 
-    function tick() {
+    function update() {
       const data = dataRef.current;
       const container = containerRef.current;
       const hLine = hLineRef.current;
@@ -46,12 +46,19 @@ export default function Crosshair({
           label.textContent = data.label;
         }
       }
-
-      raf = requestAnimationFrame(tick);
     }
 
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    function onScroll() {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(update);
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(raf);
+    };
   }, [dataRef]);
 
   return (

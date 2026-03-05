@@ -54,29 +54,23 @@ export default function XAxisTicks({
 
       if (!data.visible) {
         ct.style.opacity = "0";
-        raf = requestAnimationFrame(update);
         return;
       }
 
       ct.style.opacity = "1";
 
-      // Apply mouse offset as a container transform (decoupled from tick math
-      // to avoid jitter from rAF timing differences with the parallax loop)
       ct.style.transform = `translateX(${-mouseOffsetRef.current.x}px)`;
 
       const w = window.innerWidth;
       const centerX = w / 2;
       const { translateX } = data;
 
-      // World-space value that sits at the center of the screen.
       const centerVal = centerX - translateX;
 
-      // Stable highlight: pick the nearest tick VALUE (round-to-interval).
       const closestVal =
         Math.floor((centerVal + TICK_INTERVAL / 2) / TICK_INTERVAL) *
         TICK_INTERVAL;
 
-      // Anchor tick generation around the highlighted value (stable window)
       const start =
         Math.floor(closestVal / TICK_INTERVAL - w / (2 * TICK_INTERVAL) - 1) *
         TICK_INTERVAL;
@@ -104,13 +98,22 @@ export default function XAxisTicks({
         const label = children[i].lastElementChild;
         if (label) label.textContent = String(val);
       }
+    }
 
+    let raf = 0;
+
+    function onScroll() {
+      cancelAnimationFrame(raf);
       raf = requestAnimationFrame(update);
     }
 
-    let raf = requestAnimationFrame(update);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
 
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(raf);
+    };
   }, [dataRef, mouseOffsetRef]);
 
   return (

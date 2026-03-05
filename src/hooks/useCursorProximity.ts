@@ -46,7 +46,11 @@ export default function useCursorProximity(
     };
 
     let lastScrollY = -1;
+    let isVisible = false;
+
     function tick() {
+      if (!isVisible) return;
+
       const sy = window.scrollY;
       if (sy !== lastScrollY || labelCenters.length === 0) {
         measureLabels();
@@ -71,13 +75,27 @@ export default function useCursorProximity(
       raf = requestAnimationFrame(tick);
     }
 
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const wasVisible = isVisible;
+        isVisible = entry.isIntersecting;
+        if (isVisible && !wasVisible) {
+          raf = requestAnimationFrame(tick);
+        }
+      },
+      { rootMargin: "200px" },
+    );
+
+    const container = containerRef.current;
+    if (container) observer.observe(container);
+
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("resize", measureLabels);
-    raf = requestAnimationFrame(tick);
 
     return () => {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("resize", measureLabels);
+      observer.disconnect();
       cancelAnimationFrame(raf);
     };
   }, [containerRef]);
