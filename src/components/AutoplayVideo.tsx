@@ -3,23 +3,18 @@ import { useEffect, useRef, useState } from "react";
 import useReducedMotion from "~/hooks/useReducedMotion";
 
 /**
- * Converts a Cloudinary video URL into a tiny, heavily-blurred JPG thumbnail.
- * Cloudinary generates this from the first frame of the video — typically <2 KB.
+ * Derives a tiny blurred poster URL from the video src.
+ * Expects a sibling file named `<name>-poster.jpg` next to the `.mp4`.
  */
 function getBlurredPoster(videoSrc: string): string | null {
-  if (!videoSrc.includes("res.cloudinary.com")) return null;
-  return videoSrc
-    .replace(
-      /\/video\/upload\/[^/]+\//,
-      "/video/upload/e_blur:2000,q_1,w_40,f_jpg/",
-    )
-    .replace(/\.\w+$/, ".jpg");
+  if (!videoSrc.endsWith(".mp4")) return null;
+  return videoSrc.replace(/\.mp4$/, "-poster.jpg");
 }
 
 /**
  * Video that auto-plays/pauses based on IntersectionObserver visibility
  * and a `paused` prop. Respects prefers-reduced-motion.
- * Shows a blurred Cloudinary thumbnail as a placeholder until loaded.
+ * Shows a blurred poster thumbnail as a placeholder until loaded.
  */
 export default function AutoplayVideo({
   src,
@@ -37,6 +32,7 @@ export default function AutoplayVideo({
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  const [activated, setActivated] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const reducedMotion = useReducedMotion();
 
@@ -54,23 +50,25 @@ export default function AutoplayVideo({
   }, [threshold]);
 
   useEffect(() => {
+    if (visible) setActivated(true);
+  }, [visible]);
+
+  useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
-    // Reduced-motion users can still manually play/pause,
-    // but visibility-based autoplay is disabled for them.
+    if (!video || !activated) return;
     const shouldPlay = reducedMotion ? !paused : visible && !paused;
     if (shouldPlay) {
       video.play().catch(() => {});
     } else {
       video.pause();
     }
-  }, [visible, paused, reducedMotion]);
+  }, [visible, paused, reducedMotion, activated]);
 
   return (
     <div ref={containerRef} className="relative h-full w-full">
       <video
         ref={videoRef}
-        src={src}
+        src={activated ? src : undefined}
         muted
         loop
         playsInline
