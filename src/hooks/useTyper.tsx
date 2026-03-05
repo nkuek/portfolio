@@ -21,6 +21,7 @@ const defaultOptions: UseTyperOptions = {
 
 export default function useTyper(items: string[], options?: UseTyperOptions) {
   const [display, setDisplay] = useState(items[0]);
+  const [paused, setPaused] = useState(true);
   const [cursorVisible, setCursorVisible] = useState(true);
   const [inView, setInView] = useState(false);
   const roleIdx = useRef(0);
@@ -48,8 +49,10 @@ export default function useTyper(items: string[], options?: UseTyperOptions) {
       setDisplay(role.slice(0, charIdx.current));
       if (charIdx.current === role.length) {
         deleting.current = true;
+        setPaused(true);
         return options?.pauseAfterType ?? defaultOptions.pauseAfterType;
       }
+      setPaused(false);
       return TYPE_SPEED + Math.random() * 40;
     } else {
       charIdx.current--;
@@ -57,8 +60,10 @@ export default function useTyper(items: string[], options?: UseTyperOptions) {
       if (charIdx.current === 0) {
         deleting.current = false;
         roleIdx.current = (roleIdx.current + 1) % items.length;
+        setPaused(true);
         return options?.pauseAfterDelete ?? defaultOptions.pauseAfterDelete;
       }
+      setPaused(false);
       return options?.deleteSpeed ?? defaultOptions.deleteSpeed;
     }
   }, [
@@ -80,10 +85,13 @@ export default function useTyper(items: string[], options?: UseTyperOptions) {
   }, [tick, inView]);
 
   useEffect(() => {
-    if (!inView) return;
+    if (!inView || !paused) {
+      setCursorVisible(true);
+      return;
+    }
     const interval = setInterval(() => setCursorVisible((v) => !v), 530);
     return () => clearInterval(interval);
-  }, [inView]);
+  }, [inView, paused]);
 
   return { display, cursorVisible, ref: observerRef };
 }

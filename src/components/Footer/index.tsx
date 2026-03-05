@@ -53,11 +53,11 @@ export default function Footer() {
           </span>
           {/* Typed text overlaid at the same position */}
           <span className="absolute inset-0 text-center">
-            <span className="relative inline-block">
+            <span className="relative inline-block whitespace-nowrap">
               {display}
               <span
                 className="bg-primary absolute top-[0.15em] -right-2.5 h-[1.1em] w-1.5"
-                style={{ opacity: display && cursorVisible ? 1 : 0 }}
+                style={{ opacity: cursorVisible ? 1 : 0 }}
               />
             </span>
           </span>
