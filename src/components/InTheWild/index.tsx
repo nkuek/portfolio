@@ -35,8 +35,7 @@ const wildProjects: WildProject[] = [
     title: "immersive hero",
     company: "Mercury",
     caption: "A scroll-driven video experience that dissolves into the page.",
-    videoSrc:
-      "https://res.cloudinary.com/dunbkcyqq/video/upload/f_auto,q_auto,ac_none,dpr_auto/immersize-hero.mov",
+    videoSrc: "https://assets.nkuek.dev/video/immersize-hero.mp4",
     rotate: -2,
     x: 0,
   },
@@ -45,8 +44,7 @@ const wildProjects: WildProject[] = [
     company: "Mercury",
     caption:
       "A 404 page you actually want to find. Sliding puzzle easter egg turns a dead-end into a moment of delight.",
-    videoSrc:
-      "https://res.cloudinary.com/dunbkcyqq/video/upload/f_auto,q_auto,w_1184,h_646,ac_none,dpr_auto/404-puzzle.mov",
+    videoSrc: "https://assets.nkuek.dev/video/404-puzzle.mp4",
     rotate: 1.5,
     x: 2800,
   },
@@ -55,8 +53,7 @@ const wildProjects: WildProject[] = [
     company: "Mercury",
     caption:
       "Fluid simulation trapped inside a button. A microinteraction that packs a big punch.",
-    videoSrc:
-      "https://res.cloudinary.com/dunbkcyqq/video/upload/f_auto,q_auto,ac_none,dpr_auto/fluid-button.mov",
+    videoSrc: "https://assets.nkuek.dev/video/fluid-button.mp4",
     rotate: -1,
     x: 5600,
   },

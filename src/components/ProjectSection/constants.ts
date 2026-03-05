@@ -45,7 +45,7 @@ export const projects: Project[] = [
     technologies: ["React", "TypeScript", "CSS"],
     liveLink: "https://archetyper.vercel.app/",
     githubLink: "https://github.com/nkuek/archetyper",
-    src: "https://res.cloudinary.com/dunbkcyqq/video/upload/f_auto,q_auto,h_800/archetyper.mov",
+    src: "https://assets.nkuek.dev/video/archetyper.mp4",
     position: { x: 0, y: 0 },
     fragments: {
       imageRotate: -2.5,
@@ -78,7 +78,7 @@ export const projects: Project[] = [
     liveLink: "https://showcase.nkuek.dev/particle-displacement",
     isShowcase: true,
     showcaseSlug: "particle-displacement",
-    src: "https://res.cloudinary.com/dunbkcyqq/video/upload/f_auto,q_auto,w_800/particle-displacement.mov",
+    src: "https://assets.nkuek.dev/video/particle-displacement.mp4",
     position: { x: -450, y: 2000 },
     fragments: {
       imageRotate: -1.3,
@@ -110,7 +110,7 @@ export const projects: Project[] = [
     liveLink: "https://showcase.nkuek.dev/corne",
     isShowcase: true,
     showcaseSlug: "corne",
-    src: "https://res.cloudinary.com/dunbkcyqq/video/upload/f_auto,q_auto,w_800/corne.mov",
+    src: "https://assets.nkuek.dev/video/corne.mp4",
     position: { x: 1350, y: 4000 },
     fragments: {
       imageRotate: 2.2,
@@ -144,7 +144,7 @@ export const projects: Project[] = [
     liveLink: "https://showcase.nkuek.dev/particle-morphing",
     isShowcase: true,
     showcaseSlug: "particle-morphing",
-    src: "https://res.cloudinary.com/dunbkcyqq/video/upload/f_auto,q_auto,w_800/particle-morphing.mov",
+    src: "https://assets.nkuek.dev/video/particle-morphing.mp4",
     position: { x: -300, y: 6000 },
     fragments: {
       imageRotate: -3.0,
