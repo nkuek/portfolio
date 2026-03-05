@@ -307,14 +307,14 @@ export default function AsciiAmbient({
     let lastTickTime = 0;
     let noiseCounter = 0;
 
-    // Auto-pause: stop the loop after initial dapple renders if no interaction.
-    // Gives Lighthouse a quiet window; real users resume on interaction.
-    const AUTO_PAUSE_MS = 3000;
-    let hadInteraction = false;
-    let paused = false;
+    // Start paused — render one static frame, then animate only on interaction.
+    // Keeps the main thread quiet for Lighthouse; real users resume on input.
+    const IDLE_PAUSE_MS = 3000;
+    let lastInteractionTime = 0;
+    let paused = true;
 
     function wake() {
-      if (paused && isVisible) {
+      if (paused && isVisible && !isStatic) {
         paused = false;
         raf = requestAnimationFrame(tick);
       }
@@ -487,12 +487,12 @@ export default function AsciiAmbient({
 
       renderFrame();
 
-      // Auto-pause after initial render if no user interaction
+      // Pause after idle period with no interaction or active animation
       if (
-        !hadInteraction &&
-        lastTickTime > AUTO_PAUSE_MS &&
+        performance.now() - lastInteractionTime > IDLE_PAUSE_MS &&
         !hlRevealProgress &&
-        !fadingMask
+        !fadingMask &&
+        activeCells.size === 0
       ) {
         paused = true;
         raf = 0;
@@ -586,7 +586,7 @@ export default function AsciiAmbient({
     }
 
     const onPointerMove = (e: PointerEvent) => {
-      hadInteraction = true;
+      lastInteractionTime = performance.now();
       wake();
 
       const now = performance.now();
@@ -648,10 +648,9 @@ export default function AsciiAmbient({
         }, DRIFT_INTERVAL);
 
     setupCanvas();
-    if (isStatic) {
-      // Render one static frame — no animation loop
-      const windX = 0;
-      const windY = 0;
+    // Render one static dapple frame immediately — animation loop starts
+    // on demand via wake() so the main thread stays quiet for Lighthouse.
+    {
       const dappleAlpha = isDark() ? DAPPLE_ALPHA_DARK : DAPPLE_ALPHA_LIGHT;
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
@@ -659,23 +658,21 @@ export default function AsciiAmbient({
           const nx = col / cols;
           const ny = row / rows;
           const n1 =
-            Math.sin((nx * 3.2 + windX) * 2.0) *
-            Math.sin((ny * 2.8 + windY) * 2.0) *
+            Math.sin(nx * 3.2 * 2.0) *
+            Math.sin(ny * 2.8 * 2.0) *
             Math.sin((nx * 1.5 - ny * 2.1) * 1.8);
           const edge = Math.max(0, Math.min(1, n1 * 2.0 + 0.3));
           brightness[idx] = Math.max(brightness[idx], edge * dappleAlpha);
         }
       }
       renderFrame();
-    } else {
-      raf = requestAnimationFrame(tick);
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         const wasVisible = isVisible;
         isVisible = entry.isIntersecting;
-        if (isVisible && !wasVisible && !isStatic) {
+        if (isVisible && !wasVisible && !isStatic && !paused) {
           raf = requestAnimationFrame(tick);
         }
       },
@@ -687,7 +684,10 @@ export default function AsciiAmbient({
 
     // Wake when highlight text appears (written by ProjectSection on scroll)
     const onScroll = () => {
-      if (paused && highlightRef?.current?.text) wake();
+      if (highlightRef?.current?.text) {
+        lastInteractionTime = performance.now();
+        wake();
+      }
     };
 
     const hasFinePointer = window.matchMedia("(pointer: fine)").matches;

@@ -16,6 +16,7 @@ export default function useCursorProximity(
     let mouseY = -9999;
     let lastMoveTime = 0;
     let raf = 0;
+    let hasInteracted = false;
 
     let labelCenters: { cx: number; cy: number }[] = [];
     let cachedElements: HTMLElement[] = [];
@@ -38,6 +39,10 @@ export default function useCursorProximity(
     }
 
     const onPointerMove = (e: PointerEvent) => {
+      if (!hasInteracted) {
+        hasInteracted = true;
+        if (isVisible) raf = requestAnimationFrame(tick);
+      }
       if (e.clientX !== mouseX || e.clientY !== mouseY) {
         lastMoveTime = performance.now();
       }
@@ -79,7 +84,7 @@ export default function useCursorProximity(
       ([entry]) => {
         const wasVisible = isVisible;
         isVisible = entry.isIntersecting;
-        if (isVisible && !wasVisible) {
+        if (isVisible && !wasVisible && hasInteracted) {
           raf = requestAnimationFrame(tick);
         }
       },
