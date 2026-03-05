@@ -16,11 +16,13 @@ import { interpolatePath } from "./cameraPath";
 import ProjectCard, { MobileProjectCard } from "./ProjectCard";
 import FloatingLabel from "~/components/shared/FloatingLabel";
 import ScrollReveal from "~/components/shared/ScrollReveal";
+import useCursorProximity from "~/hooks/useCursorProximity";
 import type { HighlightData } from "~/types/highlight";
 import SectionTitleCard from "~/components/SectionTitleCard";
 import type { CrosshairData } from "~/components/Crosshair";
 import type { XAxisData } from "~/components/XAxisTicks";
 import type { MouseOffset } from "~/components/GridTicks";
+import { FOCUS_SNAP } from "~/utils/scatterTransforms";
 
 const MOBILE_BREAKPOINT = 768;
 
@@ -38,11 +40,16 @@ export default function ProjectSection({
   const sectionRef = useRef<HTMLElement>(null);
   const labelsRef = useRef<HTMLDivElement>(null);
   const mouseLayerRef = useRef<HTMLDivElement>(null);
-  const [progress, setProgress] = useState(0);
-  const [sectionInView, setSectionInView] = useState(false);
+  const worldRef = useRef<HTMLDivElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const svgLinesRef = useRef<SVGSVGElement>(null);
+  const progressRef = useRef(0);
+  const sectionInViewRef = useRef(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [landedBits, setLandedBits] = useState(0);
   const [viewport, setViewport] = useState({ w: 0, h: 0 });
 
-  // Refs that the mouse-follow rAF loop reads — updated every render, zero re-renders from mouse
+  // Refs that the mouse-follow rAF loop reads — updated by scroll handler, zero re-renders from mouse
   const focusIntensityRef = useRef(0);
   const mouseNxRef = useRef(0);
   const mouseNyRef = useRef(0);
@@ -55,115 +62,177 @@ export default function ProjectSection({
     return () => window.removeEventListener("resize", updateViewport);
   }, []);
 
-  // Imperative cursor proximity — updates label DOM directly, no re-renders
-  // Fades spotlight out after cursor goes idle, returning to dappled-sunlight base
-  useEffect(() => {
-    let mouseX = -9999;
-    let mouseY = -9999;
-    let lastMoveTime = 0;
-    let raf = 0;
+  useCursorProximity(labelsRef);
 
-    const PROXIMITY_RADIUS = 280;
-    const IDLE_THRESHOLD = 2000; // ms before spotlight starts fading
-    const FADE_DURATION = 800; // ms to fully dissolve
-
-    // Cache label centers — they're absolutely positioned, so we only need to
-    // re-measure on resize/scroll (container offset changes), not every frame.
-    let labelCenters: { cx: number; cy: number }[] = [];
-    let cachedElements: HTMLElement[] = [];
-    let containerOffsetX = 0;
-    let containerOffsetY = 0;
-
-    function measureLabels() {
-      const container = labelsRef.current;
-      if (!container) return;
-      const containerRect = container.getBoundingClientRect();
-      containerOffsetX = containerRect.left;
-      containerOffsetY = containerRect.top;
-      const labels = container.children as HTMLCollectionOf<HTMLElement>;
-      labelCenters = [];
-      cachedElements = [];
-      for (let i = 0; i < labels.length; i++) {
-        const el = labels[i];
-        cachedElements.push(el);
-        // Use offsetLeft/offsetTop (no layout forced — cached by browser)
-        // plus half the element size for the center
-        labelCenters.push({
-          cx: containerOffsetX + el.offsetLeft + el.offsetWidth / 2,
-          cy: containerOffsetY + el.offsetTop + el.offsetHeight / 2,
-        });
-      }
-    }
-
-    const onPointerMove = (e: PointerEvent) => {
-      // Only reset idle timer if cursor actually moved (scroll shifts elements
-      // under a stationary cursor, firing pointermove without real movement)
-      if (e.clientX !== mouseX || e.clientY !== mouseY) {
-        lastMoveTime = performance.now();
-      }
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-    };
-
-    let lastScrollY = -1;
-    function tick() {
-      // Re-measure when scroll position changes (container moves on screen)
-      const sy = window.scrollY;
-      if (sy !== lastScrollY || labelCenters.length === 0) {
-        measureLabels();
-        lastScrollY = sy;
-      }
-
-      const idle = performance.now() - lastMoveTime;
-      const fadeFactor =
-        idle < IDLE_THRESHOLD
-          ? 1
-          : Math.max(0, 1 - (idle - IDLE_THRESHOLD) / FADE_DURATION);
-
-      for (let i = 0; i < cachedElements.length; i++) {
-        const { cx, cy } = labelCenters[i];
-        const dx = cx - mouseX;
-        const dy = cy - mouseY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const boost = Math.max(0, 1 - dist / PROXIMITY_RADIUS) * fadeFactor;
-        cachedElements[i].style.setProperty("--cursor-boost", String(boost));
-      }
-
-      raf = requestAnimationFrame(tick);
-    }
-
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    window.addEventListener("resize", measureLabels);
-    raf = requestAnimationFrame(tick);
-
-    return () => {
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("resize", measureLabels);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-
+  // Scroll-driven updates — imperative for continuous values, React state only for activeIndex
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
 
+    let scrollRaf = 0;
+
     const handleScroll = () => {
-      const rect = section.getBoundingClientRect();
-      const sectionHeight = section.offsetHeight;
-      const viewportH = window.innerHeight;
-      const scrolled = -rect.top;
-      const scrollableDistance = sectionHeight - viewportH;
-      const raw = scrollableDistance <= 0 ? 1 : scrolled / scrollableDistance;
-      setProgress(Math.min(Math.max(raw, 0), 1));
-      // Section is "in view" when its top is above mid-viewport AND its bottom is below mid-viewport
-      const midScreen = viewportH * 0.5;
-      setSectionInView(rect.top < midScreen && rect.bottom > midScreen);
+      cancelAnimationFrame(scrollRaf);
+      scrollRaf = requestAnimationFrame(() => {
+        const rect = section.getBoundingClientRect();
+        const sectionHeight = section.offsetHeight;
+        const vw = window.innerWidth;
+        const viewportH = window.innerHeight;
+        const scrolled = -rect.top;
+        const scrollableDistance = sectionHeight - viewportH;
+        const raw = scrollableDistance <= 0 ? 1 : scrolled / scrollableDistance;
+        const progress = Math.min(Math.max(raw, 0), 1);
+        progressRef.current = progress;
+
+        const midScreen = viewportH * 0.5;
+        const inView = rect.top < midScreen && rect.bottom > midScreen;
+        sectionInViewRef.current = inView;
+
+        // Compute camera + world transform
+        const camera = interpolatePath(cameraWaypoints, progress);
+        const tx = -camera.x + vw / 2;
+        const ty = -camera.y + viewportH / 2;
+
+        // Imperative world transform
+        if (worldRef.current) {
+          worldRef.current.style.transform = `translate(${tx}px, ${ty}px)`;
+          if (vw === 0) {
+            worldRef.current.style.opacity = "0";
+          } else {
+            worldRef.current.style.opacity = "";
+          }
+        }
+
+        // Imperative progress bar
+        if (progressBarRef.current) {
+          progressBarRef.current.style.transform = `translateX(-50%) scaleY(${progress})`;
+        }
+
+        // Imperative SVG connection line updates
+        if (svgLinesRef.current) {
+          const groups = svgLinesRef.current.children;
+          const n = cameraWaypoints.length - 1;
+          for (let i = 0; i < connectionLines.length; i++) {
+            const [a, b] = connectionLines[i];
+            const pa = projects[a].position;
+            const pb = projects[b].position;
+            const midX = (pa.x + pb.x) / 2;
+            const midY = (pa.y + pb.y) / 2;
+            const dist = Math.sqrt(
+              (midX - camera.x) ** 2 + (midY - camera.y) ** 2,
+            );
+            const baseOpacity = Math.max(0, 1 - dist / 900) * 0.4;
+
+            const dx = pb.x - pa.x;
+            const dy = pb.y - pa.y;
+            const lineLen = Math.sqrt(dx * dx + dy * dy);
+
+            const startIdx = Math.min(a, b);
+            const endIdx = Math.max(a, b);
+            const lineStartProgress = startIdx / n;
+            const lineEndProgress = endIdx / n;
+            const lineRange = lineEndProgress - lineStartProgress;
+
+            let fillFraction = 0;
+            if (lineRange > 0) {
+              fillFraction = Math.max(
+                0,
+                Math.min(1, (progress - lineStartProgress) / lineRange),
+              );
+            }
+
+            const filledLen = fillFraction * lineLen;
+            const unfilledLen = lineLen - filledLen;
+
+            const g = groups[i];
+            if (!g) continue;
+            const bgLine = g.children[0] as SVGLineElement | undefined;
+            const fillLine = g.children[1] as SVGLineElement | undefined;
+
+            if (bgLine) {
+              bgLine.style.opacity = String(baseOpacity);
+            }
+            if (fillLine) {
+              fillLine.setAttribute(
+                "stroke-dasharray",
+                `${filledLen} ${unfilledLen}`,
+              );
+              fillLine.style.opacity = String(Math.max(baseOpacity, 0.6));
+            }
+          }
+        }
+
+        // Compute active index — only trigger React re-render when it changes
+        const last = projects.length - 1;
+        const dotFloat = progress * last;
+        const newActiveIndex = Math.max(
+          0,
+          Math.min(last, Math.round(dotFloat)),
+        );
+        setActiveIndex((prev) =>
+          prev !== newActiveIndex ? newActiveIndex : prev,
+        );
+
+        // Trigger re-render when any card's landed/scattered state flips
+        let bits = 0;
+        for (let i = 0; i < projects.length; i++) {
+          const pdx = projects[i].position.x - camera.x;
+          const pdy = projects[i].position.y - camera.y;
+          const pDist = Math.sqrt(pdx * pdx + pdy * pdy);
+          const pFocus = inView ? Math.max(0, 1 - pDist / 600) : 0;
+          if (pFocus > FOCUS_SNAP) bits |= 1 << i;
+        }
+        setLandedBits((prev) => (prev !== bits ? bits : prev));
+
+        // Update external refs (imperative, no re-renders)
+        const isMobileView = vw > 0 && vw < MOBILE_BREAKPOINT;
+        const activeProject = projects[newActiveIndex];
+        const activeDx = activeProject.position.x - camera.x;
+        const activeDy = activeProject.position.y - camera.y;
+        const activeDist = Math.sqrt(activeDx * activeDx + activeDy * activeDy);
+        const focusIntensity = inView ? Math.max(0, 1 - activeDist / 400) : 0;
+        focusIntensityRef.current = focusIntensity;
+
+        if (!isMobileView && inView) {
+          highlightRef.current = {
+            text: activeProject.title,
+            intensity: focusIntensity,
+            owner: "projects",
+          };
+          crosshairRef.current = {
+            label: `${Math.round(camera.x)}, ${Math.round(window.scrollY)}`,
+            focused: focusIntensity > 0.8,
+            visible: true,
+            owner: "projects",
+          };
+          xAxisRef.current = {
+            cameraX: camera.x,
+            translateX: tx,
+            visible: true,
+          };
+        } else if (
+          !isMobileView &&
+          !inView &&
+          crosshairRef.current.owner === "projects"
+        ) {
+          highlightRef.current = { text: "", intensity: 0 };
+          crosshairRef.current = {
+            label: "",
+            focused: false,
+            visible: false,
+          };
+          xAxisRef.current = { cameraX: 0, translateX: 0, visible: false };
+        }
+      });
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      cancelAnimationFrame(scrollRaf);
+    };
+  }, [highlightRef, crosshairRef, xAxisRef]);
 
   // ── Mouse-follow camera offset (desktop only) ──
   // Runs in a separate rAF loop, reads refs — zero React re-renders from mouse moves.
@@ -228,64 +297,19 @@ export default function ProjectSection({
     };
   }, [viewport.w, onWorldPointerMove, mouseOffsetRef]);
 
-  const dotCount = projects.length;
-  const last = dotCount - 1;
-
-  // Track progress already equals section progress, but the *dot centers* start/end
-  // are inset by half a button (20px). Since we visually inset the bar, we should
-  // also compute the active dot from the same track-space progress.
-  //
-  // Easiest: map progress to a continuous dot index, then round to nearest dot.
-  const dotFloat = progress * last;
-  const activeDotIndex = Math.round(dotFloat);
-  const activeIndex = Math.max(
-    0,
-    Math.min(projects.length - 1, activeDotIndex),
-  );
+  // Derive render values from latest progress + activeIndex
+  // landedBits triggers re-renders when any card's landed state flips — read refs while fresh
+  void landedBits;
+  const progress = progressRef.current;
+  const sectionInView = sectionInViewRef.current;
 
   const camera = interpolatePath(cameraWaypoints, progress);
-
   const tx = -camera.x + viewport.w / 2;
   const ty = -camera.y + viewport.h / 2;
-
-  const activeProject = projects[activeIndex];
-  const activeDx = activeProject.position.x - camera.x;
-  const activeDy = activeProject.position.y - camera.y;
-  const activeDist = Math.sqrt(activeDx * activeDx + activeDy * activeDy);
-  const isMobile = viewport.w > 0 && viewport.w < MOBILE_BREAKPOINT;
 
   // Scale factor so fragment offsets shrink proportionally with the polaroid
   // Polaroid uses w-[min(760px,60vw)] → scale = min(1, vw * 0.6 / 760)
   const cardScale = viewport.w > 0 ? Math.min(1, (viewport.w * 0.6) / 760) : 1;
-
-  const focusIntensity = sectionInView ? Math.max(0, 1 - activeDist / 400) : 0;
-  focusIntensityRef.current = focusIntensity;
-  if (!isMobile && sectionInView) {
-    highlightRef.current = {
-      text: activeProject.title,
-      intensity: focusIntensity,
-      owner: "projects",
-    };
-  } else if (highlightRef.current.owner === "projects") {
-    highlightRef.current = { text: "", intensity: 0 };
-  }
-  const crosshairFocused = focusIntensity > 0.8;
-  if (!isMobile && sectionInView) {
-    crosshairRef.current = {
-      label: `${Math.round(camera.x)}, ${Math.round(window.scrollY)}`,
-      focused: crosshairFocused,
-      visible: true,
-      owner: "projects",
-    };
-    xAxisRef.current = { cameraX: camera.x, translateX: tx, visible: true };
-  } else if (
-    !isMobile &&
-    !sectionInView &&
-    crosshairRef.current.owner === "projects"
-  ) {
-    crosshairRef.current = { label: "", focused: false, visible: false };
-    xAxisRef.current = { cameraX: 0, translateX: 0, visible: false };
-  }
   // ── Render both layouts; CSS picks the right one (zero layout shift) ──
   return (
     <section
@@ -321,6 +345,7 @@ export default function ProjectSection({
           {/* Gate on real viewport so the world doesn't flash at (0,0) before
               useEffect measures dimensions (prevents CLS from hero area) */}
           <div
+            ref={worldRef}
             className="absolute will-change-transform"
             style={{
               transform: `translate(${tx}px, ${ty}px)`,
@@ -331,6 +356,7 @@ export default function ProjectSection({
             <div ref={mouseLayerRef} className="will-change-transform">
               {/* Connection lines between related projects */}
               <svg
+                ref={svgLinesRef}
                 className="pointer-events-none absolute top-0 left-0"
                 style={{
                   width: 2000,
@@ -343,38 +369,6 @@ export default function ProjectSection({
                 {connectionLines.map(([a, b], i) => {
                   const pa = projects[a].position;
                   const pb = projects[b].position;
-                  const midX = (pa.x + pb.x) / 2;
-                  const midY = (pa.y + pb.y) / 2;
-                  const dist = Math.sqrt(
-                    (midX - camera.x) ** 2 + (midY - camera.y) ** 2,
-                  );
-                  const baseOpacity = Math.max(0, 1 - dist / 900) * 0.4;
-
-                  // Line length for dasharray
-                  const dx = pb.x - pa.x;
-                  const dy = pb.y - pa.y;
-                  const lineLen = Math.sqrt(dx * dx + dy * dy);
-
-                  // Fill progress: how much of this line is "completed"
-                  // Based on scroll progress relative to the waypoint indices
-                  const startIdx = Math.min(a, b);
-                  const endIdx = Math.max(a, b);
-                  const n = cameraWaypoints.length - 1;
-                  const lineStartProgress = startIdx / n;
-                  const lineEndProgress = endIdx / n;
-                  const lineRange = lineEndProgress - lineStartProgress;
-
-                  let fillFraction = 0;
-                  if (lineRange > 0) {
-                    fillFraction = Math.max(
-                      0,
-                      Math.min(1, (progress - lineStartProgress) / lineRange),
-                    );
-                  }
-
-                  const filledLen = fillFraction * lineLen;
-                  const unfilledLen = lineLen - filledLen;
-
                   return (
                     <g key={i}>
                       {/* Background track */}
@@ -386,24 +380,20 @@ export default function ProjectSection({
                         stroke="currentColor"
                         strokeWidth="1"
                         className="text-border-hairline"
-                        style={{ opacity: baseOpacity }}
+                        style={{ opacity: 0 }}
                       />
-                      {/* Filled portion */}
-                      {filledLen > 0 && (
-                        <line
-                          x1={pa.x + 500}
-                          y1={pa.y + 500}
-                          x2={pb.x + 500}
-                          y2={pb.y + 500}
-                          stroke="var(--accent)"
-                          strokeWidth="2"
-                          strokeDasharray={`${filledLen} ${unfilledLen}`}
-                          strokeLinecap="round"
-                          style={{
-                            opacity: Math.max(baseOpacity, 0.6),
-                          }}
-                        />
-                      )}
+                      {/* Filled portion — dasharray updated imperatively by scroll handler */}
+                      <line
+                        x1={pa.x + 500}
+                        y1={pa.y + 500}
+                        x2={pb.x + 500}
+                        y2={pb.y + 500}
+                        stroke="var(--accent)"
+                        strokeWidth="2"
+                        strokeDasharray="0 9999"
+                        strokeLinecap="round"
+                        style={{ opacity: 0 }}
+                      />
                     </g>
                   );
                 })}
@@ -485,6 +475,7 @@ export default function ProjectSection({
             {/* Track line (base + fill) aligned to dot centers */}
             <div className="bg-border-hairline absolute top-5 bottom-5 left-1/2 w-px -translate-x-1/2" />
             <div
+              ref={progressBarRef}
               className="bg-accent absolute top-5 bottom-5 left-1/2 w-px origin-top -translate-x-1/2"
               style={{
                 transform: `translateX(-50%) scaleY(${progress})`,
@@ -494,8 +485,8 @@ export default function ProjectSection({
 
             {projects.map((_, i) => {
               const dotProgress = i / (cameraWaypoints.length - 1);
-              const isCurrent = i === activeDotIndex;
-              const isPast = i < activeDotIndex;
+              const isCurrent = i === activeIndex;
+              const isPast = i < activeIndex;
 
               return (
                 <button
