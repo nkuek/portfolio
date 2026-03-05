@@ -13,7 +13,7 @@ export const SHADOW_MAP_SIZE = 8192;
 export const SHADOW_MAP_SIZE_MOBILE = 4096;
 export const PCSS_SAMPLES = 15;
 export const PCSS_SAMPLES_MOBILE = 15;
-export const PCSS_SIZE = 50;
+export const PCSS_SIZE = 70;
 export const PCSS_SIZE_MOBILE = 35;
 export const PCSS_FOCUS = 0;
 

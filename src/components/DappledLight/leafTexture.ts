@@ -91,13 +91,23 @@ export function createLeafTexture(size = 256): THREE.CanvasTexture {
     // Right vein
     ctx.beginPath();
     ctx.moveTo(cx, y);
-    ctx.quadraticCurveTo(cx + spreadX * 0.6, y - leafHeight * 0.02, cx + spreadX * 0.8, curveY);
+    ctx.quadraticCurveTo(
+      cx + spreadX * 0.6,
+      y - leafHeight * 0.02,
+      cx + spreadX * 0.8,
+      curveY,
+    );
     ctx.stroke();
 
     // Left vein
     ctx.beginPath();
     ctx.moveTo(cx, y);
-    ctx.quadraticCurveTo(cx - spreadX * 0.6, y - leafHeight * 0.02, cx - spreadX * 0.8, curveY);
+    ctx.quadraticCurveTo(
+      cx - spreadX * 0.6,
+      y - leafHeight * 0.02,
+      cx - spreadX * 0.8,
+      curveY,
+    );
     ctx.stroke();
   }
 
@@ -110,7 +120,8 @@ export function createLeafTexture(size = 256): THREE.CanvasTexture {
     const r = Math.max(leafWidth, leafHeight / 2) * 1.02;
     const x = cx + Math.cos(angle) * r;
     const y = cy + Math.sin(angle) * r * (leafHeight / leafWidth / 2);
-    const bumpSize = size * 0.015 + Math.random() * size * 0.01;
+    const hash = Math.sin(i * 127.1 + 311.7) * 43758.5453;
+    const bumpSize = size * 0.015 + (hash - Math.floor(hash)) * size * 0.01;
     ctx.beginPath();
     ctx.arc(x, y, bumpSize, 0, Math.PI * 2);
     ctx.fill();

@@ -46,6 +46,7 @@ import {
   PCSS_SIZE_MOBILE,
   PCSS_FOCUS,
   SHADOW_BIAS,
+  CAMERA_FOV,
   CLEARING_RADIUS_X,
   CLEARING_RADIUS_Z,
   CLEARING_STRENGTH,
@@ -76,9 +77,19 @@ function isDarkMode(): boolean {
   );
 }
 
+/**
+ * Shared dark-mode ref — read once per frame by FrameThrottle's invalidate cycle,
+ * updated by a MutationObserver. Avoids 4 separate DOM reads per frame.
+ */
+const _darkModeRef = { current: isDarkMode() };
+
+function useDarkModeRef() {
+  return _darkModeRef;
+}
+
 /** Sets camera to look straight down at ground */
 function CameraSetup() {
-  const { camera, scene, gl, invalidate } = useThree();
+  const { camera, invalidate } = useThree();
 
   useEffect(() => {
     camera.position.set(
@@ -88,9 +99,8 @@ function CameraSetup() {
     );
     camera.lookAt(0, 0, 0);
     camera.updateProjectionMatrix();
-    gl.render(scene, camera);
     invalidate();
-  }, [camera, scene, gl, invalidate]);
+  }, [camera, invalidate]);
 
   return null;
 }
@@ -109,7 +119,10 @@ function FrameThrottle({ reducedMotion }: { reducedMotion: boolean }) {
   }, [invalidate, reducedMotion]);
 
   useEffect(() => {
-    const observer = new MutationObserver(() => invalidate());
+    const observer = new MutationObserver(() => {
+      _darkModeRef.current = isDarkMode();
+      invalidate();
+    });
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["data-color-scheme"],
@@ -131,13 +144,13 @@ function Ground({
   lerpToDark: number;
   lerpToLight: number;
 }) {
-  const dark = isDarkMode();
+  const darkRef = useDarkModeRef();
   const materialRef = useRef<THREE.MeshStandardMaterial>(null);
-  const initialColor = dark ? GROUND_COLOR_DARK : GROUND_COLOR_LIGHT;
+  const initialColor = darkRef.current ? GROUND_COLOR_DARK : GROUND_COLOR_LIGHT;
 
   useFrame(() => {
     if (!materialRef.current) return;
-    const d = isDarkMode();
+    const d = darkRef.current;
     const lerpSpeed = d ? lerpToDark : lerpToLight;
     const target = d ? GROUND_COLOR_DARK : GROUND_COLOR_LIGHT;
     materialRef.current.color.lerp(_tempColor.set(target), lerpSpeed);
@@ -174,11 +187,11 @@ function TreeCanopy({
   clearing?: ClearingConfig;
 }) {
   const groupRef = useRef<THREE.Group>(null);
-  const dark = isDarkMode();
-  const stretchX = useRef(dark ? LEAF_STRETCH_X_DARK : 1);
-  const stretchZ = useRef(dark ? LEAF_STRETCH_Z_DARK : 1);
+  const darkRef = useDarkModeRef();
+  const stretchX = useRef(darkRef.current ? LEAF_STRETCH_X_DARK : 1);
+  const stretchZ = useRef(darkRef.current ? LEAF_STRETCH_Z_DARK : 1);
   const leafColor = useRef(
-    new THREE.Color(dark ? LEAF_COLOR_DARK : LEAF_COLOR_LIGHT),
+    new THREE.Color(darkRef.current ? LEAF_COLOR_DARK : LEAF_COLOR_LIGHT),
   );
 
   const tree = useMemo(() => {
@@ -199,8 +212,21 @@ function TreeCanopy({
   // Leaf flutter axis — perpendicular to wind for a tilting motion
   const flutterAxis = useMemo(() => new THREE.Vector3(1, 0, 0), []);
 
+  // Dispose Three.js resources on unmount to prevent GPU memory leaks
+  useEffect(() => {
+    const { canopyBranchGeo, branchMat, leafMesh } = tree;
+    return () => {
+      canopyBranchGeo.dispose();
+      branchMat.dispose();
+      (leafMesh.material as THREE.Material).dispose();
+      leafMesh.geometry.dispose();
+      const alphaMap = (leafMesh.material as THREE.MeshBasicMaterial).alphaMap;
+      if (alphaMap) alphaMap.dispose();
+    };
+  }, [tree]);
+
   useFrame(({ clock }) => {
-    const dark = isDarkMode();
+    const dark = darkRef.current;
     const lerpSpeed = dark
       ? COLOR_LERP_SPEED_TO_DARK
       : COLOR_LERP_SPEED_TO_LIGHT;
@@ -271,13 +297,16 @@ function TreeCanopy({
   );
 }
 
+/** Compute the shadow camera frustum size needed to cover the visible ground */
+const _halfFovRad = (CAMERA_FOV / 2) * (Math.PI / 180);
+const _visibleHalfHeight = CAMERA_POSITION[1] * Math.tan(_halfFovRad);
+
 /** Directional light with dark-mode color lerping */
 function SunLight({
   intensity,
   intensityDark,
   lightY,
   lightYDark,
-  shadowFrustum,
   shadowBias,
   lerpToDark,
   lerpToLight,
@@ -286,15 +315,17 @@ function SunLight({
   intensityDark: number;
   lightY: number;
   lightYDark: number;
-  shadowFrustum: number;
   shadowBias: number;
   lerpToDark: number;
   lerpToLight: number;
 }) {
-  const dark = isDarkMode();
-  const initColor = dark ? DIR_LIGHT_COLOR_DARK : DIR_LIGHT_COLOR_LIGHT;
-  const initIntensity = dark ? intensityDark : intensity;
-  const initY = dark ? lightYDark : lightY;
+  const darkRef = useDarkModeRef();
+  const { size } = useThree();
+  const initColor = darkRef.current
+    ? DIR_LIGHT_COLOR_DARK
+    : DIR_LIGHT_COLOR_LIGHT;
+  const initIntensity = darkRef.current ? intensityDark : intensity;
+  const initY = darkRef.current ? lightYDark : lightY;
   const lightRef = useRef<THREE.DirectionalLight>(null);
   const targetColor = useRef(new THREE.Color(initColor));
   const currentColor = useRef(new THREE.Color(initColor));
@@ -306,10 +337,44 @@ function SunLight({
     new THREE.Vector3(LIGHT_POSITION[0], initY, LIGHT_POSITION[2]),
   );
   const mobile = useMemo(() => isMobile(), []);
-  const mapSize = mobile ? SHADOW_MAP_SIZE_MOBILE : SHADOW_MAP_SIZE;
+  const baseFrustum = LIGHT_SHADOW_CAMERA.right;
+  const baseMapSize = mobile ? SHADOW_MAP_SIZE_MOBILE : SHADOW_MAP_SIZE;
+
+  // Dynamically size shadow frustum to cover the visible ground at any aspect ratio
+  const shadowFrustum = useMemo(() => {
+    const aspect = size.width / size.height;
+    const needed = _visibleHalfHeight * aspect + 3; // +3 margin
+    return Math.max(baseFrustum, Math.ceil(needed));
+  }, [size.width, size.height, baseFrustum]);
+
+  // Scale shadow map proportionally so texel density stays constant
+  const mapSize = useMemo(() => {
+    if (shadowFrustum <= baseFrustum) return baseMapSize;
+    const scaled = Math.round(baseMapSize * (shadowFrustum / baseFrustum));
+    // Round up to nearest power of 2, capped at 16384 (GPU max)
+    const pot = Math.pow(2, Math.ceil(Math.log2(scaled)));
+    return Math.min(pot, 16384);
+  }, [shadowFrustum, baseFrustum, baseMapSize]);
+
+  // Update shadow camera and map size when frustum changes
+  useEffect(() => {
+    const light = lightRef.current;
+    if (!light) return;
+    const cam = light.shadow.camera;
+    cam.left = -shadowFrustum;
+    cam.right = shadowFrustum;
+    cam.top = shadowFrustum;
+    cam.bottom = -shadowFrustum;
+    cam.updateProjectionMatrix();
+    light.shadow.mapSize.set(mapSize, mapSize);
+    if (light.shadow.map) {
+      light.shadow.map.dispose();
+      light.shadow.map = null;
+    }
+  }, [shadowFrustum, mapSize]);
 
   useFrame(() => {
-    const dark = isDarkMode();
+    const dark = darkRef.current;
     targetColor.current.set(
       dark ? DIR_LIGHT_COLOR_DARK : DIR_LIGHT_COLOR_LIGHT,
     );
@@ -350,6 +415,34 @@ function SunLight({
   );
 }
 
+/** Keeps scene.background in sync with the ground color so ultrawide viewports have no gaps */
+function SceneBackground({
+  lerpToDark,
+  lerpToLight,
+}: {
+  lerpToDark: number;
+  lerpToLight: number;
+}) {
+  const { scene } = useThree();
+  const darkRef = useDarkModeRef();
+
+  useEffect(() => {
+    scene.background = new THREE.Color(
+      darkRef.current ? GROUND_COLOR_DARK : GROUND_COLOR_LIGHT,
+    );
+  }, [scene, darkRef]);
+
+  useFrame(() => {
+    if (!(scene.background instanceof THREE.Color)) return;
+    const d = darkRef.current;
+    const lerpSpeed = d ? lerpToDark : lerpToLight;
+    const target = d ? GROUND_COLOR_DARK : GROUND_COLOR_LIGHT;
+    scene.background.lerp(_tempColor.set(target), lerpSpeed);
+  });
+
+  return null;
+}
+
 function AmbientLightColor({
   intensity,
   lerpToDark,
@@ -359,14 +452,14 @@ function AmbientLightColor({
   lerpToDark: number;
   lerpToLight: number;
 }) {
-  const dark = isDarkMode();
-  const initColor = dark ? AMBIENT_COLOR_DARK : AMBIENT_COLOR_LIGHT;
+  const darkRef = useDarkModeRef();
+  const initColor = darkRef.current ? AMBIENT_COLOR_DARK : AMBIENT_COLOR_LIGHT;
   const lightRef = useRef<THREE.AmbientLight>(null);
   const targetColor = useRef(new THREE.Color(initColor));
   const currentColor = useRef(new THREE.Color(initColor));
 
   useFrame(() => {
-    const dark = isDarkMode();
+    const dark = darkRef.current;
     targetColor.current.set(dark ? AMBIENT_COLOR_DARK : AMBIENT_COLOR_LIGHT);
     const lerpSpeed = dark ? lerpToDark : lerpToLight;
     currentColor.current.lerp(targetColor.current, lerpSpeed);
@@ -403,6 +496,10 @@ export default function DappledLightScene({
   return (
     <>
       <CameraSetup />
+      <SceneBackground
+        lerpToDark={COLOR_LERP_SPEED_TO_DARK}
+        lerpToLight={COLOR_LERP_SPEED_TO_LIGHT}
+      />
       <SoftShadows focus={PCSS_FOCUS} samples={pcssSamples} size={pcssSize} />
       <AmbientLightColor
         intensity={AMBIENT_INTENSITY}
@@ -414,7 +511,6 @@ export default function DappledLightScene({
         intensityDark={LIGHT_INTENSITY_DARK}
         lightY={LIGHT_POSITION[1]}
         lightYDark={LIGHT_POSITION_DARK[1]}
-        shadowFrustum={LIGHT_SHADOW_CAMERA.right}
         shadowBias={SHADOW_BIAS}
         lerpToDark={COLOR_LERP_SPEED_TO_DARK}
         lerpToLight={COLOR_LERP_SPEED_TO_LIGHT}
