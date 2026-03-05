@@ -60,6 +60,7 @@ export default function AsciiAmbient({
     }
 
     const accentCells = new Set<number>();
+    const _reusableSet = new Set<number>();
     let leafDepthMap = new Float32Array(0);
 
     function setupCanvas() {
@@ -231,12 +232,12 @@ export default function AsciiAmbient({
     let lastMoveTime = 0;
     let cursorSpeed = 0; // px/s
     let mouseRadius = MOUSE_RADIUS_MIN;
-    let activeCells = new Set<number>();
+    const activeCells = new Set<number>();
 
     function computeActiveCells(): Set<number> {
-      if (!hovering) return new Set();
+      _reusableSet.clear();
+      if (!hovering) return _reusableSet;
       const r = mouseRadius;
-      const result = new Set<number>();
       const minCol = Math.max(0, Math.floor((mouseX - r) / CHAR_WIDTH));
       const maxCol = Math.min(cols - 1, Math.ceil((mouseX + r) / CHAR_WIDTH));
       const minRow = Math.max(0, Math.floor((mouseY - r) / LINE_HEIGHT));
@@ -249,11 +250,11 @@ export default function AsciiAmbient({
           const dy = cy - mouseY;
           if (Math.sqrt(dx * dx + dy * dy) < r) {
             const idx = row * cols + col;
-            if (idx >= 0 && idx < chars.length) result.add(idx);
+            if (idx >= 0 && idx < chars.length) _reusableSet.add(idx);
           }
         }
       }
-      return result;
+      return _reusableSet;
     }
 
     function brightenNearMouse() {
@@ -279,7 +280,8 @@ export default function AsciiAmbient({
         brightness[idx] = Math.min(1, brightness[idx] + spotlightVal);
         if (intensity > 0.4 && Math.random() < 0.08) accentCells.add(idx);
       }
-      activeCells = newActive;
+      activeCells.clear();
+      for (const idx of newActive) activeCells.add(idx);
     }
 
     let raf = 0;
@@ -304,7 +306,7 @@ export default function AsciiAmbient({
       const t = now * 0.001;
 
       const sy = window.scrollY;
-      if (sy !== lastDimScrollY) {
+      if (Math.abs(sy - lastDimScrollY) > 50) {
         updateTextDimMap();
         lastDimScrollY = sy;
       }
@@ -312,7 +314,7 @@ export default function AsciiAmbient({
       // Treat an idle cursor as "not hovering" — fade spotlight
       if (hovering && !cursorIdle && now - lastMoveTime > IDLE_THRESHOLD) {
         cursorIdle = true;
-        activeCells = new Set();
+        activeCells.clear();
       }
 
       for (let i = 0; i < brightness.length; i++) {
@@ -460,7 +462,7 @@ export default function AsciiAmbient({
     }
 
     const spotlightSections = document.querySelectorAll(
-      'section[aria-label="Introduction"], section[aria-label="Get in touch"]',
+      'section[aria-label="Get in touch"]',
     );
 
     const navBar = document.querySelector("nav");
@@ -575,14 +577,14 @@ export default function AsciiAmbient({
       }
       if (hovering && !cursorIdle && cursorSpeed > MIN_SPEED)
         brightenNearMouse();
-      else activeCells = new Set();
+      else activeCells.clear();
     };
 
     const onPointerLeave = () => {
       mouseX = -9999;
       mouseY = -9999;
       hovering = false;
-      activeCells = new Set();
+      activeCells.clear();
     };
 
     const prefersReducedMotion = window.matchMedia(
