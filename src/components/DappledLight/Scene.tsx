@@ -106,6 +106,7 @@ function CameraSetup() {
 }
 
 /** 24fps throttle — invalidates the demand-mode canvas at a fixed interval.
+ *  Starts paused; begins animating on first user interaction.
  *  Pauses when the canvas is scrolled out of view so the page can reach idle. */
 function FrameThrottle({ reducedMotion }: { reducedMotion: boolean }) {
   const { invalidate, gl } = useThree();
@@ -116,11 +117,15 @@ function FrameThrottle({ reducedMotion }: { reducedMotion: boolean }) {
       return;
     }
 
+    // Render one static frame — animation loop starts on interaction
+    invalidate();
+
     let intervalId: ReturnType<typeof setInterval> | null = null;
+    let hasInteracted = false;
+    let isVisible = false;
 
     const start = () => {
-      if (!intervalId) {
-        invalidate();
+      if (!intervalId && hasInteracted && isVisible) {
         intervalId = setInterval(() => invalidate(), FRAME_INTERVAL);
       }
     };
@@ -131,18 +136,30 @@ function FrameThrottle({ reducedMotion }: { reducedMotion: boolean }) {
       }
     };
 
-    const observer = new IntersectionObserver(
+    const onInteraction = () => {
+      if (hasInteracted) return;
+      hasInteracted = true;
+      start();
+    };
+
+    const visObserver = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) start();
+        isVisible = entry.isIntersecting;
+        if (isVisible) start();
         else stop();
       },
       { threshold: 0 },
     );
 
-    observer.observe(gl.domElement);
+    visObserver.observe(gl.domElement);
+    window.addEventListener("scroll", onInteraction, { passive: true });
+    window.addEventListener("pointermove", onInteraction, { passive: true });
+
     return () => {
       stop();
-      observer.disconnect();
+      visObserver.disconnect();
+      window.removeEventListener("scroll", onInteraction);
+      window.removeEventListener("pointermove", onInteraction);
     };
   }, [invalidate, reducedMotion, gl]);
 
