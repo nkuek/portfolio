@@ -15,6 +15,9 @@ const DRIFT_INTERVAL = 500;
 const FADE_STEP = 0.009;
 const IDLE_THRESHOLD = 800; // ms before spotlight fades
 const MIN_SPEED = 100; // px/s threshold to trigger spotlight
+const TARGET_FPS = 30;
+const FRAME_INTERVAL_MS = 1000 / TARGET_FPS;
+const NOISE_SKIP = 3; // compute dapple noise every Nth frame (~10fps)
 
 const BRIGHT_ALPHA_LIGHT = 0.45;
 const BRIGHT_ALPHA_DARK = 0.3;
@@ -292,17 +295,25 @@ export default function AsciiAmbient({
     // Highlight reveal animation — sweeps letters left to right
     let hlRevealProgress = 0;
     let hlPrevText = "";
-    const HL_REVEAL_SPEED = 0.025;
+    const HL_REVEAL_SPEED = 0.05; // doubled — tick runs at 30fps
 
     // Old text fade-out — cells disappear in pseudo-random order
     let fadingMask: Uint8Array | null = null;
     let fadingOutlineChar: (string | null)[] | null = null; // old outline chars
     let fadingThresholds: Float32Array | null = null;
     let fadeOutProgress = 0; // 0 = fully visible, advances to 1 = fully gone
-    const FADE_OUT_SWEEP_SPEED = 0.035;
+    const FADE_OUT_SWEEP_SPEED = 0.07; // doubled — tick runs at 30fps
+
+    let lastTickTime = 0;
+    let noiseCounter = 0;
 
     function tick() {
       const now = performance.now();
+      if (now - lastTickTime < FRAME_INTERVAL_MS) {
+        if (isVisible) raf = requestAnimationFrame(tick);
+        return;
+      }
+      lastTickTime = now;
       const t = now * 0.001;
 
       const sy = window.scrollY;
@@ -393,27 +404,14 @@ export default function AsciiAmbient({
       const dark = isDark();
       const dappleAlpha = dark ? DAPPLE_ALPHA_DARK : DAPPLE_ALPHA_LIGHT;
 
+      // Dapple noise changes slowly — only recompute every NOISE_SKIP frames
+      noiseCounter++;
+      const computeNoise = noiseCounter >= NOISE_SKIP;
+      if (computeNoise) noiseCounter = 0;
+
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
           const idx = row * cols + col;
-          const nx = col / cols;
-          const ny = row / rows;
-
-          // Base dapple noise
-          const n1 =
-            Math.sin((nx * 3.2 + windX) * 2.0) *
-            Math.sin((ny * 2.8 + windY) * 2.0) *
-            Math.sin((nx * 1.5 - ny * 2.1 + t * 0.12) * 1.8);
-          const n2 =
-            Math.sin((nx * 7.1 + windX * 1.3 + 5.2) * 1.5) *
-            Math.sin((ny * 6.3 + windY * 1.1 + 3.1) * 1.5) *
-            0.5;
-          const cellHash = Math.sin(col * 127.1 + row * 311.7) * 43758.5453;
-          const cellNoise = cellHash - Math.floor(cellHash);
-          const shimmer =
-            Math.sin(t * (1.2 + cellNoise * 2.0) + cellNoise * 6.28) * 0.15;
-          const combined = n1 + n2 + shimmer;
-          const edge = Math.max(0, Math.min(1, combined * 2.0 + 0.3));
 
           // Highlight mask with pseudo-random reveal
           const maskVal =
@@ -433,7 +431,26 @@ export default function AsciiAmbient({
             const maskFactor = Math.min(1, maskVal / 80);
             const hlAlpha = maskFactor * cellReveal * hlAlphaBase;
             if (hlAlpha > brightness[idx]) brightness[idx] = hlAlpha;
-          } else {
+          } else if (computeNoise) {
+            const nx = col / cols;
+            const ny = row / rows;
+
+            // Base dapple noise
+            const n1 =
+              Math.sin((nx * 3.2 + windX) * 2.0) *
+              Math.sin((ny * 2.8 + windY) * 2.0) *
+              Math.sin((nx * 1.5 - ny * 2.1 + t * 0.12) * 1.8);
+            const n2 =
+              Math.sin((nx * 7.1 + windX * 1.3 + 5.2) * 1.5) *
+              Math.sin((ny * 6.3 + windY * 1.1 + 3.1) * 1.5) *
+              0.5;
+            const cellHash = Math.sin(col * 127.1 + row * 311.7) * 43758.5453;
+            const cellNoise = cellHash - Math.floor(cellHash);
+            const shimmer =
+              Math.sin(t * (1.2 + cellNoise * 2.0) + cellNoise * 6.28) * 0.15;
+            const combined = n1 + n2 + shimmer;
+            const edge = Math.max(0, Math.min(1, combined * 2.0 + 0.3));
+
             // Stroke outline around text — boost brightness for edge cells
             const hasOutline =
               hlOutlineChar && hlRevealProgress > 0 && hlOutlineChar[idx];
@@ -590,8 +607,10 @@ export default function AsciiAmbient({
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
+    const isMobile = window.innerWidth < 768;
+    const isStatic = prefersReducedMotion || isMobile;
 
-    const driftTimer = prefersReducedMotion
+    const driftTimer = isStatic
       ? null
       : setInterval(() => {
           if (chars.length === 0) return;
@@ -599,37 +618,35 @@ export default function AsciiAmbient({
           chars[idx] = randomChar();
         }, DRIFT_INTERVAL);
 
-    document.fonts.ready.then(() => {
-      setupCanvas();
-      if (prefersReducedMotion) {
-        // Render one static frame — no animation loop
-        const windX = 0;
-        const windY = 0;
-        const dappleAlpha = isDark() ? DAPPLE_ALPHA_DARK : DAPPLE_ALPHA_LIGHT;
-        for (let row = 0; row < rows; row++) {
-          for (let col = 0; col < cols; col++) {
-            const idx = row * cols + col;
-            const nx = col / cols;
-            const ny = row / rows;
-            const n1 =
-              Math.sin((nx * 3.2 + windX) * 2.0) *
-              Math.sin((ny * 2.8 + windY) * 2.0) *
-              Math.sin((nx * 1.5 - ny * 2.1) * 1.8);
-            const edge = Math.max(0, Math.min(1, n1 * 2.0 + 0.3));
-            brightness[idx] = Math.max(brightness[idx], edge * dappleAlpha);
-          }
+    setupCanvas();
+    if (isStatic) {
+      // Render one static frame — no animation loop
+      const windX = 0;
+      const windY = 0;
+      const dappleAlpha = isDark() ? DAPPLE_ALPHA_DARK : DAPPLE_ALPHA_LIGHT;
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const idx = row * cols + col;
+          const nx = col / cols;
+          const ny = row / rows;
+          const n1 =
+            Math.sin((nx * 3.2 + windX) * 2.0) *
+            Math.sin((ny * 2.8 + windY) * 2.0) *
+            Math.sin((nx * 1.5 - ny * 2.1) * 1.8);
+          const edge = Math.max(0, Math.min(1, n1 * 2.0 + 0.3));
+          brightness[idx] = Math.max(brightness[idx], edge * dappleAlpha);
         }
-        renderFrame();
-      } else {
-        raf = requestAnimationFrame(tick);
       }
-    });
+      renderFrame();
+    } else {
+      raf = requestAnimationFrame(tick);
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         const wasVisible = isVisible;
         isVisible = entry.isIntersecting;
-        if (isVisible && !wasVisible && !prefersReducedMotion) {
+        if (isVisible && !wasVisible && !isStatic) {
           raf = requestAnimationFrame(tick);
         }
       },
