@@ -56,11 +56,46 @@ import {
   LEAF_STRETCH_Z_DARK,
 } from "./constants";
 
-const _tempQuat = new THREE.Quaternion();
-const _tempQuat2 = new THREE.Quaternion();
-const _tempWindMatrix = new THREE.Matrix4();
-const _windRotMatrix = new THREE.Matrix4();
 const _tempColor = new THREE.Color();
+
+/* ── GPU wind shader injection ── */
+
+const WIND_GLSL = /* glsl */ `
+  uniform float uWindTime;
+  uniform float uWindSpeed;
+
+  vec3 applyWind(vec3 pos) {
+    float phase = float(gl_InstanceID) * 0.05;
+    float breeze = sin(uWindTime * uWindSpeed * 0.6 + phase) * 0.06;
+    float flutter = sin(uWindTime * uWindSpeed * 2.0 + float(gl_InstanceID) * 1.7) * 0.02;
+
+    float cb = cos(breeze); float sb = sin(breeze);
+    float cf = cos(flutter); float sf = sin(flutter);
+
+    // Rx(flutter) then Rz(breeze)
+    vec3 p = vec3(pos.x, pos.y * cf - pos.z * sf, pos.y * sf + pos.z * cf);
+    return vec3(p.x * cb - p.y * sb, p.x * sb + p.y * cb, p.z);
+  }
+`;
+
+const windUniforms = {
+  uWindTime: { value: 0 },
+  uWindSpeed: { value: WIND_SPEED / 10 },
+};
+
+function patchMaterialWithWind(material: THREE.Material) {
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uWindTime = windUniforms.uWindTime;
+    shader.uniforms.uWindSpeed = windUniforms.uWindSpeed;
+    shader.vertexShader = WIND_GLSL + shader.vertexShader;
+    shader.vertexShader = shader.vertexShader.replace(
+      "#include <begin_vertex>",
+      `#include <begin_vertex>
+       transformed = applyWind(transformed);`,
+    );
+  };
+  material.needsUpdate = true;
+}
 
 function isMobile() {
   return typeof navigator !== "undefined" && navigator.maxTouchPoints > 0;
@@ -243,19 +278,12 @@ function TreeCanopy({
     const treeData = generateTree({ spineLength, subBranchLength });
     const canopyBranchGeo = createBranchGeometry(treeData.branches);
     const branchMat = createBranchMaterial();
-    const { mesh, baseMatrices } = createLeafData(treeData.leaves, clearing);
-    return {
-      canopyBranchGeo,
-      branchMat,
-      leafMesh: mesh,
-      leafBaseMatrices: baseMatrices,
-    };
-  }, [spineLength, subBranchLength, clearing]);
+    const { mesh } = createLeafData(treeData.leaves, clearing);
 
-  // Wind blows from bottom to top in viewport (positive Z in world space)
-  const windDir = useMemo(() => new THREE.Vector3(0, 0, 1), []);
-  // Leaf flutter axis — perpendicular to wind for a tilting motion
-  const flutterAxis = useMemo(() => new THREE.Vector3(1, 0, 0), []);
+    patchMaterialWithWind(mesh.material as THREE.Material);
+
+    return { canopyBranchGeo, branchMat, leafMesh: mesh };
+  }, [spineLength, subBranchLength, clearing]);
 
   // Dispose Three.js resources on unmount to prevent GPU memory leaks
   useEffect(() => {
@@ -299,35 +327,17 @@ function TreeCanopy({
 
     if (reducedMotion) return;
     const t = clock.getElapsedTime();
-    const speed = WIND_SPEED / 10;
+
+    // Update shared wind uniform — GPU handles per-leaf rotation
+    windUniforms.uWindTime.value = t;
 
     // Whole canopy leans in wind direction with slow oscillation
     if (groupRef.current) {
+      const speed = WIND_SPEED / 10;
       const sway = Math.sin(t * speed * 0.4) * WIND_AMPLITUDE;
       groupRef.current.rotation.x = sway * THREE.MathUtils.degToRad(0.6);
       groupRef.current.rotation.y = sway * THREE.MathUtils.degToRad(0.15);
     }
-
-    // Per-leaf wind — coherent breeze + individual flutter
-    for (let i = 0; i < tree.leafBaseMatrices.length; i++) {
-      const phase = i * 0.05;
-      // Coherent breeze — all leaves move in the same direction with slight phase delay
-      const breeze = Math.sin(t * speed * 0.6 + phase) * 0.06;
-      // Small individual flutter layered on top
-      const flutter = Math.sin(t * speed * 2 + i * 1.7) * 0.02;
-
-      // Rotate mainly around wind direction (lean with the breeze)
-      _tempQuat.setFromAxisAngle(windDir, breeze);
-      // Add subtle cross-axis flutter
-      _tempQuat2.setFromAxisAngle(flutterAxis, flutter);
-      _tempQuat.multiply(_tempQuat2);
-
-      _windRotMatrix.makeRotationFromQuaternion(_tempQuat);
-      _tempWindMatrix.copy(tree.leafBaseMatrices[i]);
-      _tempWindMatrix.multiply(_windRotMatrix);
-      tree.leafMesh.setMatrixAt(i, _tempWindMatrix);
-    }
-    tree.leafMesh.instanceMatrix.needsUpdate = true;
   });
 
   return (

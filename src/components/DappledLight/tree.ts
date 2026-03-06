@@ -89,7 +89,7 @@ function smoothstep(edge0: number, edge1: number, x: number): number {
 export function createLeafData(
   leaves: TreeData["leaves"],
   clearing?: ClearingConfig,
-): { mesh: THREE.InstancedMesh; baseMatrices: THREE.Matrix4[] } {
+): { mesh: THREE.InstancedMesh } {
   const leafTexture = createLeafTexture(256);
   const geo = new THREE.PlaneGeometry(
     LEAF_SIZE,
@@ -123,7 +123,6 @@ export function createLeafData(
   const mesh = new THREE.InstancedMesh(geo, material, count);
   mesh.castShadow = true;
 
-  const baseMatrices: THREE.Matrix4[] = [];
   const rand = seededRandom(137);
   const scale = new THREE.Vector3();
 
@@ -137,7 +136,10 @@ export function createLeafData(
     ).normalize();
     const tiltAngle = rand() * Math.PI * 0.5;
     const q = new THREE.Quaternion().setFromUnitVectors(_up, normal);
-    const randomTilt = new THREE.Quaternion().setFromAxisAngle(randomAxis, tiltAngle);
+    const randomTilt = new THREE.Quaternion().setFromAxisAngle(
+      randomAxis,
+      tiltAngle,
+    );
     q.multiply(randomTilt);
 
     let s = 0.4 + rand() * 1.0;
@@ -164,11 +166,10 @@ export function createLeafData(
     const mat = new THREE.Matrix4();
     mat.compose(position, q, scale);
     mesh.setMatrixAt(i, mat);
-    baseMatrices.push(mat.clone());
   }
 
   mesh.instanceMatrix.needsUpdate = true;
-  return { mesh, baseMatrices };
+  return { mesh };
 }
 
 function mergeGeometries(geos: THREE.BufferGeometry[]): THREE.BufferGeometry {
