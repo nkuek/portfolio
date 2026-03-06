@@ -1,6 +1,6 @@
 "use client";
 import tapeStyles from "~/components/shared/Tape.module.css";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import dynamic from "next/dynamic";
 import useReducedMotion from "~/hooks/useReducedMotion";
 import HeroSection from "~/components/HeroSection";
@@ -60,7 +60,11 @@ function getTargetInsets(vw: number, vh: number) {
   };
 }
 
-export default function HeroDappledZone() {
+export default function HeroDappledZone({
+  onComplete,
+}: {
+  onComplete?: RefObject<boolean>;
+}) {
   const reducedMotion = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
   const clipRef = useRef<HTMLDivElement>(null);
@@ -142,6 +146,8 @@ export default function HeroDappledZone() {
       const captionFade = ranged(progress, 0.7, 0.9);
       caption.style.opacity = String(captionFade);
       caption.style.bottom = `calc(${target.bottom}% - ${FRAME_PAD_BOTTOM - 8}px)`;
+
+      if (onComplete) onComplete.current = progress >= 0.95;
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });

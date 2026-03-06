@@ -21,6 +21,7 @@ export default function HomeClient({
   children?: React.ReactNode;
 }) {
   const highlightRef = useRef<HighlightData>({ text: "", intensity: 0 });
+  const heroCompleteRef = useRef(false);
   const crosshairRef = useRef<CrosshairData>({
     label: "",
     focused: false,
@@ -38,13 +39,16 @@ export default function HomeClient({
     <>
       {/* Fixed ASCII canvas — one instance behind everything */}
       <div className="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
-        <AsciiAmbient highlightRef={highlightRef} />
+        <AsciiAmbient
+          highlightRef={highlightRef}
+          enabledRef={heroCompleteRef}
+        />
       </div>
       <GridTicks mouseOffsetRef={mouseOffsetRef} yAxisRef={yAxisRef} />
       <Crosshair dataRef={crosshairRef} />
       <XAxisTicks dataRef={xAxisRef} mouseOffsetRef={mouseOffsetRef} />
       <div className="relative z-1">
-        <HeroDappledZone />
+        <HeroDappledZone onComplete={heroCompleteRef} />
         <ProjectSection
           highlightRef={highlightRef}
           crosshairRef={crosshairRef}

@@ -12,12 +12,12 @@ const MOUSE_RADIUS_MIN = 50;
 const MOUSE_RADIUS_MAX = 250;
 const MOUSE_RADIUS_LERP = 0.05;
 const DRIFT_INTERVAL = 500;
-const FADE_STEP = 0.009;
+const FADE_STEP = 0.018;
 const IDLE_THRESHOLD = 800; // ms before spotlight fades
 const MIN_SPEED = 100; // px/s threshold to trigger spotlight
 const TARGET_FPS = 30;
 const FRAME_INTERVAL_MS = 1000 / TARGET_FPS;
-const NOISE_SKIP = 3; // compute dapple noise every Nth frame (~10fps)
+const NOISE_SKIP = 1; // compute dapple noise every frame
 
 const BRIGHT_ALPHA_LIGHT = 0.45;
 const BRIGHT_ALPHA_DARK = 0.3;
@@ -28,8 +28,10 @@ function randomChar() {
 
 export default function AsciiAmbient({
   highlightRef,
+  enabledRef,
 }: {
   highlightRef?: RefObject<HighlightData>;
+  enabledRef?: RefObject<boolean>;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -65,6 +67,7 @@ export default function AsciiAmbient({
     const accentCells = new Set<number>();
     const _reusableSet = new Set<number>();
     let leafDepthMap = new Float32Array(0);
+    let dappleLevel = new Float32Array(0);
 
     function setupCanvas() {
       width = window.innerWidth;
@@ -76,6 +79,7 @@ export default function AsciiAmbient({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       initGrid();
       leafDepthMap = new Float32Array(cols * rows).fill(-1);
+      dappleLevel = new Float32Array(cols * rows);
       hlMaskText = ""; // invalidate so highlight recomputes at new grid size
       updateTextDimMap();
       lastDimScrollY = window.scrollY;
@@ -306,16 +310,12 @@ export default function AsciiAmbient({
 
     let lastTickTime = 0;
     let noiseCounter = 0;
+    let animTime = 0; // local clock, only advances while running
 
-    // Start paused — render one static frame, then animate only on interaction.
-    // Keeps the main thread quiet for Lighthouse; real users resume on input.
-    const IDLE_PAUSE_MS = 3000;
-    let lastInteractionTime = 0;
-    let paused = true;
+    let enabled = !enabledRef; // start enabled if no gate ref
 
     function wake() {
-      if (paused && isVisible && !isStatic) {
-        paused = false;
+      if (!raf && isVisible && !isStatic && enabled) {
         raf = requestAnimationFrame(tick);
       }
     }
@@ -326,8 +326,10 @@ export default function AsciiAmbient({
         if (isVisible) raf = requestAnimationFrame(tick);
         return;
       }
+      const dt = lastTickTime ? (now - lastTickTime) * 0.001 : 0;
       lastTickTime = now;
-      const t = now * 0.001;
+      animTime += dt;
+      const t = animTime;
 
       const sy = window.scrollY;
       if (Math.abs(sy - lastDimScrollY) > 50) {
@@ -343,8 +345,9 @@ export default function AsciiAmbient({
 
       for (let i = 0; i < brightness.length; i++) {
         if (brightness[i] > 0 && !activeCells.has(i)) {
-          brightness[i] = Math.max(0, brightness[i] - FADE_STEP);
-          if (brightness[i] <= 0) accentCells.delete(i);
+          const floor = dappleLevel[i] || 0;
+          brightness[i] = Math.max(floor, brightness[i] - FADE_STEP);
+          if (brightness[i] <= floor) accentCells.delete(i);
         }
       }
 
@@ -478,29 +481,18 @@ export default function AsciiAmbient({
               ? 1 - (maskVal / 255) * cellReveal
               : 1;
             const totalAlpha = edge * dappleAlpha * suppressFactor;
-            if (totalAlpha > 0.01) {
-              if (totalAlpha > brightness[idx]) brightness[idx] = totalAlpha;
-            }
+            dappleLevel[idx] = totalAlpha;
+            if (totalAlpha > brightness[idx]) brightness[idx] = totalAlpha;
           }
         }
       }
 
       renderFrame();
 
-      // Pause after idle period with no interaction or active animation
-      if (
-        performance.now() - lastInteractionTime > IDLE_PAUSE_MS &&
-        !hlRevealProgress &&
-        !fadingMask &&
-        activeCells.size === 0
-      ) {
-        paused = true;
-        raf = 0;
-        return;
-      }
-
-      if (isVisible) {
+      if (isVisible && enabled) {
         raf = requestAnimationFrame(tick);
+      } else {
+        raf = 0;
       }
     }
 
@@ -586,9 +578,6 @@ export default function AsciiAmbient({
     }
 
     const onPointerMove = (e: PointerEvent) => {
-      lastInteractionTime = performance.now();
-      wake();
-
       const now = performance.now();
       const dx = e.clientX - mouseX;
       const dy = e.clientY - mouseY;
@@ -648,33 +637,31 @@ export default function AsciiAmbient({
         }, DRIFT_INTERVAL);
 
     setupCanvas();
-    // Render one static dapple frame immediately — animation loop starts
-    // on demand via wake() so the main thread stays quiet for Lighthouse.
-    {
-      const dappleAlpha = isDark() ? DAPPLE_ALPHA_DARK : DAPPLE_ALPHA_LIGHT;
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-          const idx = row * cols + col;
-          const nx = col / cols;
-          const ny = row / rows;
-          const n1 =
-            Math.sin(nx * 3.2 * 2.0) *
-            Math.sin(ny * 2.8 * 2.0) *
-            Math.sin((nx * 1.5 - ny * 2.1) * 1.8);
-          const edge = Math.max(0, Math.min(1, n1 * 2.0 + 0.3));
-          brightness[idx] = Math.max(brightness[idx], edge * dappleAlpha);
-        }
-      }
-      renderFrame();
+    // Compute one frame so the canvas isn't blank, then pause
+    if (!isStatic) {
+      lastTickTime = performance.now();
+      tick(); // runs one frame, then stops because enabled=false
     }
+
+    // Poll enabledRef to start the loop when hero completes
+    const enablePoll = enabledRef
+      ? setInterval(() => {
+          const shouldEnable = !!enabledRef.current;
+          if (shouldEnable && !enabled) {
+            enabled = true;
+            lastTickTime = 0; // reset so first resumed frame has dt=0
+            wake();
+          } else if (!shouldEnable && enabled) {
+            enabled = false;
+            // raf loop will stop itself on next tick
+          }
+        }, 200)
+      : null;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        const wasVisible = isVisible;
         isVisible = entry.isIntersecting;
-        if (isVisible && !wasVisible && !isStatic && !paused) {
-          raf = requestAnimationFrame(tick);
-        }
+        if (isVisible) wake();
       },
       { threshold: 0 },
     );
@@ -682,12 +669,8 @@ export default function AsciiAmbient({
 
     window.addEventListener("resize", setupCanvas);
 
-    // Wake when highlight text appears (written by ProjectSection on scroll)
     const onScroll = () => {
-      if (highlightRef?.current?.text) {
-        lastInteractionTime = performance.now();
-        wake();
-      }
+      wake();
     };
 
     const hasFinePointer = window.matchMedia("(pointer: fine)").matches;
@@ -700,6 +683,7 @@ export default function AsciiAmbient({
     return () => {
       cancelAnimationFrame(raf);
       if (driftTimer) clearInterval(driftTimer);
+      if (enablePoll) clearInterval(enablePoll);
       observer.disconnect();
       window.removeEventListener("resize", setupCanvas);
       window.removeEventListener("scroll", onScroll);
