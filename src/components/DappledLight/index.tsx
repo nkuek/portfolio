@@ -45,8 +45,10 @@ export default function DappledLight() {
           gl={{
             antialias: false,
             powerPreference: "low-power",
+            alpha: false,
+            stencil: false,
           }}
-          dpr={[1, 1.5]}
+          dpr={1}
           camera={{ fov: CAMERA_FOV, near: CAMERA_NEAR, far: CAMERA_FAR }}
           style={{ position: "absolute", inset: 0 }}
         >
