@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Nick Kuek — Design Engineer",
+    title: "Nick Kuek | Design Engineer",
     description:
       "Design Engineer crafting scroll-driven narratives, WebGPU experiences, and creative interfaces with React, TypeScript, Three.js, and Next.js.",
     url: "/",
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Nick Kuek — Design Engineer",
+    title: "Nick Kuek | Design Engineer",
     description:
       "Design Engineer crafting scroll-driven narratives, WebGPU experiences, and creative interfaces with React, TypeScript, Three.js, and Next.js.",
     images: ["/opengraph-image.png"],
