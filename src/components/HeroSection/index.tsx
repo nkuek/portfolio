@@ -27,7 +27,7 @@ export default function HeroSection() {
           className="bg-border-hairline mb-10 h-px w-full origin-left animate-[drawHairline_1000ms_cubic-bezier(0.23,1,0.32,1)_0ms_both]"
           aria-hidden="true"
         />
-        <h1 className="text-text animate-[heroFocusPull_900ms_cubic-bezier(0.16,1,0.3,1)_200ms_both] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] font-light tracking-[-0.03em]">
+        <h1 className="text-text animate-[heroHeadingReveal_900ms_cubic-bezier(0.16,1,0.3,1)_200ms_both] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] font-light tracking-[-0.03em]">
           Nick Kuek
         </h1>
         <div

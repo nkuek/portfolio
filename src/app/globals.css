@@ -427,6 +427,15 @@
     }
   }
 
+  @keyframes heroHeadingReveal {
+    from {
+      filter: blur(8px);
+    }
+    to {
+      filter: blur(0px);
+    }
+  }
+
   @keyframes heroFocusPull {
     from {
       opacity: 0;
