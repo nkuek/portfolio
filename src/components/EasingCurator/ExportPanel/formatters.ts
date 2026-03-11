@@ -34,3 +34,10 @@ export function formatSpringKeyframes(samples: number[]): string {
 export function formatMotionConfig(config: SpringConfig): string {
   return `transition: {\n  type: "spring",\n  mass: ${config.mass},\n  stiffness: ${config.stiffness},\n  damping: ${config.damping},\n}`;
 }
+
+export function formatTailwindTheme(
+  easingValue: string,
+  name = "my-ease",
+): string {
+  return `@theme {\n  --ease-${name}: ${easingValue};\n}`;
+}

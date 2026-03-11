@@ -6,6 +6,7 @@ import {
   formatLinearEasing,
   formatSpringKeyframes,
   formatMotionConfig,
+  formatTailwindTheme,
 } from "../ExportPanel/formatters";
 
 describe("formatCSS", () => {
@@ -89,5 +90,29 @@ describe("formatMotionConfig", () => {
     expect(result).toContain("mass: 1");
     expect(result).toContain("stiffness: 100");
     expect(result).toContain("damping: 10");
+  });
+});
+
+describe("formatTailwindTheme", () => {
+  it("wraps cubic-bezier in @theme block with default name", () => {
+    const result = formatTailwindTheme("cubic-bezier(0.25, 0.1, 0.25, 1)");
+    expect(result).toBe(
+      "@theme {\n  --ease-my-ease: cubic-bezier(0.25, 0.1, 0.25, 1);\n}",
+    );
+  });
+
+  it("uses custom name from preset", () => {
+    const result = formatTailwindTheme(
+      "cubic-bezier(0.42, 0, 0.58, 1)",
+      "ease-in-out",
+    );
+    expect(result).toContain("--ease-ease-in-out:");
+  });
+
+  it("works with linear() easing for spring mode", () => {
+    const result = formatTailwindTheme("linear(0, 0.5, 1)", "spring");
+    expect(result).toBe(
+      "@theme {\n  --ease-spring: linear(0, 0.5, 1);\n}",
+    );
   });
 });

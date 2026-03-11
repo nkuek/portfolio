@@ -591,6 +591,7 @@ function EasingCuratorInner() {
               duration={state.duration}
               springConfig={state.springConfig}
               springSamples={springResult.samples}
+              activePreset={state.activePreset}
             />
           </div>
         </aside>

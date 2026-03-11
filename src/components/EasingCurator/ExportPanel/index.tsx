@@ -10,6 +10,7 @@ import {
   formatLinearEasing,
   formatSpringKeyframes,
   formatMotionConfig,
+  formatTailwindTheme,
 } from "./formatters";
 
 type ExportPanelProps = {
@@ -18,21 +19,24 @@ type ExportPanelProps = {
   duration: number;
   springConfig: SpringConfig;
   springSamples: number[];
+  activePreset: string | null;
 };
 
-type BezierFormat = "cubic-bezier" | "transition" | "variable";
-type SpringFormat = "linear" | "keyframes" | "motion";
+type BezierFormat = "cubic-bezier" | "transition" | "variable" | "tailwind";
+type SpringFormat = "linear" | "keyframes" | "motion" | "tailwind";
 
 const BEZIER_FORMAT_LABELS: Record<BezierFormat, string> = {
   "cubic-bezier": "cubic-bezier()",
   transition: "transition",
   variable: "CSS variable",
+  tailwind: "Tailwind",
 };
 
 const SPRING_FORMAT_LABELS: Record<SpringFormat, string> = {
   linear: "linear()",
   keyframes: "@keyframes",
   motion: "Motion",
+  tailwind: "Tailwind",
 };
 
 export default function ExportPanel({
@@ -41,12 +45,15 @@ export default function ExportPanel({
   duration,
   springConfig,
   springSamples,
+  activePreset,
 }: ExportPanelProps) {
   const [bezierFormat, setBezierFormat] =
     useState<BezierFormat>("cubic-bezier");
   const [springFormat, setSpringFormat] = useState<SpringFormat>("linear");
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const themeName = activePreset ?? "my-ease";
 
   const { code, note } = useMemo(() => {
     if (mode === "bezier") {
@@ -57,6 +64,11 @@ export default function ExportPanel({
           return { code: formatCSSTransition(curve, duration), note: null };
         case "variable":
           return { code: formatCSSVariable(curve), note: null };
+        case "tailwind":
+          return {
+            code: formatTailwindTheme(formatCSS(curve), themeName),
+            note: `Use as ease-${themeName}`,
+          };
       }
     }
 
@@ -67,6 +79,14 @@ export default function ExportPanel({
         return { code: formatSpringKeyframes(springSamples), note: null };
       case "motion":
         return { code: formatMotionConfig(springConfig), note: null };
+      case "tailwind":
+        return {
+          code: formatTailwindTheme(
+            formatLinearEasing(springSamples),
+            themeName,
+          ),
+          note: `Use as ease-${themeName}`,
+        };
     }
   }, [
     mode,
@@ -76,6 +96,7 @@ export default function ExportPanel({
     duration,
     springConfig,
     springSamples,
+    themeName,
   ]);
 
   const handleCopy = useCallback(async () => {
