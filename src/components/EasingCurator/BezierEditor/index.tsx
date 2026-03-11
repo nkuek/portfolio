@@ -9,9 +9,8 @@ type BezierEditorProps = {
   dispatch: React.Dispatch<EasingAction>;
 };
 
-function round(n: number, decimals = 2): number {
-  const f = 10 ** decimals;
-  return Math.round(n * f) / f;
+function round(n: number): number {
+  return Math.round(n * 100) / 100;
 }
 
 export default function BezierEditor({ curve, dispatch }: BezierEditorProps) {

@@ -126,7 +126,10 @@ export default function AnimationPreview({
 
   const animationsRef = useRef<Map<string, Animation>>(new Map());
   const [paused, setPaused] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
+  const progressRef = useRef(0);
+  const seekerRef = useRef<HTMLInputElement>(null);
   const rafRef = useRef<number>(0);
   const draggingRef = useRef(false);
   const wasPausedRef = useRef(false);
@@ -140,12 +143,12 @@ export default function AnimationPreview({
           anim.currentTime = existing.currentTime;
         }
         animationsRef.current.set(key, anim);
-        if (paused) anim.pause();
+        if (pausedRef.current) anim.pause();
       } else {
         animationsRef.current.delete(key);
       }
     },
-    [paused],
+    [],
   );
 
   // Convert raw cycle time to easing progress (0->1->0)
@@ -164,13 +167,15 @@ export default function AnimationPreview({
   // Convert seeker progress (0->1) to cycle time (forward phase only)
   const progressToTime = useCallback((p: number) => p * duration, [duration]);
 
-  // rAF loop to read currentTime for the seeker
+  // rAF loop to read currentTime for the seeker (writes directly to DOM to avoid 60 renders/sec)
   useEffect(() => {
     const tick = () => {
       if (!draggingRef.current) {
         const first = animationsRef.current.values().next().value;
         if (first && first.currentTime != null) {
-          setProgress(timeToProgress(first.currentTime as number));
+          const p = timeToProgress(first.currentTime as number);
+          progressRef.current = p;
+          if (seekerRef.current) seekerRef.current.value = String(p);
         }
       }
       rafRef.current = requestAnimationFrame(tick);
@@ -199,7 +204,7 @@ export default function AnimationPreview({
   const handleSeekInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = parseFloat(e.target.value);
-      setProgress(val);
+      progressRef.current = val;
       const time = progressToTime(val);
       animationsRef.current.forEach((a) => {
         a.currentTime = time;
@@ -348,21 +353,22 @@ export default function AnimationPreview({
           className="border-border-hairline bg-surface-card text-text-subtle hover:border-accent hover:bg-accent flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border outline-[var(--accent)] transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.93]"
         >
           {paused ? (
-            <svg viewBox="0 0 16 16" className="size-3.5" fill="currentColor">
+            <svg viewBox="0 0 16 16" className="size-3.5" fill="currentColor" aria-hidden="true">
               <path d="M4 2l10 6-10 6V2z" />
             </svg>
           ) : (
-            <svg viewBox="0 0 16 16" className="size-3.5" fill="currentColor">
+            <svg viewBox="0 0 16 16" className="size-3.5" fill="currentColor" aria-hidden="true">
               <path d="M3 1h3v14H3zM10 1h3v14h-3z" />
             </svg>
           )}
         </button>
         <input
+          ref={seekerRef}
           type="range"
           min={0}
           max={1}
           step={0.001}
-          value={progress}
+          defaultValue={0}
           onPointerDown={handleSeekStart}
           onChange={handleSeekInput}
           onPointerUp={handleSeekEnd}

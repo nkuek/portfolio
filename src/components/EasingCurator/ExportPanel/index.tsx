@@ -25,12 +25,26 @@ type ExportPanelProps = {
 type BezierFormat = "cubic-bezier" | "transition" | "variable" | "tailwind";
 type SpringFormat = "linear" | "keyframes" | "motion" | "tailwind";
 
+const BEZIER_FORMATS: BezierFormat[] = [
+  "cubic-bezier",
+  "transition",
+  "variable",
+  "tailwind",
+];
+
 const BEZIER_FORMAT_LABELS: Record<BezierFormat, string> = {
   "cubic-bezier": "cubic-bezier()",
   transition: "transition",
   variable: "CSS variable",
   tailwind: "Tailwind",
 };
+
+const SPRING_FORMATS: SpringFormat[] = [
+  "linear",
+  "keyframes",
+  "motion",
+  "tailwind",
+];
 
 const SPRING_FORMAT_LABELS: Record<SpringFormat, string> = {
   linear: "linear()",
@@ -110,28 +124,32 @@ export default function ExportPanel({
     }
   }, [code]);
 
-  const formatLabels =
-    mode === "bezier" ? BEZIER_FORMAT_LABELS : SPRING_FORMAT_LABELS;
+  const formats = mode === "bezier" ? BEZIER_FORMATS : SPRING_FORMATS;
   const activeFormat = mode === "bezier" ? bezierFormat : springFormat;
-  const setFormat = mode === "bezier" ? setBezierFormat : setSpringFormat;
 
   return (
     <div className="flex min-w-0 flex-col gap-3">
       <h3 className="text-text-subtle text-sm font-medium">Export</h3>
 
       <div className="flex flex-wrap gap-1.5">
-        {(Object.keys(formatLabels) as string[]).map((f) => (
+        {formats.map((f) => (
           <button
             key={f}
             type="button"
-            onClick={() => (setFormat as (v: string) => void)(f)}
+            onClick={() =>
+              mode === "bezier"
+                ? setBezierFormat(f as BezierFormat)
+                : setSpringFormat(f as SpringFormat)
+            }
             className={`rounded-md border px-2 py-1 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97] ${
               activeFormat === f
                 ? "border-accent bg-accent text-white"
                 : "border-border-hairline bg-surface-card text-text-subtle hover:border-accent cursor-pointer"
             }`}
           >
-            {formatLabels[f as keyof typeof formatLabels]}
+            {mode === "bezier"
+              ? BEZIER_FORMAT_LABELS[f as BezierFormat]
+              : SPRING_FORMAT_LABELS[f as SpringFormat]}
           </button>
         ))}
       </div>

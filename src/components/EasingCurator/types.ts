@@ -6,13 +6,6 @@ export type SpringConfig = {
   damping: number;
 };
 
-export type PreviewType =
-  | "translate"
-  | "scale"
-  | "opacity"
-  | "rotate"
-  | "combined";
-
 export type PresetCategory =
   | "standard"
   | "site"

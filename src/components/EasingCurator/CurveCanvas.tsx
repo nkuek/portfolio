@@ -183,35 +183,15 @@ export default function CurveCanvas({
         />
       )}
 
-      {/* Bezier control lines */}
+      {/* Bezier curve path */}
       {curve && (
-        <>
-          <line
-            x1={0}
-            y1={1}
-            x2={curve.x1}
-            y2={1 - curve.y1}
-            stroke="var(--accent)"
-            strokeWidth={0.006}
-            opacity={0.4}
-          />
-          <line
-            x1={1}
-            y1={0}
-            x2={curve.x2}
-            y2={1 - curve.y2}
-            stroke="var(--accent-rose)"
-            strokeWidth={0.006}
-            opacity={0.4}
-          />
-          <path
-            d={`M 0 1 C ${curve.x1} ${1 - curve.y1} ${curve.x2} ${1 - curve.y2} 1 0`}
-            fill="none"
-            stroke="var(--accent)"
-            strokeWidth={0.015}
-            strokeLinecap="round"
-          />
-        </>
+        <path
+          d={`M 0 1 C ${curve.x1} ${1 - curve.y1} ${curve.x2} ${1 - curve.y2} 1 0`}
+          fill="none"
+          stroke="var(--accent)"
+          strokeWidth={0.015}
+          strokeLinecap="round"
+        />
       )}
 
       {/* Spring curve */}

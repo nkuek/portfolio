@@ -40,6 +40,7 @@ export function simulateSpring(config: SpringConfig): SpringResult {
       ) {
         settleTime = time;
         settled = true;
+        break;
       }
     }
   }

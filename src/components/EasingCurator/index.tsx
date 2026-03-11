@@ -14,6 +14,7 @@ import { easingReducer, initialState } from "./state";
 import type { EditorMode } from "./state";
 import type { BezierCurve, SpringConfig } from "./types";
 import { DEFAULT_CURVE, DEFAULT_DURATION, PRESETS } from "./constants";
+import { formatCSS } from "./ExportPanel/formatters";
 import {
   DEFAULT_SPRING_CONFIG,
   SPRING_PRESETS,
@@ -28,10 +29,6 @@ import SpringEditor from "./SpringEditor";
 import AnimationPreview from "./AnimationPreview";
 import PresetLibrary from "./PresetLibrary";
 import ExportPanel from "./ExportPanel";
-
-function curveLabel(curve: BezierCurve): string {
-  return `cubic-bezier(${curve.x1}, ${curve.y1}, ${curve.x2}, ${curve.y2})`;
-}
 
 function springLabel(config: SpringConfig, settleMs: number): string {
   return `spring(m:${config.mass} k:${config.stiffness} c:${config.damping}) ${settleMs}ms`;
@@ -62,9 +59,8 @@ function parseFloat2(val: string | null): number | null {
   return isNaN(n) ? null : Math.round(n * 100) / 100;
 }
 
-function round(n: number, decimals = 2): number {
-  const f = 10 ** decimals;
-  return Math.round(n * f) / f;
+function round(n: number): number {
+  return Math.round(n * 100) / 100;
 }
 
 function EasingCuratorInner() {
@@ -163,6 +159,7 @@ function EasingCuratorInner() {
       springConfig,
       pinnedSpringConfig,
       pinnedSpringPresetName,
+      overlay: "none",
     };
     // Only run on initial render
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -239,7 +236,17 @@ function EasingCuratorInner() {
     }, 300);
 
     return () => clearTimeout(debounceRef.current);
-  }, [state, router]);
+    // Only re-run when URL-relevant state changes (not overlay, editorPanel, activePreset)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    state.mode,
+    state.curve,
+    state.duration,
+    state.pinnedCurve,
+    state.springConfig,
+    state.pinnedSpringConfig,
+    router,
+  ]);
 
   // Compute spring result
   const springResult = useMemo(
@@ -260,12 +267,12 @@ function EasingCuratorInner() {
     if (state.mode === "spring") {
       return springToLinearEasing(springResult.samples);
     }
-    return `cubic-bezier(${state.curve.x1}, ${state.curve.y1}, ${state.curve.x2}, ${state.curve.y2})`;
+    return formatCSS(state.curve);
   }, [state.mode, state.curve, springResult.samples]);
 
   const pinnedEasing = useMemo(() => {
     if (state.pinnedCurve) {
-      return `cubic-bezier(${state.pinnedCurve.x1}, ${state.pinnedCurve.y1}, ${state.pinnedCurve.x2}, ${state.pinnedCurve.y2})`;
+      return formatCSS(state.pinnedCurve);
     }
     if (pinnedSpringResult) {
       return springToLinearEasing(pinnedSpringResult.samples);
@@ -301,26 +308,20 @@ function EasingCuratorInner() {
   const [isDragOver, setIsDragOver] = useState(false);
   const dragCounterRef = useRef(0);
 
-  const handleDragOver = useCallback(
-    (e: React.DragEvent) => {
-      if (e.dataTransfer.types.includes("application/x-easing-preset")) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "copy";
-      }
-    },
-    [],
-  );
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    if (e.dataTransfer.types.includes("application/x-easing-preset")) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    }
+  }, []);
 
-  const handleDragEnter = useCallback(
-    (e: React.DragEvent) => {
-      if (e.dataTransfer.types.includes("application/x-easing-preset")) {
-        e.preventDefault();
-        dragCounterRef.current++;
-        setIsDragOver(true);
-      }
-    },
-    [],
-  );
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    if (e.dataTransfer.types.includes("application/x-easing-preset")) {
+      e.preventDefault();
+      dragCounterRef.current++;
+      setIsDragOver(true);
+    }
+  }, []);
 
   const handleDragLeave = useCallback(() => {
     dragCounterRef.current--;
@@ -357,19 +358,18 @@ function EasingCuratorInner() {
     if (state.mode === "spring") {
       return springLabel(state.springConfig, springResult.settleMs);
     }
-    return curveLabel(state.curve);
+    return formatCSS(state.curve);
   }, [state.mode, state.curve, state.springConfig, springResult.settleMs]);
 
   // Pinned readout label
   const pinnedReadout = useMemo(() => {
     if (state.pinnedCurve) {
-      return state.pinnedPresetName ?? curveLabel(state.pinnedCurve);
+      return state.pinnedPresetName ?? formatCSS(state.pinnedCurve);
     }
-    if (state.pinnedSpringConfig) {
-      const result = simulateSpring(state.pinnedSpringConfig);
+    if (state.pinnedSpringConfig && pinnedSpringResult) {
       return (
         state.pinnedSpringPresetName ??
-        springLabel(state.pinnedSpringConfig, result.settleMs)
+        springLabel(state.pinnedSpringConfig, pinnedSpringResult.settleMs)
       );
     }
     return "";
@@ -378,6 +378,7 @@ function EasingCuratorInner() {
     state.pinnedPresetName,
     state.pinnedSpringConfig,
     state.pinnedSpringPresetName,
+    pinnedSpringResult,
   ]);
 
   const handlePin = useCallback(() => {
@@ -499,6 +500,7 @@ function EasingCuratorInner() {
                       viewBox="0 0 16 16"
                       className="size-3.5"
                       fill="currentColor"
+                      aria-hidden="true"
                     >
                       <path d="M9.828 1.515a.5.5 0 0 1 .707 0l3.95 3.95a.5.5 0 0 1-.122.796l-2.678 1.339-.507.507 1.165 3.494a.5.5 0 0 1-.129.512L11.16 13.16a.5.5 0 0 1-.707 0L7.05 9.757l-3.464 3.464a.5.5 0 0 1-.707-.707L6.343 9.05 2.94 5.647a.5.5 0 0 1 0-.707l1.047-1.053a.5.5 0 0 1 .512-.129l3.494 1.165.507-.507L9.839 2.34l-.01-.118a.5.5 0 0 1 0-.707z" />
                     </svg>
@@ -516,29 +518,37 @@ function EasingCuratorInner() {
             {/* Mode toggle */}
             <div className="mb-6 flex justify-center">
               <div className="border-border-hairline relative grid grid-cols-2 rounded-lg border p-1">
-                <div
-                  className="bg-accent absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-md transition-transform duration-200 ease-[var(--ease-spring)]"
-                  style={{
-                    transform:
-                      state.editorPanel === "spring"
-                        ? "translateX(100%)"
-                        : "translateX(0)",
-                  }}
-                />
                 {(["bezier", "spring"] as const).map((m) => (
                   <button
                     key={m}
                     type="button"
                     onClick={() => dispatch({ type: "SET_MODE", mode: m })}
-                    className={`relative z-1 cursor-pointer rounded-md px-4 py-1.5 text-center font-mono text-sm outline-[var(--accent)] transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97] ${
-                      state.editorPanel === m
-                        ? "text-white"
-                        : "text-text-muted hover:bg-surface-card-alt hover:text-text-subtle"
+                    className={`text-text-muted cursor-pointer rounded-md px-4 py-1.5 text-center font-mono text-sm outline-[var(--accent)] transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97] ${
+                      state.editorPanel !== m
+                        ? "hover:bg-surface-card-alt hover:text-text-subtle"
+                        : ""
                     }`}
                   >
                     {m === "bezier" ? "Bezier" : "Spring"}
                   </button>
                 ))}
+                <div
+                  aria-hidden="true"
+                  className="bg-accent pointer-events-none absolute inset-1 grid grid-cols-2 rounded-md transition-[clip-path] duration-200 ease-[var(--ease-spring)]"
+                  style={{
+                    clipPath:
+                      state.editorPanel === "spring"
+                        ? "inset(0 0 0 50%)"
+                        : "inset(0 50% 0 0)",
+                  }}
+                >
+                  <span className="flex items-center justify-center font-mono text-sm text-white">
+                    Bezier
+                  </span>
+                  <span className="flex items-center justify-center font-mono text-sm text-white">
+                    Spring
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -560,26 +570,49 @@ function EasingCuratorInner() {
                   overlaySamples={overlaySamples}
                   overlayType={state.overlay}
                 />
-                {state.mode === "bezier" && state.editorPanel === "bezier" && (
-                  <>
-                    <DragHandle
-                      cx={state.curve.x1}
-                      cy={1 - state.curve.y1}
-                      label="Control point 1"
-                      color="var(--accent)"
-                      onDrag={handleP1Drag}
-                      svgRef={svgRef}
-                    />
-                    <DragHandle
-                      cx={state.curve.x2}
-                      cy={1 - state.curve.y2}
-                      label="Control point 2"
-                      color="var(--accent-rose)"
-                      onDrag={handleP2Drag}
-                      svgRef={svgRef}
-                    />
-                  </>
-                )}
+                <g
+                  style={{
+                    opacity: state.editorPanel === "bezier" ? 1 : 0,
+                    transition: "opacity 150ms ease",
+                    pointerEvents:
+                      state.editorPanel === "bezier" ? "auto" : "none",
+                  }}
+                >
+                  <line
+                    x1={0}
+                    y1={1}
+                    x2={state.curve.x1}
+                    y2={1 - state.curve.y1}
+                    stroke="var(--accent)"
+                    strokeWidth={0.006}
+                    opacity={0.4}
+                  />
+                  <line
+                    x1={1}
+                    y1={0}
+                    x2={state.curve.x2}
+                    y2={1 - state.curve.y2}
+                    stroke="var(--accent-rose)"
+                    strokeWidth={0.006}
+                    opacity={0.4}
+                  />
+                  <DragHandle
+                    cx={state.curve.x1}
+                    cy={1 - state.curve.y1}
+                    label="Control point 1"
+                    color="var(--accent)"
+                    onDrag={handleP1Drag}
+                    svgRef={svgRef}
+                  />
+                  <DragHandle
+                    cx={state.curve.x2}
+                    cy={1 - state.curve.y2}
+                    label="Control point 2"
+                    color="var(--accent-rose)"
+                    onDrag={handleP2Drag}
+                    svgRef={svgRef}
+                  />
+                </g>
               </svg>
 
               {/* Editor controls */}
