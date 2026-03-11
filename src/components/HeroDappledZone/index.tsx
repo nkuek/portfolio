@@ -153,7 +153,7 @@ export default function HeroDappledZone({
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [reducedMotion]);
+  }, [onComplete, reducedMotion]);
 
   return (
     <section
