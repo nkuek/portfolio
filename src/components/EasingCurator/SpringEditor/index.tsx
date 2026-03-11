@@ -63,18 +63,23 @@ export default function SpringEditor({
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1">
               <span className="text-text-muted font-mono text-xs">{label}</span>
-              <span className="group relative">
+              <button
+                type="button"
+                aria-label={`Info: ${label}`}
+                className="group relative cursor-help rounded-full outline-[var(--accent)] before:absolute before:-inset-1.5 before:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2"
+              >
                 <svg
                   viewBox="0 0 16 16"
-                  className="text-text-muted/50 hover:text-text-muted size-3 cursor-help transition-colors"
+                  className="peer text-text-muted/50 hover:text-text-muted group-focus-visible:text-text-muted relative size-3 transition-colors"
                   fill="currentColor"
+                  aria-hidden="true"
                 >
                   <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 1.2A5.8 5.8 0 1 1 2.2 8 5.8 5.8 0 0 1 8 2.2ZM8 4.5a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8ZM7 7.5v4h2v-4H7Z" />
                 </svg>
-                <span className="bg-surface-card border-border-hairline text-text-muted pointer-events-none absolute bottom-full left-0 mb-2 w-44 rounded-lg border p-2.5 text-xs opacity-0 shadow-lg transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                <span role="tooltip" className="bg-surface-card border-border-hairline text-text-muted pointer-events-none absolute bottom-full left-0 z-20 mb-1 w-44 rounded-lg border p-2.5 text-xs opacity-0 shadow-lg transition-opacity peer-hover:pointer-events-auto peer-hover:opacity-100 group-focus-visible:pointer-events-auto group-focus-visible:opacity-100">
                   {tip}
                 </span>
-              </span>
+              </button>
             </span>
             <input
               type="number"
@@ -133,19 +138,24 @@ export default function SpringEditor({
           >
             Use natural
           </button>
-          <div className="group relative">
+          <button
+            type="button"
+            aria-label="Info: use natural duration"
+            className="group relative cursor-help rounded-full outline-[var(--accent)] before:absolute before:-inset-1 before:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
             <svg
               viewBox="0 0 16 16"
-              className="text-text-muted hover:text-text-subtle size-3.5 cursor-help transition-colors"
+              className="peer text-text-muted/50 hover:text-text-muted group-focus-visible:text-text-muted relative size-3.5 transition-colors"
               fill="currentColor"
+              aria-hidden="true"
             >
               <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 1.2A5.8 5.8 0 1 1 2.2 8 5.8 5.8 0 0 1 8 2.2ZM8 4.5a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8ZM7 7.5v4h2v-4H7Z" />
             </svg>
-            <div className="bg-surface-card border-border-hairline text-text-muted pointer-events-none absolute right-0 bottom-full mb-2 w-48 rounded-lg border p-2.5 text-xs opacity-0 shadow-lg transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+            <div role="tooltip" className="bg-surface-card border-border-hairline text-text-muted pointer-events-none absolute right-0 bottom-full mb-1 w-48 rounded-lg border p-2.5 text-xs opacity-0 shadow-lg transition-opacity peer-hover:pointer-events-auto peer-hover:opacity-100 group-focus-visible:pointer-events-auto group-focus-visible:opacity-100">
               Sets the preview duration to this spring&apos;s natural settle
               time ({settleMs}ms) — the point where motion is imperceptible.
             </div>
-          </div>
+          </button>
         </div>
       </div>
     </div>

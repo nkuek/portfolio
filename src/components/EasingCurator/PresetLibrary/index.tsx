@@ -103,7 +103,7 @@ function MiniSpringCurve({ samples }: { samples: number[] }) {
 }
 
 const PIN_ICON = (
-  <svg viewBox="0 0 16 16" className="size-3" fill="currentColor">
+  <svg viewBox="0 0 16 16" className="size-3" fill="currentColor" aria-hidden="true">
     <path d="M9.828 1.515a.5.5 0 0 1 .707 0l3.95 3.95a.5.5 0 0 1-.122.796l-2.678 1.339-.507.507 1.165 3.494a.5.5 0 0 1-.129.512L11.16 13.16a.5.5 0 0 1-.707 0L7.05 9.757l-3.464 3.464a.5.5 0 0 1-.707-.707L6.343 9.05 2.94 5.647a.5.5 0 0 1 0-.707l1.047-1.053a.5.5 0 0 1 .512-.129l3.494 1.165.507-.507L9.839 2.34l-.01-.118a.5.5 0 0 1 0-.707z" />
   </svg>
 );
@@ -247,7 +247,7 @@ export default function PresetLibrary({
                             },
                       )
                     }
-                    title={
+                    aria-label={
                       isPinned ? "Unpin" : `Pin ${preset.name} for comparison`
                     }
                     aria-pressed={isPinned}
@@ -326,7 +326,7 @@ function SpringPresetButton({
                 },
           )
         }
-        title={isPinned ? "Unpin" : `Pin ${preset.name} for comparison`}
+        aria-label={isPinned ? "Unpin" : `Pin ${preset.name} for comparison`}
         aria-pressed={isPinned}
         className={`flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md border outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.93] ${
           isPinned
