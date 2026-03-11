@@ -1,16 +1,61 @@
 import type { BezierCurve } from "./types";
+import type { OverlayType } from "./state";
 
 type CurveCanvasProps = {
   curve?: BezierCurve;
   samples?: number[];
   pinnedCurve?: BezierCurve | null;
   pinnedSamples?: number[] | null;
+  overlaySamples?: number[];
+  overlayType?: OverlayType;
 };
 
 function samplesToPolyline(samples: number[]): string {
   return samples
     .map((v, i) => `${i / (samples.length - 1)},${1 - v}`)
     .join(" ");
+}
+
+export const OVERLAY_COLORS = {
+  velocity: "#f59e0b",
+  acceleration: "#8b5cf6",
+} as const;
+
+function overlayToPolyline(samples: number[]): {
+  points: string;
+  zeroY: number;
+} {
+  let min = Infinity;
+  let max = -Infinity;
+  for (const v of samples) {
+    if (v < min) min = v;
+    if (v > max) max = v;
+  }
+
+  const TOP = 0.05;
+  const BOTTOM = 0.95;
+  const span = BOTTOM - TOP;
+  const range = max - min;
+
+  if (range < 1e-9) {
+    const flatY = (TOP + BOTTOM) / 2;
+    const points = samples
+      .map((_, i) => `${i / (samples.length - 1)},${flatY}`)
+      .join(" ");
+    return { points, zeroY: flatY };
+  }
+
+  const points = samples
+    .map((v, i) => {
+      const x = i / (samples.length - 1);
+      const y = BOTTOM - ((v - min) / range) * span;
+      return `${x},${y}`;
+    })
+    .join(" ");
+
+  const zeroY = BOTTOM - ((0 - min) / range) * span;
+
+  return { points, zeroY };
 }
 
 // Fixed viewBox matching the [0,1] grid. Overshoot overflows visible.
@@ -21,7 +66,18 @@ export default function CurveCanvas({
   samples,
   pinnedCurve,
   pinnedSamples,
+  overlaySamples,
+  overlayType,
 }: CurveCanvasProps) {
+  const overlay =
+    overlaySamples && overlayType && overlayType !== "none"
+      ? overlayToPolyline(overlaySamples)
+      : null;
+  const overlayColor =
+    overlayType && overlayType !== "none"
+      ? OVERLAY_COLORS[overlayType]
+      : undefined;
+
   return (
     <>
       {/* Grid border */}
@@ -72,6 +128,33 @@ export default function CurveCanvas({
         strokeWidth={0.004}
         opacity={0.25}
       />
+
+      {/* Derivative overlay (rendered behind main curves) */}
+      {overlay && overlayColor && (
+        <>
+          {overlay.zeroY >= 0 && overlay.zeroY <= 1 && (
+            <line
+              x1={0}
+              y1={overlay.zeroY}
+              x2={1}
+              y2={overlay.zeroY}
+              stroke={overlayColor}
+              strokeWidth={0.003}
+              strokeDasharray="0.015 0.01"
+              opacity={0.35}
+            />
+          )}
+          <polyline
+            points={overlay.points}
+            fill="none"
+            stroke={overlayColor}
+            strokeWidth={0.01}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity={0.6}
+          />
+        </>
+      )}
 
       {/* Pinned bezier overlay */}
       {pinnedCurve && (
@@ -165,6 +248,22 @@ export default function CurveCanvas({
       >
         progress
       </text>
+
+      {/* Right axis label for overlay */}
+      {overlay && overlayColor && overlayType && (
+        <text
+          x={1.08}
+          y={0.5}
+          textAnchor="middle"
+          fill={overlayColor}
+          fontSize={0.05}
+          fontFamily="var(--font-source-code-pro)"
+          transform="rotate(-90, 1.08, 0.5)"
+          opacity={0.7}
+        >
+          {overlayType}
+        </text>
+      )}
     </>
   );
 }

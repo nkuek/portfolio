@@ -8,7 +8,7 @@ import { SPRING_PRESETS, simulateSpring } from "../spring";
 import type { SpringPresetEntry } from "../spring";
 
 type PresetLibraryProps = {
-  mode: EditorMode;
+  editorPanel: EditorMode;
   activePreset: string | null;
   pinnedPresetName: string | null;
   pinnedSpringPresetName: string | null;
@@ -119,14 +119,14 @@ const CATEGORIES = PRESETS.reduce<Record<string, typeof PRESETS>>(
 );
 
 export default function PresetLibrary({
-  mode,
+  editorPanel,
   activePreset,
   pinnedPresetName,
   pinnedSpringPresetName,
   dispatch,
 }: PresetLibraryProps) {
   const [activeCategory, setActiveCategory] = useState<PresetCategory>(
-    mode === "spring" ? "spring" : "standard",
+    editorPanel === "spring" ? "spring" : "standard",
   );
 
   const presets = CATEGORIES[activeCategory] ?? [];
@@ -154,33 +154,33 @@ export default function PresetLibrary({
       {/* Category tabs — hidden when only 1 category */}
       <div className="flex flex-wrap gap-1">
         {CATEGORY_KEYS.map((key) => {
-            const hasActive = activeCategoryForPreset === key;
-            const hasPinned = pinnedCategoryForPreset === key;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => {
-                  setActiveCategory(key);
-                  dispatch({
-                    type: "SET_MODE",
-                    mode: key === "spring" ? "spring" : "bezier",
-                  });
-                }}
-                className={`relative rounded-full border px-2.5 py-1 font-mono text-xs transition-colors ${
-                  activeCategory === key
-                    ? "border-accent bg-accent text-white"
-                    : "border-border-hairline text-text-muted hover:border-accent cursor-pointer"
-                }`}
-              >
-                {CATEGORY_LABELS[key]}
-                <span
-                  className={`absolute -top-0.5 -right-0.5 size-2 rounded-full transition-opacity duration-200 ${hasPinned && !hasActive ? "bg-[var(--accent-rose)]" : "bg-[var(--accent)]"} ${(hasActive || hasPinned) && activeCategory !== key ? "opacity-100" : "opacity-0"}`}
-                />
-              </button>
-            );
-          })}
-        </div>
+          const hasActive = activeCategoryForPreset === key;
+          const hasPinned = pinnedCategoryForPreset === key;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => {
+                setActiveCategory(key);
+                dispatch({
+                  type: "SET_MODE",
+                  mode: key === "spring" ? "spring" : "bezier",
+                });
+              }}
+              className={`relative rounded-full border px-2.5 py-1 font-mono text-xs transition-colors ${
+                activeCategory === key
+                  ? "border-accent bg-accent text-white"
+                  : "border-border-hairline text-text-muted hover:border-accent cursor-pointer"
+              }`}
+            >
+              {CATEGORY_LABELS[key]}
+              <span
+                className={`absolute -top-0.5 -right-0.5 size-2 rounded-full transition-opacity duration-200 ${hasPinned && !hasActive ? "bg-[var(--accent-rose)]" : "bg-[var(--accent)]"} ${(hasActive || hasPinned) && activeCategory !== key ? "opacity-100" : "opacity-0"}`}
+              />
+            </button>
+          );
+        })}
+      </div>
 
       {/* Preset buttons */}
       <div className="flex flex-col gap-1.5">

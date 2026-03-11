@@ -19,6 +19,9 @@ import {
   simulateSpring,
   springToLinearEasing,
 } from "./spring";
+import { sampleBezierDerivatives } from "./derivatives";
+import CurveCanvas, { CURVE_VIEW_BOX, OVERLAY_COLORS } from "./CurveCanvas";
+import DragHandle from "./BezierEditor/DragHandle";
 import BezierEditor from "./BezierEditor";
 import SpringEditor from "./SpringEditor";
 import AnimationPreview from "./AnimationPreview";
@@ -58,11 +61,17 @@ function parseFloat2(val: string | null): number | null {
   return isNaN(n) ? null : Math.round(n * 100) / 100;
 }
 
+function round(n: number, decimals = 2): number {
+  const f = 10 ** decimals;
+  return Math.round(n * f) / f;
+}
+
 function EasingCuratorInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const isInitRef = useRef(false);
+  const svgRef = useRef<SVGSVGElement>(null);
 
   // Build initial state from URL params
   const getInitialState = useCallback(() => {
@@ -144,6 +153,7 @@ function EasingCuratorInner() {
 
     return {
       mode,
+      editorPanel: mode,
       curve,
       activePreset,
       duration: d != null && d >= 100 && d <= 5000 ? d : initialState.duration,
@@ -262,6 +272,27 @@ function EasingCuratorInner() {
     return null;
   }, [state.pinnedCurve, pinnedSpringResult]);
 
+  // Compute derivative overlay samples
+  const bezierDerivatives = useMemo(() => {
+    if (state.mode !== "bezier" || state.overlay === "none") return null;
+    return sampleBezierDerivatives(state.curve);
+  }, [state.mode, state.curve, state.overlay]);
+
+  const overlaySamples = useMemo(() => {
+    if (state.overlay === "none") return undefined;
+    if (state.mode === "spring") {
+      return state.overlay === "velocity"
+        ? springResult.velocities
+        : springResult.accelerations;
+    }
+    if (bezierDerivatives) {
+      return state.overlay === "velocity"
+        ? bezierDerivatives.velocities
+        : bezierDerivatives.accelerations;
+    }
+    return undefined;
+  }, [state.mode, state.overlay, springResult, bezierDerivatives]);
+
   const isPinned =
     state.pinnedCurve != null || state.pinnedSpringConfig != null;
 
@@ -309,6 +340,21 @@ function EasingCuratorInner() {
     }
   }, [state.pinnedCurve]);
 
+  // Drag handle callbacks
+  const handleP1Drag = useCallback(
+    (x: number, y: number) => {
+      dispatch({ type: "SET_HANDLE", handle: "p1", x: round(x), y: round(y) });
+    },
+    [dispatch],
+  );
+
+  const handleP2Drag = useCallback(
+    (x: number, y: number) => {
+      dispatch({ type: "SET_HANDLE", handle: "p2", x: round(x), y: round(y) });
+    },
+    [dispatch],
+  );
+
   return (
     <main className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
       <header className="mb-12">
@@ -323,7 +369,7 @@ function EasingCuratorInner() {
         <aside className="order-2 flex flex-col gap-4 lg:order-1">
           <div className="bg-surface-card border-border-hairline rounded-xl border p-4 shadow-[var(--shadow-card)]">
             <PresetLibrary
-              mode={state.mode}
+              editorPanel={state.editorPanel}
               activePreset={state.activePreset}
               pinnedPresetName={state.pinnedPresetName}
               pinnedSpringPresetName={state.pinnedSpringPresetName}
@@ -395,7 +441,7 @@ function EasingCuratorInner() {
                   className="bg-accent absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-md transition-transform duration-200 ease-[var(--ease-spring)]"
                   style={{
                     transform:
-                      state.mode === "spring"
+                      state.editorPanel === "spring"
                         ? "translateX(100%)"
                         : "translateX(0)",
                   }}
@@ -406,7 +452,7 @@ function EasingCuratorInner() {
                     type="button"
                     onClick={() => dispatch({ type: "SET_MODE", mode: m })}
                     className={`relative z-1 cursor-pointer px-4 py-1.5 text-center font-mono text-sm transition-colors duration-200 ${
-                      state.mode === m
+                      state.editorPanel === m
                         ? "text-white"
                         : "text-text-muted hover:text-text-subtle"
                     }`}
@@ -417,21 +463,94 @@ function EasingCuratorInner() {
               </div>
             </div>
 
-            {state.mode === "bezier" ? (
-              <BezierEditor
-                curve={state.curve}
-                pinnedCurve={state.pinnedCurve}
-                pinnedSamples={pinnedSpringResult?.samples ?? null}
-                dispatch={dispatch}
-              />
-            ) : (
-              <SpringEditor
-                springConfig={state.springConfig}
-                pinnedSamples={pinnedSpringResult?.samples ?? null}
-                pinnedCurve={state.pinnedCurve}
-                dispatch={dispatch}
-              />
-            )}
+            {/* Shared SVG canvas */}
+            <div className="flex flex-col gap-4">
+              <svg
+                ref={svgRef}
+                viewBox={CURVE_VIEW_BOX}
+                className="w-full overflow-visible"
+                style={{ touchAction: "none" }}
+              >
+                <CurveCanvas
+                  curve={state.mode === "bezier" ? state.curve : undefined}
+                  samples={
+                    state.mode === "spring" ? springResult.samples : undefined
+                  }
+                  pinnedCurve={state.pinnedCurve}
+                  pinnedSamples={pinnedSpringResult?.samples ?? null}
+                  overlaySamples={overlaySamples}
+                  overlayType={state.overlay}
+                />
+                {state.mode === "bezier" && state.editorPanel === "bezier" && (
+                  <>
+                    <DragHandle
+                      cx={state.curve.x1}
+                      cy={1 - state.curve.y1}
+                      label="Control point 1"
+                      color="var(--accent)"
+                      onDrag={handleP1Drag}
+                      svgRef={svgRef}
+                    />
+                    <DragHandle
+                      cx={state.curve.x2}
+                      cy={1 - state.curve.y2}
+                      label="Control point 2"
+                      color="var(--accent-rose)"
+                      onDrag={handleP2Drag}
+                      svgRef={svgRef}
+                    />
+                  </>
+                )}
+              </svg>
+
+              {/* Editor controls */}
+              {state.editorPanel === "bezier" ? (
+                <BezierEditor curve={state.curve} dispatch={dispatch} />
+              ) : (
+                <SpringEditor
+                  springConfig={state.springConfig}
+                  settleMs={springResult.settleMs}
+                  dispatch={dispatch}
+                />
+              )}
+            </div>
+
+            {/* Derivative overlay toggle */}
+            <div className="border-border-hairline mt-4 flex items-center gap-3 border-t pt-4">
+              <span className="text-text-muted text-xs font-medium">
+                Overlay
+              </span>
+              <div className="flex gap-1.5">
+                {(["velocity", "acceleration"] as const).map((ov) => {
+                  const active = state.overlay === ov;
+                  const color = OVERLAY_COLORS[ov];
+                  return (
+                    <button
+                      key={ov}
+                      type="button"
+                      onClick={() =>
+                        dispatch({
+                          type: "SET_OVERLAY",
+                          overlay: active ? "none" : ov,
+                        })
+                      }
+                      className={`cursor-pointer rounded-md px-2.5 py-1 font-mono text-xs transition-colors ${
+                        active
+                          ? "font-medium"
+                          : "text-text-muted hover:text-text-subtle"
+                      }`}
+                      style={
+                        active
+                          ? { backgroundColor: `${color}26`, color }
+                          : undefined
+                      }
+                    >
+                      {ov}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           {/* Curve readout */}

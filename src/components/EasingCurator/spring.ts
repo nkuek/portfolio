@@ -2,6 +2,8 @@ import type { SpringConfig } from "./types";
 
 export type SpringResult = {
   samples: number[];
+  velocities: number[];
+  accelerations: number[];
   settleMs: number;
 };
 
@@ -18,7 +20,10 @@ export function simulateSpring(config: SpringConfig): SpringResult {
   let settleTime = 0;
   let settled = false;
 
-  const raw: { t: number; v: number }[] = [{ t: 0, v: 0 }];
+  const initAccel = stiffness / mass; // F = -k*(0-1)/m at rest
+  const raw: { t: number; v: number; vel: number; acc: number }[] = [
+    { t: 0, v: 0, vel: 0, acc: initAccel },
+  ];
 
   while (time < MAX_SECONDS) {
     const accel = (-stiffness * (pos - 1) - damping * vel) / mass;
@@ -26,7 +31,7 @@ export function simulateSpring(config: SpringConfig): SpringResult {
     pos += vel * TIMESTEP;
     time += TIMESTEP;
 
-    raw.push({ t: time, v: pos });
+    raw.push({ t: time, v: pos, vel, acc: accel });
 
     if (!settled) {
       if (
@@ -46,6 +51,8 @@ export function simulateSpring(config: SpringConfig): SpringResult {
   // Downsample to 100 evenly-spaced points across [0, settleTime]
   const numSamples = 100;
   const samples: number[] = [];
+  const velocities: number[] = [];
+  const accelerations: number[] = [];
   let rawIdx = 0;
 
   for (let i = 0; i <= numSamples; i++) {
@@ -56,23 +63,32 @@ export function simulateSpring(config: SpringConfig): SpringResult {
     }
 
     if (rawIdx >= raw.length - 1) {
-      samples.push(raw[raw.length - 1]!.v);
+      const last = raw[raw.length - 1]!;
+      samples.push(last.v);
+      velocities.push(last.vel);
+      accelerations.push(last.acc);
     } else {
       const a = raw[rawIdx]!;
       const b = raw[rawIdx + 1]!;
       const frac = b.t === a.t ? 0 : (targetTime - a.t) / (b.t - a.t);
       samples.push(a.v + frac * (b.v - a.v));
+      velocities.push(a.vel + frac * (b.vel - a.vel));
+      accelerations.push(a.acc + frac * (b.acc - a.acc));
     }
   }
 
-  return { samples, settleMs: Math.round(settleTime * 1000) };
+  return {
+    samples,
+    velocities,
+    accelerations,
+    settleMs: Math.round(settleTime * 1000),
+  };
 }
 
 export function springToLinearEasing(samples: number[]): string {
   const values = samples.map((v) => Number(v.toFixed(3)));
   return `linear(${values.join(", ")})`;
 }
-
 
 export type SpringPresetEntry = {
   name: string;
