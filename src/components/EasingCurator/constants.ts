@@ -136,5 +136,11 @@ export const CATEGORY_LABELS: Record<PresetCategory, string> = {
   spring: "Spring Physics",
 };
 
-export const DEFAULT_CURVE = PRESETS[5]!.curve; // spring
+export const DEFAULT_CURVE =
+  PRESETS.find((p) => p.name === "spring")?.curve ?? {
+    x1: 0,
+    y1: 0,
+    x2: 1,
+    y2: 1,
+  };
 export const DEFAULT_DURATION = 1000;

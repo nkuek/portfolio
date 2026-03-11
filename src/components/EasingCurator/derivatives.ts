@@ -35,14 +35,14 @@ export function sampleBezierDerivatives(
   let rawIdx = 0;
   for (let i = 0; i < numSamples; i++) {
     const targetX = i / (numSamples - 1);
-    while (rawIdx < raw.length - 1 && raw[rawIdx + 1]!.x < targetX) {
+    while (rawIdx < raw.length - 1 && (raw[rawIdx + 1]?.x ?? Infinity) < targetX) {
       rawIdx++;
     }
-    if (rawIdx >= raw.length - 1) {
-      resampled.push(raw[raw.length - 1]!.y);
+    const a = raw[rawIdx];
+    const b = raw[rawIdx + 1];
+    if (!a || !b) {
+      resampled.push(raw[raw.length - 1]?.y ?? 0);
     } else {
-      const a = raw[rawIdx]!;
-      const b = raw[rawIdx + 1]!;
       const frac = b.x === a.x ? 0 : (targetX - a.x) / (b.x - a.x);
       resampled.push(a.y + frac * (b.y - a.y));
     }

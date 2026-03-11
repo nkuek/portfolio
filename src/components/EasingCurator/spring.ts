@@ -59,18 +59,18 @@ export function simulateSpring(config: SpringConfig): SpringResult {
   for (let i = 0; i <= numSamples; i++) {
     const targetTime = (i / numSamples) * settleTime;
 
-    while (rawIdx < raw.length - 1 && raw[rawIdx + 1]!.t < targetTime) {
+    while (rawIdx < raw.length - 1 && (raw[rawIdx + 1]?.t ?? Infinity) < targetTime) {
       rawIdx++;
     }
 
-    if (rawIdx >= raw.length - 1) {
-      const last = raw[raw.length - 1]!;
-      samples.push(last.v);
-      velocities.push(last.vel);
-      accelerations.push(last.acc);
+    const a = raw[rawIdx];
+    const b = raw[rawIdx + 1];
+    if (!a || !b) {
+      const last = raw[raw.length - 1];
+      samples.push(last?.v ?? 1);
+      velocities.push(last?.vel ?? 0);
+      accelerations.push(last?.acc ?? 0);
     } else {
-      const a = raw[rawIdx]!;
-      const b = raw[rawIdx + 1]!;
       const frac = b.t === a.t ? 0 : (targetTime - a.t) / (b.t - a.t);
       samples.push(a.v + frac * (b.v - a.v));
       velocities.push(a.vel + frac * (b.vel - a.vel));
@@ -107,4 +107,9 @@ export const SPRING_PRESETS: SpringPresetEntry[] = [
   { name: "heavy", config: { mass: 3, stiffness: 200, damping: 18 } },
 ];
 
-export const DEFAULT_SPRING_CONFIG: SpringConfig = SPRING_PRESETS[1]!.config;
+export const DEFAULT_SPRING_CONFIG: SpringConfig =
+  SPRING_PRESETS.find((p) => p.name === "default")?.config ?? {
+    mass: 1,
+    stiffness: 100,
+    damping: 10,
+  };
