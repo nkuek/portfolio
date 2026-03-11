@@ -356,17 +356,17 @@ function EasingCuratorInner() {
   );
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
-      <header className="mb-12">
+    <main className="mx-auto max-w-7xl px-4 pt-24 pb-16 sm:px-6 sm:pt-28 sm:pb-24 lg:px-8">
+      <header className="mb-8 sm:mb-12">
         <h1 className="title text-text mb-2">Easing Curator</h1>
         <p className="text-text-muted text-lg font-light">
           Craft, compare, and export easing curves.
         </p>
       </header>
 
-      <div className="grid gap-8 lg:grid-cols-[260px_1fr_320px]">
+      <div className="grid gap-6 md:grid-cols-[1fr_280px] md:gap-8 lg:grid-cols-[260px_1fr_320px]">
         {/* Left -- Presets + Comparison */}
-        <aside className="order-2 flex flex-col gap-4 lg:order-1">
+        <aside className="order-2 flex min-w-0 flex-col gap-4 md:order-3 md:col-span-2 lg:order-1 lg:col-span-1">
           <div className="bg-surface-card border-border-hairline rounded-xl border p-4 shadow-[var(--shadow-card)]">
             <PresetLibrary
               editorPanel={state.editorPanel}
@@ -432,7 +432,7 @@ function EasingCuratorInner() {
         </aside>
 
         {/* Center -- Editor */}
-        <section className="order-1 lg:order-2">
+        <section className="order-1 min-w-0 md:order-1 lg:order-2">
           <div className="bg-surface-card border-border-hairline rounded-xl border p-6 shadow-[var(--shadow-card)]">
             {/* Mode toggle */}
             <div className="mb-6 flex justify-center">
@@ -575,7 +575,7 @@ function EasingCuratorInner() {
         </section>
 
         {/* Right -- Preview + Export */}
-        <aside className="order-3 flex flex-col gap-6">
+        <aside className="order-3 flex min-w-0 flex-col gap-6 md:order-2 lg:order-3">
           <div className="bg-surface-card border-border-hairline rounded-xl border p-4 shadow-[var(--shadow-card)]">
             <AnimationPreview
               easing={easing}

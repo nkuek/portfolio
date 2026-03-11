@@ -152,7 +152,7 @@ export default function PresetLibrary({
       <h3 className="text-text-subtle text-sm font-medium">Presets</h3>
 
       {/* Category tabs — hidden when only 1 category */}
-      <div className="flex flex-wrap gap-1">
+      <div className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 sm:flex-wrap">
         {CATEGORY_KEYS.map((key) => {
           const hasActive = activeCategoryForPreset === key;
           const hasPinned = pinnedCategoryForPreset === key;
@@ -167,7 +167,7 @@ export default function PresetLibrary({
                   mode: key === "spring" ? "spring" : "bezier",
                 });
               }}
-              className={`relative rounded-full border px-2.5 py-1 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97] ${
+              className={`relative shrink-0 rounded-full border px-2.5 py-1 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97] ${
                 activeCategory === key
                   ? "border-accent bg-accent text-white"
                   : "border-border-hairline text-text-muted hover:border-accent cursor-pointer"
@@ -183,7 +183,7 @@ export default function PresetLibrary({
       </div>
 
       {/* Preset buttons */}
-      <div className="flex flex-col gap-1.5">
+      <div className="grid grid-cols-2 gap-1.5 md:grid-cols-3 lg:grid-cols-1">
         {activeCategory === "spring"
           ? SPRING_PRESETS.map((preset) => (
               <SpringPresetButton
@@ -199,7 +199,10 @@ export default function PresetLibrary({
               const isPinned = pinnedPresetName === preset.name;
 
               return (
-                <div key={preset.name} className="flex items-center gap-1">
+                <div
+                  key={preset.name}
+                  className="flex min-w-0 items-center gap-1"
+                >
                   <button
                     type="button"
                     onClick={() =>
@@ -209,7 +212,7 @@ export default function PresetLibrary({
                         curve: preset.curve,
                       })
                     }
-                    className={`flex flex-1 items-center gap-1.5 rounded-md border px-2 py-1.5 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] ${
+                    className={`flex min-w-0 flex-1 items-center gap-1.5 rounded-md border px-2 py-1.5 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] ${
                       isActive
                         ? "border-accent bg-accent text-white"
                         : "border-border-hairline bg-surface-card text-text-subtle hover:border-accent cursor-pointer"
@@ -217,7 +220,7 @@ export default function PresetLibrary({
                     aria-pressed={isActive}
                   >
                     <MiniCurve curve={preset.curve} />
-                    {preset.name}
+                    <span className="truncate">{preset.name}</span>
                   </button>
                   <button
                     type="button"
@@ -266,7 +269,7 @@ function SpringPresetButton({
   const samples = SPRING_PRESET_SAMPLES.get(preset.name) ?? [];
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex min-w-0 items-center gap-1">
       <button
         type="button"
         onClick={() =>
@@ -276,7 +279,7 @@ function SpringPresetButton({
             config: preset.config,
           })
         }
-        className={`flex flex-1 items-center gap-1.5 rounded-md border px-2 py-1.5 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] ${
+        className={`flex min-w-0 flex-1 items-center gap-1.5 rounded-md border px-2 py-1.5 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] ${
           isActive
             ? "border-accent bg-accent text-white"
             : "border-border-hairline bg-surface-card text-text-subtle hover:border-accent cursor-pointer"
@@ -284,7 +287,7 @@ function SpringPresetButton({
         aria-pressed={isActive}
       >
         <MiniSpringCurve samples={samples} />
-        {preset.name}
+        <span className="truncate">{preset.name}</span>
       </button>
       <button
         type="button"

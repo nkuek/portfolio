@@ -95,7 +95,7 @@ export default function ExportPanel({
   const setFormat = mode === "bezier" ? setBezierFormat : setSpringFormat;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-w-0 flex-col gap-3">
       <h3 className="text-text-subtle text-sm font-medium">Export</h3>
 
       <div className="flex flex-wrap gap-1.5">
@@ -115,12 +115,16 @@ export default function ExportPanel({
         ))}
       </div>
 
-      <div
-        data-lenis-prevent
-        className="bg-surface-card-alt relative max-h-48 overflow-auto rounded-lg p-3"
-      >
-        <pre className="text-text font-mono text-sm">{code}</pre>
-        {note && <p className="text-text-muted mt-2 text-xs italic">{note}</p>}
+      <div className="relative">
+        <div
+          data-lenis-prevent
+          className="bg-surface-card-alt max-h-48 overflow-auto rounded-lg p-3 pr-16"
+        >
+          <pre className="text-text font-mono text-sm">{code}</pre>
+          {note && (
+            <p className="text-text-muted mt-2 text-xs italic">{note}</p>
+          )}
+        </div>
         <button
           type="button"
           onClick={handleCopy}
