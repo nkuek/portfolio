@@ -7,6 +7,7 @@ import {
   useMemo,
   useReducer,
   useRef,
+  useState,
 } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { easingReducer, initialState } from "./state";
@@ -296,6 +297,61 @@ function EasingCuratorInner() {
   const isPinned =
     state.pinnedCurve != null || state.pinnedSpringConfig != null;
 
+  // Drag-and-drop comparison
+  const [isDragOver, setIsDragOver] = useState(false);
+  const dragCounterRef = useRef(0);
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent) => {
+      if (e.dataTransfer.types.includes("application/x-easing-preset")) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+      }
+    },
+    [],
+  );
+
+  const handleDragEnter = useCallback(
+    (e: React.DragEvent) => {
+      if (e.dataTransfer.types.includes("application/x-easing-preset")) {
+        e.preventDefault();
+        dragCounterRef.current++;
+        setIsDragOver(true);
+      }
+    },
+    [],
+  );
+
+  const handleDragLeave = useCallback(() => {
+    dragCounterRef.current--;
+    if (dragCounterRef.current === 0) setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      dragCounterRef.current = 0;
+      setIsDragOver(false);
+      const raw = e.dataTransfer.getData("application/x-easing-preset");
+      if (!raw) return;
+      try {
+        const data = JSON.parse(raw);
+        if (data.type === "bezier") {
+          dispatch({ type: "PIN_CURVE", curve: data.curve, name: data.name });
+        } else if (data.type === "spring") {
+          dispatch({
+            type: "PIN_SPRING",
+            config: data.config,
+            name: data.name,
+          });
+        }
+      } catch {
+        // invalid drag data
+      }
+    },
+    [dispatch],
+  );
+
   // Readout label
   const readout = useMemo(() => {
     if (state.mode === "spring") {
@@ -377,58 +433,81 @@ function EasingCuratorInner() {
             />
           </div>
 
-          {/* Pin / comparison controls */}
-          {isPinned ? (
-            <div className="bg-surface-card border-border-hairline rounded-xl border p-4 shadow-[var(--shadow-card)]">
-              <div className="flex items-center justify-between">
-                <span className="text-text-subtle text-xs font-medium">
-                  Comparing
-                </span>
-                <button
-                  type="button"
-                  onClick={handleUnpin}
-                  className="text-text-muted hover:text-text cursor-pointer rounded font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97]"
-                >
-                  Clear
-                </button>
-              </div>
-              <div className="mt-2 flex flex-col gap-2.5">
-                <div className="flex items-start gap-2">
-                  <span className="mt-0.5 size-2.5 shrink-0 rounded-full bg-[var(--accent)]" />
-                  <div className="flex min-w-0 flex-col gap-0.5">
-                    <span className="bg-accent/10 text-accent w-fit rounded px-1 py-0.5 font-mono text-[10px] leading-none">
-                      {state.mode === "spring" ? "spring" : "bezier"}
-                    </span>
-                    <span className="text-text-muted truncate font-mono text-xs">
-                      {state.activePreset ?? readout}
-                    </span>
+          {/* Pin / comparison controls (drop zone) */}
+          <div
+            onDragOver={handleDragOver}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            {isPinned ? (
+              <div
+                className={`bg-surface-card rounded-xl border p-4 shadow-[var(--shadow-card)] transition-colors ${isDragOver ? "border-accent" : "border-border-hairline"}`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-text-subtle text-xs font-medium">
+                    Comparing
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleUnpin}
+                    className="text-text-muted hover:text-text cursor-pointer rounded font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97]"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div className="mt-2 flex flex-col gap-2.5">
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 size-2.5 shrink-0 rounded-full bg-[var(--accent)]" />
+                    <div className="flex min-w-0 flex-col gap-0.5">
+                      <span className="bg-accent/10 text-accent w-fit rounded px-1 py-0.5 font-mono text-[10px] leading-none">
+                        {state.mode === "spring" ? "spring" : "bezier"}
+                      </span>
+                      <span className="text-text-muted truncate font-mono text-xs">
+                        {state.activePreset ?? readout}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 size-2.5 shrink-0 rounded-full bg-[var(--accent-rose)]" />
+                    <div className="flex min-w-0 flex-col gap-0.5">
+                      <span className="w-fit rounded bg-[var(--accent-rose)]/10 px-1 py-0.5 font-mono text-[10px] leading-none text-[var(--accent-rose)]">
+                        {state.pinnedSpringConfig ? "spring" : "bezier"}
+                      </span>
+                      <span className="text-text-muted truncate font-mono text-xs">
+                        {pinnedReadout}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-start gap-2">
-                  <span className="mt-0.5 size-2.5 shrink-0 rounded-full bg-[var(--accent-rose)]" />
-                  <div className="flex min-w-0 flex-col gap-0.5">
-                    <span className="w-fit rounded bg-[var(--accent-rose)]/10 px-1 py-0.5 font-mono text-[10px] leading-none text-[var(--accent-rose)]">
-                      {state.pinnedSpringConfig ? "spring" : "bezier"}
-                    </span>
-                    <span className="text-text-muted truncate font-mono text-xs">
-                      {pinnedReadout}
-                    </span>
-                  </div>
-                </div>
               </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={handlePin}
-              className="border-border-hairline text-text-muted hover:border-accent hover:text-text-subtle flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed py-2.5 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98]"
-            >
-              <svg viewBox="0 0 16 16" className="size-3.5" fill="currentColor">
-                <path d="M9.828 1.515a.5.5 0 0 1 .707 0l3.95 3.95a.5.5 0 0 1-.122.796l-2.678 1.339-.507.507 1.165 3.494a.5.5 0 0 1-.129.512L11.16 13.16a.5.5 0 0 1-.707 0L7.05 9.757l-3.464 3.464a.5.5 0 0 1-.707-.707L6.343 9.05 2.94 5.647a.5.5 0 0 1 0-.707l1.047-1.053a.5.5 0 0 1 .512-.129l3.494 1.165.507-.507L9.839 2.34l-.01-.118a.5.5 0 0 1 0-.707z" />
-              </svg>
-              Pin {state.mode === "spring" ? "spring" : "curve"} to compare
-            </button>
-          )}
+            ) : (
+              <button
+                type="button"
+                onClick={handlePin}
+                className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border py-2.5 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] ${
+                  isDragOver
+                    ? "border-accent bg-accent/5 text-accent"
+                    : "border-border-hairline text-text-muted hover:border-accent hover:text-text-subtle border-dashed"
+                }`}
+              >
+                {isDragOver ? (
+                  "Drop to compare"
+                ) : (
+                  <>
+                    <svg
+                      viewBox="0 0 16 16"
+                      className="size-3.5"
+                      fill="currentColor"
+                    >
+                      <path d="M9.828 1.515a.5.5 0 0 1 .707 0l3.95 3.95a.5.5 0 0 1-.122.796l-2.678 1.339-.507.507 1.165 3.494a.5.5 0 0 1-.129.512L11.16 13.16a.5.5 0 0 1-.707 0L7.05 9.757l-3.464 3.464a.5.5 0 0 1-.707-.707L6.343 9.05 2.94 5.647a.5.5 0 0 1 0-.707l1.047-1.053a.5.5 0 0 1 .512-.129l3.494 1.165.507-.507L9.839 2.34l-.01-.118a.5.5 0 0 1 0-.707z" />
+                    </svg>
+                    Drag or pin a preset to compare
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </aside>
 
         {/* Center -- Editor */}

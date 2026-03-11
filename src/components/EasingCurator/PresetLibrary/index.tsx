@@ -205,6 +205,7 @@ export default function PresetLibrary({
                 >
                   <button
                     type="button"
+                    draggable
                     onClick={() =>
                       dispatch({
                         type: "SELECT_PRESET",
@@ -212,6 +213,17 @@ export default function PresetLibrary({
                         curve: preset.curve,
                       })
                     }
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData(
+                        "application/x-easing-preset",
+                        JSON.stringify({
+                          type: "bezier",
+                          name: preset.name,
+                          curve: preset.curve,
+                        }),
+                      );
+                      e.dataTransfer.effectAllowed = "copy";
+                    }}
                     className={`flex min-w-0 flex-1 items-center gap-1.5 rounded-md border px-2 py-1.5 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] ${
                       isActive
                         ? "border-accent bg-accent text-white"
@@ -272,6 +284,7 @@ function SpringPresetButton({
     <div className="flex min-w-0 items-center gap-1">
       <button
         type="button"
+        draggable
         onClick={() =>
           dispatch({
             type: "SELECT_SPRING_PRESET",
@@ -279,6 +292,17 @@ function SpringPresetButton({
             config: preset.config,
           })
         }
+        onDragStart={(e) => {
+          e.dataTransfer.setData(
+            "application/x-easing-preset",
+            JSON.stringify({
+              type: "spring",
+              name: preset.name,
+              config: preset.config,
+            }),
+          );
+          e.dataTransfer.effectAllowed = "copy";
+        }}
         className={`flex min-w-0 flex-1 items-center gap-1.5 rounded-md border px-2 py-1.5 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] ${
           isActive
             ? "border-accent bg-accent text-white"
