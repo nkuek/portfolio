@@ -12,8 +12,11 @@ vi.mock("../SunAndMoon", () => ({
 function createMatchMedia(matches: boolean) {
   const listeners: Array<(e: MediaQueryListEvent) => void> = [];
 
-  const mql: MediaQueryList = {
-    matches,
+  let currentMatches = matches;
+  const mql = {
+    get matches() {
+      return currentMatches;
+    },
     media: "(prefers-color-scheme: dark)",
     onchange: null,
     addListener: vi.fn(),
@@ -26,10 +29,10 @@ function createMatchMedia(matches: boolean) {
       listeners.push(cb as (e: MediaQueryListEvent) => void);
     },
     removeEventListener: vi.fn(),
-  };
+  } as MediaQueryList;
 
   function fireChange(nowDark: boolean) {
-    mql.matches = nowDark;
+    currentMatches = nowDark;
     for (const cb of listeners) {
       cb({ matches: nowDark } as MediaQueryListEvent);
     }

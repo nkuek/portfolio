@@ -159,7 +159,7 @@ function EasingCuratorInner() {
       springConfig,
       pinnedSpringConfig,
       pinnedSpringPresetName,
-      overlay: "none",
+      overlay: "none" as const,
     };
     // Only run on initial render
     // eslint-disable-next-line react-hooks/exhaustive-deps
