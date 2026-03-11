@@ -32,6 +32,7 @@ export default function DragHandle({
 }: DragHandleProps) {
   const circleRef = useRef<SVGCircleElement>(null);
   const [focused, setFocused] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -92,7 +93,7 @@ export default function DragHandle({
 
   return (
     <g>
-      {focused && (
+      {(focused || hovered) && (
         <circle
           cx={cx}
           cy={cy}
@@ -100,7 +101,7 @@ export default function DragHandle({
           fill="none"
           stroke={color}
           strokeWidth={0.008}
-          opacity={0.6}
+          opacity={focused ? 0.6 : 0.35}
         />
       )}
       <circle
@@ -122,6 +123,8 @@ export default function DragHandle({
         style={{ touchAction: "none" }}
         onPointerDown={handlePointerDown}
         onKeyDown={handleKeyDown}
+        onPointerEnter={() => setHovered(true)}
+        onPointerLeave={() => setHovered(false)}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
       />

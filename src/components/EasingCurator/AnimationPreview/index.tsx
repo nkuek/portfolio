@@ -108,7 +108,7 @@ function TranslatePreview({
         )}
         <div
           ref={boxRef}
-          className="size-8 shrink-0 rounded-md bg-[var(--accent)]"
+          className="size-8 shrink-0 rounded-md bg-[var(--accent)] opacity-85"
         />
       </div>
     </div>
@@ -243,7 +243,7 @@ export default function AnimationPreview({
                     duration: parseInt(e.target.value) || 500,
                   })
                 }
-                className="border-border-hairline bg-surface-card-alt text-text w-16 rounded-md border px-2 py-1 font-mono text-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                className="border-border-hairline bg-surface-card-alt text-text w-16 rounded-md border px-2 py-1 font-mono text-xs outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2"
               />
               <span className="text-text-muted font-mono text-xs">ms</span>
             </div>
@@ -260,7 +260,7 @@ export default function AnimationPreview({
                 duration: parseInt(e.target.value),
               })
             }
-            className="w-full accent-[var(--accent)]"
+            className="w-full rounded accent-[var(--accent)] outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2"
           />
         </label>
       </div>
@@ -297,7 +297,7 @@ export default function AnimationPreview({
             </>
           }
         >
-          <div className="size-8 rounded-md bg-[var(--accent)]" />
+          <div className="size-8 rounded-md bg-[var(--accent)] opacity-85" />
         </PreviewStage>
 
         <PreviewStage
@@ -316,7 +316,7 @@ export default function AnimationPreview({
             <div className="size-8 rounded-md border border-dashed border-[var(--accent-rose)] opacity-30" />
           }
         >
-          <div className="size-8 rounded-md bg-[var(--accent)]" />
+          <div className="size-8 rounded-md bg-[var(--accent)] opacity-85" />
         </PreviewStage>
 
         <PreviewStage
@@ -335,7 +335,7 @@ export default function AnimationPreview({
             <div className="size-8 rounded-md border border-dashed border-[var(--accent-rose)] opacity-30" />
           }
         >
-          <div className="size-8 rounded-md bg-[var(--accent)]" />
+          <div className="size-8 rounded-md bg-[var(--accent)] opacity-85" />
         </PreviewStage>
       </div>
 
@@ -345,7 +345,7 @@ export default function AnimationPreview({
           type="button"
           onClick={handlePlayPause}
           aria-label={paused ? "Play" : "Pause"}
-          className="border-border-hairline bg-surface-card text-text-subtle hover:border-accent hover:bg-accent flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+          className="border-border-hairline bg-surface-card text-text-subtle hover:border-accent hover:bg-accent flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border outline-[var(--accent)] transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.93]"
         >
           {paused ? (
             <svg viewBox="0 0 16 16" className="size-3.5" fill="currentColor">
@@ -366,7 +366,7 @@ export default function AnimationPreview({
           onPointerDown={handleSeekStart}
           onChange={handleSeekInput}
           onPointerUp={handleSeekEnd}
-          className="h-1.5 flex-1 cursor-pointer accent-[var(--accent)]"
+          className="h-1.5 flex-1 cursor-pointer rounded accent-[var(--accent)] outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2"
           aria-label="Animation timeline"
         />
       </div>

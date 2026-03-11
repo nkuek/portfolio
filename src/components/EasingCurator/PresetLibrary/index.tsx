@@ -167,7 +167,7 @@ export default function PresetLibrary({
                   mode: key === "spring" ? "spring" : "bezier",
                 });
               }}
-              className={`relative rounded-full border px-2.5 py-1 font-mono text-xs transition-colors ${
+              className={`relative rounded-full border px-2.5 py-1 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97] ${
                 activeCategory === key
                   ? "border-accent bg-accent text-white"
                   : "border-border-hairline text-text-muted hover:border-accent cursor-pointer"
@@ -209,7 +209,7 @@ export default function PresetLibrary({
                         curve: preset.curve,
                       })
                     }
-                    className={`flex flex-1 items-center gap-1.5 rounded-md border px-2 py-1.5 font-mono text-xs transition-colors ${
+                    className={`flex flex-1 items-center gap-1.5 rounded-md border px-2 py-1.5 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] ${
                       isActive
                         ? "border-accent bg-accent text-white"
                         : "border-border-hairline bg-surface-card text-text-subtle hover:border-accent cursor-pointer"
@@ -236,7 +236,7 @@ export default function PresetLibrary({
                       isPinned ? "Unpin" : `Pin ${preset.name} for comparison`
                     }
                     aria-pressed={isPinned}
-                    className={`flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] ${
+                    className={`flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md border outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.93] ${
                       isPinned
                         ? "border-accent-rose bg-accent-rose text-white"
                         : "border-border-hairline text-text-muted hover:border-accent-rose hover:text-accent-rose"
@@ -276,7 +276,7 @@ function SpringPresetButton({
             config: preset.config,
           })
         }
-        className={`flex flex-1 items-center gap-1.5 rounded-md border px-2 py-1.5 font-mono text-xs transition-colors ${
+        className={`flex flex-1 items-center gap-1.5 rounded-md border px-2 py-1.5 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] ${
           isActive
             ? "border-accent bg-accent text-white"
             : "border-border-hairline bg-surface-card text-text-subtle hover:border-accent cursor-pointer"
@@ -301,7 +301,7 @@ function SpringPresetButton({
         }
         title={isPinned ? "Unpin" : `Pin ${preset.name} for comparison`}
         aria-pressed={isPinned}
-        className={`flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] ${
+        className={`flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md border outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.93] ${
           isPinned
             ? "border-accent-rose bg-accent-rose text-white"
             : "border-border-hairline text-text-muted hover:border-accent-rose hover:text-accent-rose"

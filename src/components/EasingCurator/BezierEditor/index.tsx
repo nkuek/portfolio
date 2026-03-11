@@ -42,7 +42,7 @@ export default function BezierEditor({ curve, dispatch }: BezierEditorProps) {
                 step={0.01}
                 value={curve[field]}
                 onChange={(e) => handleInputChange(field, e.target.value)}
-                className="border-border-hairline bg-surface-card-alt text-text w-16 rounded-md border px-2 py-1 font-mono text-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                className="border-border-hairline bg-surface-card-alt text-text w-16 rounded-md border px-2 py-1 font-mono text-xs outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2"
               />
             </div>
             <input
@@ -52,7 +52,7 @@ export default function BezierEditor({ curve, dispatch }: BezierEditorProps) {
               step={0.01}
               value={curve[field]}
               onChange={(e) => handleInputChange(field, e.target.value)}
-              className="w-full accent-[var(--accent)]"
+              className="w-full rounded accent-[var(--accent)] outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2"
             />
           </label>
         );

@@ -387,7 +387,7 @@ function EasingCuratorInner() {
                 <button
                   type="button"
                   onClick={handleUnpin}
-                  className="text-text-muted hover:text-text cursor-pointer font-mono text-xs transition-colors"
+                  className="text-text-muted hover:text-text cursor-pointer rounded font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97]"
                 >
                   Clear
                 </button>
@@ -421,7 +421,7 @@ function EasingCuratorInner() {
             <button
               type="button"
               onClick={handlePin}
-              className="border-border-hairline text-text-muted hover:border-accent hover:text-text-subtle flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed py-2.5 font-mono text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              className="border-border-hairline text-text-muted hover:border-accent hover:text-text-subtle flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed py-2.5 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98]"
             >
               <svg viewBox="0 0 16 16" className="size-3.5" fill="currentColor">
                 <path d="M9.828 1.515a.5.5 0 0 1 .707 0l3.95 3.95a.5.5 0 0 1-.122.796l-2.678 1.339-.507.507 1.165 3.494a.5.5 0 0 1-.129.512L11.16 13.16a.5.5 0 0 1-.707 0L7.05 9.757l-3.464 3.464a.5.5 0 0 1-.707-.707L6.343 9.05 2.94 5.647a.5.5 0 0 1 0-.707l1.047-1.053a.5.5 0 0 1 .512-.129l3.494 1.165.507-.507L9.839 2.34l-.01-.118a.5.5 0 0 1 0-.707z" />
@@ -451,10 +451,10 @@ function EasingCuratorInner() {
                     key={m}
                     type="button"
                     onClick={() => dispatch({ type: "SET_MODE", mode: m })}
-                    className={`relative z-1 cursor-pointer px-4 py-1.5 text-center font-mono text-sm transition-colors duration-200 ${
+                    className={`relative z-1 cursor-pointer rounded-md px-4 py-1.5 text-center font-mono text-sm outline-[var(--accent)] transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97] ${
                       state.editorPanel === m
                         ? "text-white"
-                        : "text-text-muted hover:text-text-subtle"
+                        : "text-text-muted hover:bg-surface-card-alt hover:text-text-subtle"
                     }`}
                   >
                     {m === "bezier" ? "Bezier" : "Spring"}
@@ -468,7 +468,7 @@ function EasingCuratorInner() {
               <svg
                 ref={svgRef}
                 viewBox={CURVE_VIEW_BOX}
-                className="w-full overflow-visible"
+                className="relative z-10 w-full overflow-visible"
                 style={{ touchAction: "none" }}
               >
                 <CurveCanvas
@@ -534,16 +534,28 @@ function EasingCuratorInner() {
                           overlay: active ? "none" : ov,
                         })
                       }
-                      className={`cursor-pointer rounded-md px-2.5 py-1 font-mono text-xs transition-colors ${
+                      className={`cursor-pointer rounded-md border px-2.5 py-1 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97] ${
                         active
-                          ? "font-medium"
-                          : "text-text-muted hover:text-text-subtle"
+                          ? "border-transparent font-medium"
+                          : "border-border-hairline text-text-muted"
                       }`}
                       style={
                         active
                           ? { backgroundColor: `${color}26`, color }
                           : undefined
                       }
+                      onMouseEnter={(e) => {
+                        if (!active) {
+                          e.currentTarget.style.borderColor = color;
+                          e.currentTarget.style.color = color;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!active) {
+                          e.currentTarget.style.borderColor = "";
+                          e.currentTarget.style.color = "";
+                        }
+                      }}
                     >
                       {ov}
                     </button>

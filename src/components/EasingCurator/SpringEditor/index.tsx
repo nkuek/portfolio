@@ -92,7 +92,7 @@ export default function SpringEditor({
                   });
                 }
               }}
-              className="border-border-hairline bg-surface-card-alt text-text w-20 rounded-md border px-2 py-1 font-mono text-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              className="border-border-hairline bg-surface-card-alt text-text w-20 rounded-md border px-2 py-1 font-mono text-xs outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2"
             />
           </div>
           <input
@@ -108,7 +108,7 @@ export default function SpringEditor({
                 value: parseFloat(e.target.value),
               })
             }
-            className="w-full accent-[var(--accent)]"
+            className="w-full rounded accent-[var(--accent)] outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2"
           />
         </label>
       ))}
@@ -129,7 +129,7 @@ export default function SpringEditor({
             onClick={() =>
               dispatch({ type: "SET_DURATION", duration: settleMs })
             }
-            className="border-border-hairline text-text-muted hover:border-accent hover:text-text-subtle cursor-pointer rounded-md border px-2 py-1 font-mono text-xs transition-colors"
+            className="border-border-hairline text-text-muted hover:border-accent hover:text-text-subtle cursor-pointer rounded-md border px-2 py-1 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97]"
           >
             Use natural
           </button>
