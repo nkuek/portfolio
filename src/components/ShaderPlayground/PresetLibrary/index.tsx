@@ -13,12 +13,17 @@ type PresetLibraryProps = {
 
 const CATEGORIES: ShaderPresetCategory[] = ["basics", "patterns", "effects"];
 
+function categoryForPreset(name: string | null): ShaderPresetCategory {
+  if (!name) return "basics";
+  return PRESETS.find((p) => p.name === name)?.category ?? "basics";
+}
+
 export default function PresetLibrary({
   activePreset,
   dispatch,
 }: PresetLibraryProps) {
   const [activeCategory, setActiveCategory] =
-    useState<ShaderPresetCategory>("basics");
+    useState<ShaderPresetCategory>(() => categoryForPreset(activePreset));
   const containerRef = useRef<HTMLDivElement>(null);
   const [clipPath, setClipPath] = useState("inset(0 100% 0 0 round 9999px)");
 
