@@ -5,7 +5,7 @@ import { useLenis } from "lenis/react";
 import Link from "next/link";
 import Logo from "../Logo";
 import DesktopNavbar from "./DesktopNavbar";
-import MobileNavbar, { useMobileNav } from "./MobileNavbar";
+import MobileNavbar from "./MobileNavbar";
 
 export default function Navbar() {
   return (
@@ -16,7 +16,6 @@ export default function Navbar() {
 }
 
 function NavShell() {
-  const { open } = useMobileNav();
   const shellRef = useRef<HTMLDivElement>(null);
 
   useLenis((lenis) => {
@@ -26,7 +25,7 @@ function NavShell() {
   return (
     <div
       ref={shellRef}
-      className={`${styles.shell} pointer-events-none fixed inset-x-0 flex justify-center ${open ? "z-4" : "z-2"}`}
+      className={`${styles.shell} pointer-events-none fixed inset-x-0 flex justify-center z-50`}
     >
       <nav
         aria-label="Main navigation"

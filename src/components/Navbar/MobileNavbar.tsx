@@ -1,13 +1,16 @@
 "use client";
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { sections } from "./constants";
+import Link from "next/link";
+import { navItems } from "./constants";
+import { isDropdown, type NavDropdown, type NavLink } from "./types";
 import styles from "./styles.module.css";
 import DSLink from "~/design-system/DSLink";
 import DSAnchor from "~/design-system/DSLink/DSAnchor";
@@ -57,11 +60,120 @@ function Hamburger() {
   );
 }
 
+function MobileLinkItem({
+  link,
+  onNavigate,
+}: {
+  link: NavLink;
+  onNavigate: () => void;
+}) {
+  if (link.external) {
+    return (
+      <DSAnchor href={link.href} className="text-2xl" onClick={onNavigate}>
+        {link.title}
+      </DSAnchor>
+    );
+  }
+  return (
+    <DSLink href={link.href} className="text-2xl" onClick={onNavigate}>
+      {link.title}
+    </DSLink>
+  );
+}
+
+function MobileAccordion({
+  item,
+  onNavigate,
+}: {
+  item: NavDropdown;
+  onNavigate: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  const toggle = useCallback(() => setExpanded((v) => !v), []);
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="flex items-center gap-1">
+        {item.href ? (
+          <Link
+            href={item.href}
+            className="hover:text-link-hover text-text outline-accent rounded text-2xl transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-4"
+            onClick={onNavigate}
+          >
+            {item.title}
+          </Link>
+        ) : (
+          <span className="text-text text-2xl">{item.title}</span>
+        )}
+        <button
+          onClick={toggle}
+          aria-expanded={expanded}
+          aria-label={`${item.title} submenu`}
+          className="outline-accent rounded p-1 focus-visible:outline-2 focus-visible:outline-offset-2"
+        >
+          <svg
+            aria-hidden="true"
+            width="14"
+            height="14"
+            viewBox="0 0 10 10"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`${styles.chevron} ${expanded ? styles.chevronExpanded : ""}`}
+          >
+            <path d="M2 3.5L5 6.5L8 3.5" />
+          </svg>
+        </button>
+      </div>
+
+      <div
+        className={styles.accordionContent}
+        data-expanded={expanded || undefined}
+      >
+        <div className={styles.accordionInner}>
+          <ul className="flex flex-col gap-3 pt-3">
+            {item.children.map((child) => (
+              <li key={child.href}>
+                <Link
+                  href={child.href}
+                  className="hover:bg-surface-card-alt outline-accent flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2"
+                  onClick={onNavigate}
+                >
+                  {child.icon && (
+                    <span className="bg-accent/10 text-accent font-source-code-pro flex size-7 shrink-0 items-center justify-center rounded-md text-xs font-semibold">
+                      {child.icon}
+                    </span>
+                  )}
+                  <span className="flex flex-col gap-0.5">
+                    <span className="text-text text-sm font-medium">
+                      {child.title}
+                    </span>
+                    {child.description && (
+                      <span className="text-text-muted text-xs">
+                        {child.description}
+                      </span>
+                    )}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** Fullscreen overlay — portaled to document.body to escape nav's transform containing block. */
 function MobileOverlay() {
   const { open, setOpen } = useContext(MobileNavContext);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  const handleNavigate = useCallback(() => setOpen(false), [setOpen]);
 
   // Close on Escape
   useEffect(() => {
@@ -75,6 +187,8 @@ function MobileOverlay() {
 
   if (!mounted) return null;
 
+  let itemIndex = 0;
+
   return createPortal(
     <nav
       id="nav-menu"
@@ -83,38 +197,31 @@ function MobileOverlay() {
       className="bg-surface-overlay fixed inset-0 z-3 flex flex-col items-center justify-center backdrop-blur-xl transition-[opacity,visibility] duration-300 ease-[var(--ease-spring)] aria-hidden:invisible aria-hidden:opacity-0 md:hidden"
     >
       <ul className="flex flex-col items-center gap-6">
-        {sections.map((section, i) => (
-          <li
-            key={section.title}
-            className={styles.linkIn}
-            data-open={open || undefined}
-            style={{ "--delay": `${i * 50}ms` } as React.CSSProperties}
-          >
-            {section.external ? (
-              <DSAnchor
-                href={section.href}
-                className="text-2xl"
-                onClick={() => setOpen(false)}
-              >
-                {section.title}
-              </DSAnchor>
-            ) : (
-              <DSLink
-                href={section.href}
-                className="text-2xl"
-                onClick={() => setOpen(false)}
-              >
-                {section.title}
-              </DSLink>
-            )}
-          </li>
-        ))}
+        {navItems.map((item) => {
+          const delay = `${itemIndex * 50}ms`;
+          itemIndex += 1;
+
+          return (
+            <li
+              key={item.title}
+              className={styles.linkIn}
+              data-open={open || undefined}
+              style={{ "--delay": delay } as React.CSSProperties}
+            >
+              {isDropdown(item) ? (
+                <MobileAccordion item={item} onNavigate={handleNavigate} />
+              ) : (
+                <MobileLinkItem link={item} onNavigate={handleNavigate} />
+              )}
+            </li>
+          );
+        })}
         <li
           className={`${styles.linkIn} pt-4`}
           data-open={open || undefined}
           style={
             {
-              "--delay": `${sections.length * 50}ms`,
+              "--delay": `${navItems.length * 50}ms`,
             } as React.CSSProperties
           }
         >

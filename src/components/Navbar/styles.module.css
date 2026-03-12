@@ -133,6 +133,79 @@
   transform: scaleX(1);
 }
 
+/* ── Desktop dropdown panel ── */
+
+.dropdownPanel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background: var(--surface-card);
+  border: 1px solid var(--border-card);
+  border-radius: 12px;
+  box-shadow: var(--shadow-info);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  padding: 8px;
+  min-width: 260px;
+  max-width: 300px;
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease,
+    visibility 150ms ease;
+}
+
+.dropdownOpen {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Dropdown item stagger ── */
+
+@keyframes dropdownItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownOpen .dropdownItem {
+  animation: dropdownItemIn 0.25s var(--ease-spring) var(--stagger) both;
+}
+
+/* ── Mobile accordion ── */
+
+.accordionContent {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 300ms var(--ease-spring);
+}
+
+.accordionContent[data-expanded] {
+  grid-template-rows: 1fr;
+}
+
+.accordionInner {
+  overflow: hidden;
+}
+
+.chevron {
+  transition: transform 200ms ease;
+}
+
+.chevronExpanded {
+  transform: rotate(180deg);
+}
+
 /* ── Reduced motion ── */
 
 @media (prefers-reduced-motion: reduce) {
@@ -141,5 +214,17 @@
     opacity: 1 !important;
     filter: none !important;
     transform: none !important;
+  }
+
+  .dropdownPanel {
+    transition: none;
+  }
+
+  .dropdownOpen .dropdownItem {
+    animation: none;
+  }
+
+  .accordionContent {
+    transition: none;
   }
 }
