@@ -422,8 +422,14 @@ function EasingCuratorInner() {
       </header>
 
       <div className="grid gap-6 md:grid-cols-[1fr_280px] md:gap-8 lg:grid-cols-[260px_1fr_320px]">
-        {/* Left -- Presets + Comparison */}
-        <aside className="order-2 flex min-w-0 flex-col gap-4 md:order-3 md:col-span-2 lg:order-1 lg:col-span-1">
+        {/* Left -- Presets + Comparison (entire column is drop zone) */}
+        <aside
+          className="order-2 flex min-w-0 flex-col gap-4 md:order-3 md:col-span-2 lg:order-1 lg:col-span-1"
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
           <div className="bg-surface-card border-border-hairline rounded-xl border p-4 shadow-[var(--shadow-card)]">
             <PresetLibrary
               editorPanel={state.editorPanel}
@@ -434,13 +440,8 @@ function EasingCuratorInner() {
             />
           </div>
 
-          {/* Pin / comparison controls (drop zone) */}
-          <div
-            onDragOver={handleDragOver}
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-          >
+          {/* Pin / comparison controls */}
+          <div>
             {isPinned ? (
               <div
                 className={`bg-surface-card rounded-xl border p-4 shadow-[var(--shadow-card)] transition-colors ${isDragOver ? "border-accent" : "border-border-hairline"}`}
@@ -486,9 +487,9 @@ function EasingCuratorInner() {
               <button
                 type="button"
                 onClick={handlePin}
-                className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border py-2.5 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] ${
+                className={`bg-surface-card flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border p-4 shadow-[var(--shadow-card)] font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] ${
                   isDragOver
-                    ? "border-accent bg-accent/5 text-accent"
+                    ? "border-accent text-accent"
                     : "border-border-hairline text-text-muted hover:border-accent hover:text-text-subtle border-dashed"
                 }`}
               >

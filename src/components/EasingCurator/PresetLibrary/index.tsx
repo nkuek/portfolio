@@ -125,9 +125,14 @@ export default function PresetLibrary({
   pinnedSpringPresetName,
   dispatch,
 }: PresetLibraryProps) {
-  const [activeCategory, setActiveCategory] = useState<PresetCategory>(
-    editorPanel === "spring" ? "spring" : "standard",
-  );
+  const [activeCategory, setActiveCategory] = useState<PresetCategory>(() => {
+    if (activePreset) {
+      if (SPRING_PRESETS.some((p) => p.name === activePreset)) return "spring";
+      const found = PRESETS.find((p) => p.name === activePreset);
+      if (found) return found.category;
+    }
+    return editorPanel === "spring" ? "spring" : "standard";
+  });
 
   const presets = CATEGORIES[activeCategory] ?? [];
 
