@@ -62,7 +62,14 @@ export default function ShaderQuad({
   const timeRef = useRef(0);
   const prevResetRef = useRef(resetCounter);
 
-  // Build uniforms object — only recreate when the set of names changes, not values.
+  // Stable key based on uniform structure — forces a clean remount of the
+  // <shaderMaterial> only when custom uniform names/ranges actually change,
+  // rather than on every code edit.
+  const uniformStructureKey = customUniformDefs
+    .map((d) => `${d.name}:${d.min}:${d.max}`)
+    .join(",");
+
+  // Build uniforms object — only recreate when the structure actually changes.
   // Values are synced every frame in useFrame to avoid recreating the material.
   const uniforms = useMemo(() => {
     const u: Record<string, THREE.IUniform> = {
@@ -76,25 +83,8 @@ export default function ShaderQuad({
     }
 
     return u;
-  }, [customUniformDefs]);
-
-  // Create the ShaderMaterial once with lastValidCode
-  const material = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
-        vertexShader: DEFAULT_VERTEX_SHADER,
-        fragmentShader: lastValidCode,
-        uniforms,
-      }),
-    // Intentionally only depend on uniforms structure changes (new custom uniforms)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [uniforms],
-  );
-
-  // Dispose material on unmount or when recreated
-  useEffect(() => {
-    return () => material.dispose();
-  }, [material]);
+  }, [uniformStructureKey]);
 
   // Test-compile fragment shader when code changes
   useEffect(() => {
@@ -159,10 +149,11 @@ export default function ShaderQuad({
     <mesh>
       <planeGeometry args={[2, 2]} />
       <shaderMaterial
+        key={uniformStructureKey}
         ref={materialRef}
-        vertexShader={material.vertexShader}
-        fragmentShader={material.fragmentShader}
-        uniforms={material.uniforms}
+        vertexShader={DEFAULT_VERTEX_SHADER}
+        fragmentShader={lastValidCode}
+        uniforms={uniforms}
       />
     </mesh>
   );
