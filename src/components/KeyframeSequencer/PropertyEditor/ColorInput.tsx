@@ -67,7 +67,7 @@ export default function ColorInput({
   return (
     <div className="flex flex-col gap-3">
       <h4 className="text-text-subtle text-xs font-medium">Color</h4>
-      <div className={cn("flex items-center gap-2", !masked && "opacity-50")}>
+      <div className={cn("flex flex-wrap items-center gap-2", !masked && "opacity-50")}>
         <input
           type="checkbox"
           id={`mask-${keyframeId}-backgroundColor`}
@@ -77,7 +77,7 @@ export default function ColorInput({
         />
         <label
           htmlFor={colorInputId}
-          className="text-text-muted w-12 shrink-0 font-mono text-xs"
+          className="text-text-muted w-10 shrink-0 font-mono text-xs"
         >
           Color
         </label>

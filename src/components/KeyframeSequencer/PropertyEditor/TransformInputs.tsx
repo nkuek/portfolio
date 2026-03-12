@@ -70,7 +70,7 @@ export default function TransformInputs({
             />
             <label
               htmlFor={inputId}
-              className="text-text-muted w-12 shrink-0 font-mono text-xs"
+              className="text-text-muted w-10 shrink-0 font-mono text-xs"
             >
               {TRANSFORM_LABELS[key]}
             </label>
@@ -92,13 +92,8 @@ export default function TransformInputs({
               value={value}
               onChange={(e) => handleValueChange(key, e.target.value)}
               aria-label={`${TRANSFORM_LABELS[key]} value`}
-              className="border-border-hairline bg-surface-card-alt text-text w-16 shrink-0 rounded-md border px-2 py-1 font-mono text-xs outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="border-border-hairline bg-surface-card-alt text-text hidden w-16 shrink-0 rounded-md border px-2 py-1 font-mono text-xs outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 sm:block"
             />
-            {range.unit && (
-              <span className="text-text-muted w-6 shrink-0 font-mono text-xs">
-                {range.unit}
-              </span>
-            )}
           </div>
         );
       })}

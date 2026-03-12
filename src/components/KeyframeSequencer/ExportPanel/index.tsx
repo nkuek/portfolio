@@ -126,7 +126,7 @@ export default function ExportPanel({
           data-lenis-prevent
           className="bg-surface-card-alt max-h-48 overflow-auto rounded-lg p-3 pr-16"
         >
-          <pre className="text-text font-mono text-sm">{code}</pre>
+          <pre className="text-text overflow-x-auto font-mono text-sm">{code}</pre>
         </div>
         <button
           type="button"

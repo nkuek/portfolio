@@ -73,12 +73,12 @@ function stateToWaapiKeyframes(
 // ---------------------------------------------------------------------------
 
 const CARD_BUTTON =
-  "border-border-hairline bg-surface-card text-text-subtle hover:border-accent cursor-pointer rounded-md border px-2 py-1 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97]";
+  "border-border-hairline bg-surface-card text-text-subtle hover:border-accent cursor-pointer rounded-md border px-1.5 py-1 font-mono text-[11px] sm:px-2 sm:text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97]";
 
 const ACTIVE_BUTTON = "border-accent bg-accent text-white";
 
 const NUMBER_INPUT =
-  "border-border-hairline bg-surface-card-alt text-text w-16 rounded-md border px-2 py-1 font-mono text-xs outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2";
+  "border-border-hairline bg-surface-card-alt text-text w-14 shrink-0 rounded-md border px-1.5 py-1 font-mono text-xs outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2";
 
 const RANGE_INPUT =
   "w-full cursor-pointer rounded accent-[var(--accent)] outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2";

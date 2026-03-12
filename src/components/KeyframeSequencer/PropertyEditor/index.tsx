@@ -106,7 +106,7 @@ export default function PropertyEditor({
           />
           <label
             htmlFor={opacityInputId}
-            className="text-text-muted w-12 shrink-0 font-mono text-xs"
+            className="text-text-muted w-10 shrink-0 font-mono text-xs"
           >
             Alpha
           </label>
@@ -128,7 +128,7 @@ export default function PropertyEditor({
             value={keyframe.properties.opacity}
             onChange={(e) => handleOpacityChange(e.target.value)}
             aria-label="Opacity value"
-            className="border-border-hairline bg-surface-card-alt text-text w-16 shrink-0 rounded-md border px-2 py-1 font-mono text-xs outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="border-border-hairline bg-surface-card-alt text-text hidden w-16 shrink-0 rounded-md border px-2 py-1 font-mono text-xs outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 sm:block"
           />
         </div>
       </div>

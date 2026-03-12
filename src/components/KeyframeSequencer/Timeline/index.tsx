@@ -47,7 +47,7 @@ export default function Timeline({
   const sorted = [...keyframes].sort((a, b) => a.offset - b.offset);
 
   return (
-    <div className="bg-surface-card border-border-hairline rounded-xl border p-4 shadow-[var(--shadow-card)]">
+    <div className="bg-surface-card border-border-hairline overflow-hidden rounded-xl border p-4 shadow-[var(--shadow-card)]">
       {/* Track label */}
       <div className="text-text-muted mb-2 font-mono text-xs tracking-wide uppercase">
         Timeline

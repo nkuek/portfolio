@@ -142,7 +142,7 @@ function KeyframeSequencerInner() {
       </header>
 
       {/* Toolbar: name + undo/redo/reset */}
-      <div className="mb-6 flex items-center gap-3">
+      <div className="mb-6 flex flex-wrap items-center gap-2 sm:gap-3">
         <label
           htmlFor="animation-name"
           className="text-text-muted font-mono text-xs"
@@ -157,10 +157,10 @@ function KeyframeSequencerInner() {
             dispatch({ type: "SET_ANIMATION_NAME", name: e.target.value })
           }
           spellCheck={false}
-          className="border-border-hairline bg-surface-card-alt text-text w-48 rounded-md border px-3 py-1.5 font-mono text-sm outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="border-border-hairline bg-surface-card-alt text-text min-w-0 flex-1 rounded-md border px-3 py-1.5 font-mono text-sm outline-[var(--accent)] sm:max-w-48 focus-visible:outline-2 focus-visible:outline-offset-2"
         />
 
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
             aria-label="Undo"
@@ -247,17 +247,17 @@ function KeyframeSequencerInner() {
       </div>
 
       {/* Two-column layout: editor + preview/export */}
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px] lg:gap-8">
+      <div className="grid min-w-0 gap-6 lg:grid-cols-[1fr_320px] lg:gap-8">
         {/* Left column: Property editor + Presets */}
-        <div className="flex flex-col gap-6">
-          <div className="bg-surface-card border-border-hairline rounded-xl border p-4 shadow-[var(--shadow-card)]">
+        <div className="flex min-w-0 flex-col gap-6">
+          <div className="bg-surface-card border-border-hairline min-w-0 overflow-hidden rounded-xl border p-4 shadow-[var(--shadow-card)]">
             <PropertyEditor
               keyframe={selectedKeyframe}
               isEndpoint={isEndpoint}
               dispatch={childDispatch}
             />
           </div>
-          <div className="bg-surface-card border-border-hairline rounded-xl border p-4 shadow-[var(--shadow-card)]">
+          <div className="bg-surface-card border-border-hairline min-w-0 overflow-hidden rounded-xl border p-4 shadow-[var(--shadow-card)]">
             <PresetLibrary
               activePreset={state.activePreset}
               dispatch={childDispatch}
@@ -266,8 +266,8 @@ function KeyframeSequencerInner() {
         </div>
 
         {/* Right column: Preview + Export */}
-        <div className="flex flex-col gap-6">
-          <div className="bg-surface-card border-border-hairline rounded-xl border p-4 shadow-[var(--shadow-card)]">
+        <div className="flex min-w-0 flex-col gap-6">
+          <div className="bg-surface-card border-border-hairline min-w-0 overflow-hidden rounded-xl border p-4 shadow-[var(--shadow-card)]">
             <AnimationPreview
               keyframes={state.keyframes}
               segmentEasings={state.segmentEasings}
@@ -280,7 +280,7 @@ function KeyframeSequencerInner() {
               dispatch={childDispatch}
             />
           </div>
-          <div className="bg-surface-card border-border-hairline rounded-xl border p-4 shadow-[var(--shadow-card)]">
+          <div className="bg-surface-card border-border-hairline min-w-0 overflow-hidden rounded-xl border p-4 shadow-[var(--shadow-card)]">
             <ExportPanel
               keyframes={state.keyframes}
               segmentEasings={state.segmentEasings}
