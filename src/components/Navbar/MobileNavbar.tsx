@@ -83,55 +83,45 @@ function MobileLinkItem({
 
 function MobileAccordion({
   item,
+  expanded,
+  onToggle,
   onNavigate,
 }: {
   item: NavDropdown;
+  expanded: boolean;
+  onToggle: () => void;
   onNavigate: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
-
-  const toggle = useCallback(() => setExpanded((v) => !v), []);
 
   return (
     <div className="flex flex-col items-center">
-      <div className="flex items-center gap-1">
-        {item.href ? (
-          <Link
-            href={item.href}
-            className="hover:text-link-hover text-text outline-accent rounded text-2xl transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-4"
-            onClick={onNavigate}
-          >
-            {item.title}
-          </Link>
-        ) : (
-          <span className="text-text text-2xl">{item.title}</span>
-        )}
-        <button
-          onClick={toggle}
-          aria-expanded={expanded}
-          aria-label={`${item.title} submenu`}
-          className="outline-accent rounded p-1 focus-visible:outline-2 focus-visible:outline-offset-2"
+      <button
+        onClick={onToggle}
+        aria-expanded={expanded}
+        aria-label={`${item.title} submenu`}
+        className="text-text hover:text-link-hover outline-accent flex cursor-pointer items-center gap-1 rounded p-1 text-2xl font-light transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-4"
+      >
+        {item.title}
+        <svg
+          aria-hidden="true"
+          width="14"
+          height="14"
+          viewBox="0 0 10 10"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`${styles.chevron} ${expanded ? styles.chevronExpanded : ""}`}
         >
-          <svg
-            aria-hidden="true"
-            width="14"
-            height="14"
-            viewBox="0 0 10 10"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={`${styles.chevron} ${expanded ? styles.chevronExpanded : ""}`}
-          >
-            <path d="M2 3.5L5 6.5L8 3.5" />
-          </svg>
-        </button>
-      </div>
+          <path d="M2 3.5L5 6.5L8 3.5" />
+        </svg>
+      </button>
 
       <div
         className={styles.accordionContent}
         data-expanded={expanded || undefined}
+        aria-hidden={!expanded}
       >
         <div className={styles.accordionInner}>
           <ul className="flex flex-col gap-3 pt-3">
@@ -139,7 +129,8 @@ function MobileAccordion({
               <li key={child.href}>
                 <Link
                   href={child.href}
-                  className="hover:bg-surface-card-alt outline-accent flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2"
+                  tabIndex={expanded ? 0 : -1}
+                  className="hover:bg-surface-card-alt outline-accent flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors duration-150 focus-visible:outline-2 focus-visible:-outline-offset-2"
                   onClick={onNavigate}
                 >
                   {child.icon && (
@@ -174,6 +165,12 @@ function MobileOverlay() {
   useEffect(() => setMounted(true), []);
 
   const handleNavigate = useCallback(() => setOpen(false), [setOpen]);
+  const [expandedItem, setExpandedItem] = useState<string | null>(null);
+
+  // Reset accordion when overlay closes
+  useEffect(() => {
+    if (!open) setExpandedItem(null);
+  }, [open]);
 
   // Close on Escape
   useEffect(() => {
@@ -194,7 +191,7 @@ function MobileOverlay() {
       id="nav-menu"
       aria-label="Mobile navigation"
       aria-hidden={!open}
-      className="bg-surface-overlay fixed inset-0 z-3 flex flex-col items-center justify-center backdrop-blur-xl transition-[opacity,visibility] duration-300 ease-[var(--ease-spring)] aria-hidden:invisible aria-hidden:opacity-0 md:hidden"
+      className="bg-surface-overlay fixed inset-0 z-40 flex flex-col items-center justify-center backdrop-blur-xl transition-[opacity,visibility] duration-300 ease-[var(--ease-spring)] aria-hidden:invisible aria-hidden:opacity-0 md:hidden"
     >
       <ul className="flex flex-col items-center gap-6">
         {navItems.map((item) => {
@@ -209,7 +206,16 @@ function MobileOverlay() {
               style={{ "--delay": delay } as React.CSSProperties}
             >
               {isDropdown(item) ? (
-                <MobileAccordion item={item} onNavigate={handleNavigate} />
+                <MobileAccordion
+                  item={item}
+                  expanded={expandedItem === item.title}
+                  onToggle={() =>
+                    setExpandedItem((prev) =>
+                      prev === item.title ? null : item.title,
+                    )
+                  }
+                  onNavigate={handleNavigate}
+                />
               ) : (
                 <MobileLinkItem link={item} onNavigate={handleNavigate} />
               )}
