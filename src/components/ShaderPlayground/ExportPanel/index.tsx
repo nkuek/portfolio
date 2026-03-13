@@ -84,24 +84,22 @@ export default function ExportPanel({ code }: ExportPanelProps) {
       </div>
 
       {/* Code display */}
-      <div className="relative">
-        <pre
-          data-lenis-prevent
-          className="bg-surface-card-alt text-text h-48 overflow-auto rounded-lg p-3 pr-16 font-mono text-xs"
-        >
-          <code>{formatted}</code>
-        </pre>
+      <pre
+        data-lenis-prevent
+        className="bg-surface-card-alt text-text h-48 overflow-auto rounded-lg p-3 font-mono text-xs"
+      >
+        <code className="cursor-text select-all">{formatted}</code>
+      </pre>
 
-        {/* Copy button */}
-        <button
-          type="button"
-          onClick={handleCopy}
-          aria-label={copied ? "Copied to clipboard" : "Copy to clipboard"}
-          className="border-border-hairline bg-surface-card text-text-subtle hover:border-accent absolute top-2 right-2 cursor-pointer rounded-md border px-2 py-1 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
-        >
-          {copied ? "Copied!" : "Copy"}
-        </button>
-      </div>
+      {/* Copy button */}
+      <button
+        type="button"
+        onClick={handleCopy}
+        aria-label={copied ? "Copied to clipboard" : "Copy to clipboard"}
+        className="border-border-hairline bg-surface-card text-text-subtle hover:border-accent mt-2 w-full cursor-pointer rounded-md border px-2 py-1.5 font-mono text-xs outline-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97]"
+      >
+        {copied ? "Copied!" : "Copy"}
+      </button>
     </div>
   );
 }

@@ -154,24 +154,22 @@ export default function ExportPanel({
         ))}
       </div>
 
-      <div className="relative">
-        <div
-          data-lenis-prevent
-          className="bg-surface-card-alt max-h-48 overflow-auto rounded-lg p-3 pr-16"
-        >
-          <pre className="text-text font-mono text-sm">{code}</pre>
-          {note && (
-            <p className="text-text-muted mt-2 text-xs italic">{note}</p>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={handleCopy}
-          className="border-border-hairline bg-surface-card text-text-subtle hover:border-accent absolute top-2 right-2 cursor-pointer rounded-md border px-2 py-1 font-mono text-xs outline-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97]"
-        >
-          {copied ? "Copied!" : "Copy"}
-        </button>
+      <div
+        data-lenis-prevent
+        className="bg-surface-card-alt max-h-48 overflow-auto rounded-lg p-3"
+      >
+        <pre className="text-text cursor-text select-all font-mono text-sm">{code}</pre>
+        {note && (
+          <p className="text-text-muted mt-2 text-xs italic select-none">{note}</p>
+        )}
       </div>
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="border-border-hairline bg-surface-card text-text-subtle hover:border-accent mt-2 w-full cursor-pointer rounded-md border px-2 py-1.5 font-mono text-xs outline-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97]"
+      >
+        {copied ? "Copied!" : "Copy"}
+      </button>
     </div>
   );
 }

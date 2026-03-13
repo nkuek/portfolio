@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import ToolGuide, { GuideGrid, GuideSection, GuideList, GuideItem, Kbd } from "~/components/ToolGuide";
 import { easingReducer, initialState } from "./state";
 import type { EditorMode } from "./state";
 import type { BezierCurve, SpringConfig } from "./types";
@@ -420,6 +421,35 @@ function EasingCuratorInner() {
           Craft, compare, and export easing curves.
         </p>
       </header>
+
+      <ToolGuide>
+        <GuideGrid>
+          <GuideSection title="Editing">
+            <GuideList>
+              <GuideItem>Drag control points to shape the curve</GuideItem>
+              <GuideItem><Kbd>Arrow keys</Kbd> for fine-tuning (<Kbd>Shift</Kbd> for larger steps)</GuideItem>
+              <GuideItem>Switch between Bezier and Spring modes</GuideItem>
+            </GuideList>
+          </GuideSection>
+          <GuideSection title="Comparing">
+            <GuideList>
+              <GuideItem>Drag a preset to the sidebar to compare</GuideItem>
+              <GuideItem>Pin button locks a curve for A/B comparison</GuideItem>
+              <GuideItem>Velocity/acceleration overlays show derivatives</GuideItem>
+            </GuideList>
+          </GuideSection>
+          <GuideSection title="Presets">
+            <GuideList>
+              <GuideItem>Click any preset to apply it instantly</GuideItem>
+            </GuideList>
+          </GuideSection>
+          <GuideSection title="Export">
+            <GuideList>
+              <GuideItem>Click exported code to select all</GuideItem>
+            </GuideList>
+          </GuideSection>
+        </GuideGrid>
+      </ToolGuide>
 
       <div className="grid gap-6 md:grid-cols-[1fr_280px] md:gap-8 lg:grid-cols-[260px_1fr_320px]">
         {/* Left -- Presets + Comparison (entire column is drop zone) */}

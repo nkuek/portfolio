@@ -54,7 +54,7 @@ export default function PlaybackControls({
   const isPlaying = playback === "playing";
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       {/* Play / Pause */}
       <button
         type="button"
@@ -91,12 +91,17 @@ export default function PlaybackControls({
         className="group border-border-hairline text-text-muted hover:border-accent hover:text-accent flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97]"
       >
         <svg
-          viewBox="0 0 16 16"
+          viewBox="0 0 24 24"
           className="peer size-3.5"
-          fill="currentColor"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           aria-hidden="true"
         >
-          <path d="M8 1a7 7 0 0 0-7 7h2a5 5 0 0 1 9.17-2.74L10 7h5V2l-1.76 1.76A7 7 0 0 0 8 1zM1 10h5l-2.17 2.17A5 5 0 0 0 13 8h2a7 7 0 0 1-12.24 4.24L1 14V10z" />
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
         </svg>
       </button>
 

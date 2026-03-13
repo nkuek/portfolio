@@ -66,7 +66,7 @@ export default function PresetLibrary({
       {/* Category pills */}
       <div
         ref={containerRef}
-        className="relative mb-3 flex gap-2"
+        className="relative mb-3 flex gap-2 overflow-x-auto"
         role="group"
         aria-label="Preset categories"
       >
