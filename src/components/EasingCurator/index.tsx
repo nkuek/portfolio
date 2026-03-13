@@ -329,6 +329,17 @@ function EasingCuratorInner() {
     return undefined;
   }, [state.mode, state.overlay, springResult, bezierDerivatives]);
 
+  // Drag batch callbacks — collapse a full drag gesture into one undo step
+  // and defer preview updates until the drag is complete
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Deferred easing — freezes during drag so preview animations don't restart
+  const previewEasingRef = useRef(easing);
+  if (!isDragging) {
+    previewEasingRef.current = easing;
+  }
+  const previewEasing = previewEasingRef.current;
+
   const isPinned =
     state.pinnedCurve != null || state.pinnedSpringConfig != null;
 
@@ -418,12 +429,13 @@ function EasingCuratorInner() {
     }
   }, [state.pinnedCurve]);
 
-  // Drag batch callbacks — collapse a full drag gesture into one undo step
   const handleDragStart = useCallback(() => {
+    setIsDragging(true);
     dispatch({ type: "BATCH_START" });
   }, [dispatch]);
 
   const handleDragEnd = useCallback(() => {
+    setIsDragging(false);
     dispatch({ type: "BATCH_END" });
   }, [dispatch]);
 
@@ -816,7 +828,7 @@ function EasingCuratorInner() {
         <aside className="order-3 flex min-w-0 flex-col gap-6 md:order-2 lg:order-3">
           <div className="bg-surface-card border-border-hairline rounded-xl border p-4 shadow-[var(--shadow-card)]">
             <AnimationPreview
-              easing={easing}
+              easing={previewEasing}
               pinnedEasing={pinnedEasing}
               state={state}
               dispatch={dispatch}
