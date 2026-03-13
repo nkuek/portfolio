@@ -7,13 +7,20 @@ import type { EasingAction } from "../state";
 type BezierEditorProps = {
   curve: BezierCurve;
   dispatch: React.Dispatch<EasingAction>;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
 };
 
 function round(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-export default function BezierEditor({ curve, dispatch }: BezierEditorProps) {
+export default function BezierEditor({
+  curve,
+  dispatch,
+  onDragStart,
+  onDragEnd,
+}: BezierEditorProps) {
   const handleInputChange = useCallback(
     (field: keyof BezierCurve, value: string) => {
       const num = parseFloat(value);
@@ -50,6 +57,9 @@ export default function BezierEditor({ curve, dispatch }: BezierEditorProps) {
               max={max}
               step={0.01}
               value={curve[field]}
+              onPointerDown={onDragStart}
+              onPointerUp={onDragEnd}
+              onPointerCancel={onDragEnd}
               onChange={(e) => handleInputChange(field, e.target.value)}
               className="w-full rounded accent-[var(--accent)] outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2"
             />

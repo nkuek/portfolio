@@ -8,6 +8,8 @@ type DragHandleProps = {
   label: string;
   color: string;
   onDrag: (x: number, y: number) => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
   svgRef: React.RefObject<SVGSVGElement | null>;
 };
 
@@ -28,6 +30,8 @@ export default function DragHandle({
   label,
   color,
   onDrag,
+  onDragStart,
+  onDragEnd,
   svgRef,
 }: DragHandleProps) {
   const circleRef = useRef<SVGCircleElement>(null);
@@ -42,6 +46,7 @@ export default function DragHandle({
       if (!circle || !svg) return;
 
       circle.setPointerCapture(e.pointerId);
+      onDragStart?.();
 
       const onMove = (ev: PointerEvent) => {
         const pt = svgPoint(svg, ev.clientX, ev.clientY);
@@ -54,6 +59,7 @@ export default function DragHandle({
         circle.removeEventListener("pointermove", onMove);
         circle.removeEventListener("pointerup", cleanup);
         circle.removeEventListener("pointercancel", cleanup);
+        onDragEnd?.();
       };
 
       circle.addEventListener("pointermove", onMove);
