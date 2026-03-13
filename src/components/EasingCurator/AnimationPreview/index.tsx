@@ -184,6 +184,26 @@ export default function AnimationPreview({
     return () => cancelAnimationFrame(rafRef.current);
   }, [timeToProgress]);
 
+  // Pause when tab is hidden, resume when visible
+  const wasPlayingOnHideRef = useRef(false);
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden) {
+        wasPlayingOnHideRef.current = !pausedRef.current;
+        if (wasPlayingOnHideRef.current) {
+          animationsRef.current.forEach((a) => a.pause());
+          setPaused(true);
+        }
+      } else if (wasPlayingOnHideRef.current) {
+        animationsRef.current.forEach((a) => a.play());
+        setPaused(false);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibility);
+  }, []);
+
   const handlePlayPause = useCallback(() => {
     setPaused((p) => {
       const next = !p;
@@ -353,11 +373,21 @@ export default function AnimationPreview({
           className="border-border-hairline bg-surface-card text-text-subtle hover:border-accent hover:bg-accent flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border outline-[var(--accent)] transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.93]"
         >
           {paused ? (
-            <svg viewBox="0 0 16 16" className="size-3.5" fill="currentColor" aria-hidden="true">
+            <svg
+              viewBox="0 0 16 16"
+              className="size-3.5"
+              fill="currentColor"
+              aria-hidden="true"
+            >
               <path d="M4 2l10 6-10 6V2z" />
             </svg>
           ) : (
-            <svg viewBox="0 0 16 16" className="size-3.5" fill="currentColor" aria-hidden="true">
+            <svg
+              viewBox="0 0 16 16"
+              className="size-3.5"
+              fill="currentColor"
+              aria-hidden="true"
+            >
               <path d="M3 1h3v14H3zM10 1h3v14h-3z" />
             </svg>
           )}
