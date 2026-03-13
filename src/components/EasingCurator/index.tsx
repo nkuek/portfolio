@@ -5,14 +5,21 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useReducer,
   useRef,
   useState,
 } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import ToolGuide, { GuideGrid, GuideSection, GuideList, GuideItem, Kbd } from "~/components/ToolGuide";
-import { easingReducer, initialState } from "./state";
+import ToolGuide, {
+  GuideGrid,
+  GuideSection,
+  GuideList,
+  GuideItem,
+  Kbd,
+} from "~/components/ToolGuide";
+import useHistoryReducer from "~/hooks/useHistoryReducer";
+import { easingReducer, initialState, NON_UNDOABLE } from "./state";
 import type { EditorMode } from "./state";
+import cn from "~/utils/cn";
 import type { BezierCurve, SpringConfig } from "./types";
 import { DEFAULT_CURVE, DEFAULT_DURATION, PRESETS } from "./constants";
 import { formatCSS } from "./ExportPanel/formatters";
@@ -154,6 +161,7 @@ function EasingCuratorInner() {
       editorPanel: mode,
       curve,
       activePreset,
+      lastPreset: activePreset,
       duration: d != null && d >= 100 && d <= 5000 ? d : initialState.duration,
       pinnedCurve,
       pinnedPresetName,
@@ -166,11 +174,30 @@ function EasingCuratorInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const [state, dispatch] = useReducer(
+  const [state, dispatch, { canUndo, canRedo }] = useHistoryReducer(
     easingReducer,
-    undefined,
     getInitialState,
+    { nonUndoable: NON_UNDOABLE },
   );
+
+  // Keyboard shortcuts: Cmd/Ctrl+Z for undo, Cmd/Ctrl+Shift+Z for redo
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod || e.key.toLowerCase() !== "z") return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+      e.preventDefault();
+      if (e.shiftKey) {
+        dispatch({ type: "REDO" });
+      } else {
+        dispatch({ type: "UNDO" });
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [dispatch]);
 
   // Sync state to URL params (debounced)
   useEffect(() => {
@@ -382,13 +409,6 @@ function EasingCuratorInner() {
     pinnedSpringResult,
   ]);
 
-  const handlePin = useCallback(() => {
-    if (state.mode === "spring") {
-      dispatch({ type: "PIN_SPRING" });
-    } else {
-      dispatch({ type: "PIN_CURVE" });
-    }
-  }, [state.mode]);
 
   const handleUnpin = useCallback(() => {
     if (state.pinnedCurve) {
@@ -397,6 +417,15 @@ function EasingCuratorInner() {
       dispatch({ type: "UNPIN_SPRING" });
     }
   }, [state.pinnedCurve]);
+
+  // Drag batch callbacks — collapse a full drag gesture into one undo step
+  const handleDragStart = useCallback(() => {
+    dispatch({ type: "BATCH_START" });
+  }, [dispatch]);
+
+  const handleDragEnd = useCallback(() => {
+    dispatch({ type: "BATCH_END" });
+  }, [dispatch]);
 
   // Drag handle callbacks
   const handleP1Drag = useCallback(
@@ -427,15 +456,21 @@ function EasingCuratorInner() {
           <GuideSection title="Editing">
             <GuideList>
               <GuideItem>Drag control points to shape the curve</GuideItem>
-              <GuideItem><Kbd>Arrow keys</Kbd> for fine-tuning (<Kbd>Shift</Kbd> for larger steps)</GuideItem>
+              <GuideItem>
+                <Kbd>Arrow keys</Kbd> for fine-tuning (<Kbd>Shift</Kbd> for
+                larger steps)
+              </GuideItem>
               <GuideItem>Switch between Bezier and Spring modes</GuideItem>
             </GuideList>
           </GuideSection>
           <GuideSection title="Comparing">
             <GuideList>
-              <GuideItem>Drag a preset to the sidebar to compare</GuideItem>
-              <GuideItem>Pin button locks a curve for A/B comparison</GuideItem>
-              <GuideItem>Velocity/acceleration overlays show derivatives</GuideItem>
+              <GuideItem>
+                Pin or drag a preset to the sidebar to compare
+              </GuideItem>
+              <GuideItem>
+                Velocity/acceleration overlays show derivatives
+              </GuideItem>
             </GuideList>
           </GuideSection>
           <GuideSection title="Presets">
@@ -451,6 +486,62 @@ function EasingCuratorInner() {
         </GuideGrid>
       </ToolGuide>
 
+      {/* Undo / Redo toolbar */}
+      <div className="mb-6 flex items-center gap-1.5">
+        <button
+          type="button"
+          aria-label="Undo"
+          disabled={!canUndo}
+          onClick={() => dispatch({ type: "UNDO" })}
+          className={cn(
+            "border-border-hairline bg-surface-card flex size-8 cursor-pointer items-center justify-center rounded-md border font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.93]",
+            canUndo
+              ? "text-text-subtle hover:border-accent hover:bg-accent hover:text-white"
+              : "text-text-muted cursor-not-allowed opacity-40",
+          )}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="size-3.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M9 14 4 9l5-5" />
+            <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          aria-label="Redo"
+          disabled={!canRedo}
+          onClick={() => dispatch({ type: "REDO" })}
+          className={cn(
+            "border-border-hairline bg-surface-card flex size-8 cursor-pointer items-center justify-center rounded-md border font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.93]",
+            canRedo
+              ? "text-text-subtle hover:border-accent hover:bg-accent hover:text-white"
+              : "text-text-muted cursor-not-allowed opacity-40",
+          )}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="size-3.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m15 14 5-5-5-5" />
+            <path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13" />
+          </svg>
+        </button>
+      </div>
+
       <div className="grid gap-6 md:grid-cols-[1fr_280px] md:gap-8 lg:grid-cols-[260px_1fr_320px]">
         {/* Left -- Presets + Comparison (entire column is drop zone) */}
         <aside
@@ -464,14 +555,16 @@ function EasingCuratorInner() {
             <PresetLibrary
               editorPanel={state.editorPanel}
               activePreset={state.activePreset}
+              lastPreset={state.lastPreset}
               pinnedPresetName={state.pinnedPresetName}
               pinnedSpringPresetName={state.pinnedSpringPresetName}
               dispatch={dispatch}
             />
           </div>
 
-          {/* Pin / comparison controls */}
-          <div>
+          {/* Compare section */}
+          <div className="flex flex-col gap-3">
+            <h3 className="text-text-subtle text-sm font-medium">Compare</h3>
             {isPinned ? (
               <div
                 className={`bg-surface-card rounded-xl border p-4 shadow-[var(--shadow-card)] transition-colors ${isDragOver ? "border-accent" : "border-border-hairline"}`}
@@ -492,53 +585,43 @@ function EasingCuratorInner() {
                   <div className="flex items-start gap-2">
                     <span className="mt-0.5 size-2.5 shrink-0 rounded-full bg-[var(--accent)]" />
                     <div className="flex min-w-0 flex-col gap-0.5">
-                      <span className="bg-accent/10 text-accent w-fit rounded px-1 py-0.5 font-mono text-[10px] leading-none">
-                        {state.mode === "spring" ? "spring" : "bezier"}
-                      </span>
-                      <span className="text-text-muted truncate font-mono text-xs">
+                      <span className="bg-accent/10 text-accent w-fit truncate rounded px-1 py-0.5 font-mono text-xs leading-none">
                         {state.activePreset ?? readout}
+                      </span>
+                      <span className="text-text-muted font-mono text-[10px]">
+                        {state.mode === "spring" ? "spring" : "bezier"}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="mt-0.5 size-2.5 shrink-0 rounded-full bg-[var(--accent-rose)]" />
                     <div className="flex min-w-0 flex-col gap-0.5">
-                      <span className="w-fit rounded bg-[var(--accent-rose)]/10 px-1 py-0.5 font-mono text-[10px] leading-none text-[var(--accent-rose)]">
-                        {state.pinnedSpringConfig ? "spring" : "bezier"}
-                      </span>
-                      <span className="text-text-muted truncate font-mono text-xs">
+                      <span className="w-fit truncate rounded bg-[var(--accent-rose)]/10 px-1 py-0.5 font-mono text-xs leading-none text-[var(--accent-rose)]">
                         {pinnedReadout}
+                      </span>
+                      <span className="text-text-muted font-mono text-[10px]">
+                        {state.pinnedSpringConfig ? "spring" : "bezier"}
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={handlePin}
-                className={`bg-surface-card flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border p-4 shadow-[var(--shadow-card)] font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] ${
+              <div
+                className={`rounded-xl border p-4 transition-colors ${
                   isDragOver
-                    ? "border-accent text-accent"
-                    : "border-border-hairline text-text-muted hover:border-accent hover:text-text-subtle border-dashed"
+                    ? "border-accent bg-accent/5"
+                    : "border-border-hairline border-dashed"
                 }`}
               >
-                {isDragOver ? (
-                  "Drop to compare"
-                ) : (
-                  <>
-                    <svg
-                      viewBox="0 0 16 16"
-                      className="size-3.5"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path d="M9.828 1.515a.5.5 0 0 1 .707 0l3.95 3.95a.5.5 0 0 1-.122.796l-2.678 1.339-.507.507 1.165 3.494a.5.5 0 0 1-.129.512L11.16 13.16a.5.5 0 0 1-.707 0L7.05 9.757l-3.464 3.464a.5.5 0 0 1-.707-.707L6.343 9.05 2.94 5.647a.5.5 0 0 1 0-.707l1.047-1.053a.5.5 0 0 1 .512-.129l3.494 1.165.507-.507L9.839 2.34l-.01-.118a.5.5 0 0 1 0-.707z" />
-                    </svg>
-                    Drag or pin a preset to compare
-                  </>
-                )}
-              </button>
+                <p
+                  className={`text-center font-mono text-xs ${isDragOver ? "text-accent" : "text-text-muted"}`}
+                >
+                  {isDragOver
+                    ? "Drop to compare"
+                    : "Pin or drag a preset to compare"}
+                </p>
+              </div>
             )}
           </div>
         </aside>
@@ -585,126 +668,138 @@ function EasingCuratorInner() {
 
             {/* Shared SVG canvas */}
             <div className="flex flex-col gap-4">
-              <svg
-                ref={svgRef}
-                viewBox={CURVE_VIEW_BOX}
-                className="relative z-10 w-full overflow-visible"
-                style={{ touchAction: "none" }}
-              >
-                <CurveCanvas
-                  curve={state.mode === "bezier" ? state.curve : undefined}
-                  samples={
-                    state.mode === "spring" ? springResult.samples : undefined
-                  }
-                  pinnedCurve={state.pinnedCurve}
-                  pinnedSamples={pinnedSpringResult?.samples ?? null}
-                  overlaySamples={overlaySamples}
-                  overlayType={state.overlay}
-                />
-                <g
-                  style={{
-                    opacity: state.editorPanel === "bezier" ? 1 : 0,
-                    transition: "opacity 150ms ease",
-                    pointerEvents:
-                      state.editorPanel === "bezier" ? "auto" : "none",
-                  }}
+              <div className="relative">
+                <svg
+                  ref={svgRef}
+                  viewBox={CURVE_VIEW_BOX}
+                  className="relative z-10 w-full overflow-visible"
+                  style={{ touchAction: "none" }}
                 >
-                  <line
-                    x1={0}
-                    y1={1}
-                    x2={state.curve.x1}
-                    y2={1 - state.curve.y1}
-                    stroke="var(--accent)"
-                    strokeWidth={0.006}
-                    opacity={0.4}
+                  <CurveCanvas
+                    curve={state.mode === "bezier" ? state.curve : undefined}
+                    samples={
+                      state.mode === "spring" ? springResult.samples : undefined
+                    }
+                    pinnedCurve={state.pinnedCurve}
+                    pinnedSamples={pinnedSpringResult?.samples ?? null}
+                    overlaySamples={overlaySamples}
+                    overlayType={state.overlay}
                   />
-                  <line
-                    x1={1}
-                    y1={0}
-                    x2={state.curve.x2}
-                    y2={1 - state.curve.y2}
-                    stroke="var(--accent-rose)"
-                    strokeWidth={0.006}
-                    opacity={0.4}
-                  />
-                  <DragHandle
-                    cx={state.curve.x1}
-                    cy={1 - state.curve.y1}
-                    label="Control point 1"
-                    color="var(--accent)"
-                    onDrag={handleP1Drag}
-                    svgRef={svgRef}
-                  />
-                  <DragHandle
-                    cx={state.curve.x2}
-                    cy={1 - state.curve.y2}
-                    label="Control point 2"
-                    color="var(--accent-rose)"
-                    onDrag={handleP2Drag}
-                    svgRef={svgRef}
-                  />
-                </g>
-              </svg>
+                  <g
+                    style={{
+                      opacity: state.editorPanel === "bezier" ? 1 : 0,
+                      transition: "opacity 150ms ease",
+                      pointerEvents:
+                        state.editorPanel === "bezier" ? "auto" : "none",
+                    }}
+                  >
+                    <line
+                      x1={0}
+                      y1={1}
+                      x2={state.curve.x1}
+                      y2={1 - state.curve.y1}
+                      stroke="var(--accent)"
+                      strokeWidth={0.006}
+                      opacity={0.4}
+                    />
+                    <line
+                      x1={1}
+                      y1={0}
+                      x2={state.curve.x2}
+                      y2={1 - state.curve.y2}
+                      stroke="var(--accent-rose)"
+                      strokeWidth={0.006}
+                      opacity={0.4}
+                    />
+                    <DragHandle
+                      cx={state.curve.x1}
+                      cy={1 - state.curve.y1}
+                      label="Control point 1"
+                      color="var(--accent)"
+                      onDrag={handleP1Drag}
+                      onDragStart={handleDragStart}
+                      onDragEnd={handleDragEnd}
+                      svgRef={svgRef}
+                    />
+                    <DragHandle
+                      cx={state.curve.x2}
+                      cy={1 - state.curve.y2}
+                      label="Control point 2"
+                      color="var(--accent-rose)"
+                      onDrag={handleP2Drag}
+                      onDragStart={handleDragStart}
+                      onDragEnd={handleDragEnd}
+                      svgRef={svgRef}
+                    />
+                  </g>
+                </svg>
+
+                {/* Derivative overlay toggles — floating on canvas */}
+                <div className="absolute top-2 right-2 z-20 flex gap-1">
+                  {(["velocity", "acceleration"] as const).map((ov) => {
+                    const active = state.overlay === ov;
+                    const color = OVERLAY_COLORS[ov];
+                    return (
+                      <button
+                        key={ov}
+                        type="button"
+                        onClick={() =>
+                          dispatch({
+                            type: "SET_OVERLAY",
+                            overlay: active ? "none" : ov,
+                          })
+                        }
+                        className={`cursor-pointer rounded-full px-2 py-0.5 font-mono text-[10px] leading-tight outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.95] ${
+                          active
+                            ? "font-medium"
+                            : "opacity-60 hover:opacity-100"
+                        }`}
+                        style={{
+                          backgroundColor: active
+                            ? `${color}26`
+                            : "var(--surface-card)",
+                          color: active ? color : "var(--text-muted)",
+                          border: `1px solid ${active ? color : "var(--border-hairline)"}`,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!active) {
+                            e.currentTarget.style.borderColor = color;
+                            e.currentTarget.style.color = color;
+                            e.currentTarget.style.opacity = "1";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!active) {
+                            e.currentTarget.style.borderColor = "";
+                            e.currentTarget.style.color = "";
+                            e.currentTarget.style.opacity = "";
+                          }
+                        }}
+                      >
+                        {ov === "velocity" ? "vel" : "accel"}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
               {/* Editor controls */}
               {state.editorPanel === "bezier" ? (
-                <BezierEditor curve={state.curve} dispatch={dispatch} />
+                <BezierEditor
+                  curve={state.curve}
+                  dispatch={dispatch}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                />
               ) : (
                 <SpringEditor
                   springConfig={state.springConfig}
                   settleMs={springResult.settleMs}
                   dispatch={dispatch}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
                 />
               )}
-            </div>
-
-            {/* Derivative overlay toggle */}
-            <div className="border-border-hairline mt-4 flex items-center gap-3 border-t pt-4">
-              <span className="text-text-muted text-xs font-medium">
-                Overlay
-              </span>
-              <div className="flex gap-1.5">
-                {(["velocity", "acceleration"] as const).map((ov) => {
-                  const active = state.overlay === ov;
-                  const color = OVERLAY_COLORS[ov];
-                  return (
-                    <button
-                      key={ov}
-                      type="button"
-                      onClick={() =>
-                        dispatch({
-                          type: "SET_OVERLAY",
-                          overlay: active ? "none" : ov,
-                        })
-                      }
-                      className={`cursor-pointer rounded-md border px-2.5 py-1 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97] ${
-                        active
-                          ? "border-transparent font-medium"
-                          : "border-border-hairline text-text-muted"
-                      }`}
-                      style={
-                        active
-                          ? { backgroundColor: `${color}26`, color }
-                          : undefined
-                      }
-                      onMouseEnter={(e) => {
-                        if (!active) {
-                          e.currentTarget.style.borderColor = color;
-                          e.currentTarget.style.color = color;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!active) {
-                          e.currentTarget.style.borderColor = "";
-                          e.currentTarget.style.color = "";
-                        }
-                      }}
-                    >
-                      {ov}
-                    </button>
-                  );
-                })}
-              </div>
             </div>
           </div>
 

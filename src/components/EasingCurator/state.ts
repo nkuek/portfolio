@@ -11,6 +11,7 @@ export type EasingState = {
   curve: BezierCurve;
   duration: number;
   activePreset: string | null;
+  lastPreset: string | null;
   pinnedCurve: BezierCurve | null;
   pinnedPresetName: string | null;
   springConfig: SpringConfig;
@@ -37,12 +38,23 @@ export type EasingAction =
   | { type: "UNPIN_SPRING" }
   | { type: "SET_OVERLAY"; overlay: OverlayType };
 
+/** Actions that should NOT be recorded in undo history (UI-only state) */
+export const NON_UNDOABLE: Set<EasingAction["type"]> = new Set([
+  "SET_MODE",
+  "SET_OVERLAY",
+  "PIN_CURVE",
+  "UNPIN_CURVE",
+  "PIN_SPRING",
+  "UNPIN_SPRING",
+]);
+
 export const initialState: EasingState = {
   mode: "bezier",
   editorPanel: "bezier",
   curve: DEFAULT_CURVE,
   duration: DEFAULT_DURATION,
   activePreset: "spring",
+  lastPreset: "spring",
   pinnedCurve: null,
   pinnedPresetName: null,
   springConfig: DEFAULT_SPRING_CONFIG,
@@ -57,7 +69,12 @@ export function easingReducer(
 ): EasingState {
   switch (action.type) {
     case "SET_MODE":
-      return { ...state, editorPanel: action.mode };
+      return {
+        ...state,
+        editorPanel: action.mode,
+        // Clear lastPreset when switching modes (a spring preset doesn't apply in bezier mode)
+        lastPreset: action.mode !== state.mode ? null : state.lastPreset,
+      };
     case "SET_CURVE":
       return {
         ...state,
@@ -74,15 +91,19 @@ export function easingReducer(
     }
     case "SET_DURATION":
       return { ...state, duration: action.duration };
-    case "SELECT_PRESET":
+    case "SELECT_PRESET": {
+      const clearPin = state.pinnedPresetName === action.name;
       return {
         ...state,
         mode: "bezier",
         editorPanel: "bezier",
         curve: action.curve,
         activePreset: action.name,
+        lastPreset: action.name,
         duration: DEFAULT_DURATION,
+        ...(clearPin && { pinnedCurve: null, pinnedPresetName: null }),
       };
+    }
     case "PIN_CURVE":
       return {
         ...state,
@@ -101,15 +122,22 @@ export function easingReducer(
         activePreset: null,
         mode: "spring",
       };
-    case "SELECT_SPRING_PRESET":
+    case "SELECT_SPRING_PRESET": {
+      const clearPin = state.pinnedSpringPresetName === action.name;
       return {
         ...state,
         mode: "spring",
         editorPanel: "spring",
         springConfig: { ...action.config },
         activePreset: action.name,
+        lastPreset: action.name,
         duration: DEFAULT_DURATION,
+        ...(clearPin && {
+          pinnedSpringConfig: null,
+          pinnedSpringPresetName: null,
+        }),
       };
+    }
     case "PIN_SPRING":
       return {
         ...state,

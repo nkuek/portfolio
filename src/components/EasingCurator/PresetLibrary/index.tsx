@@ -10,6 +10,7 @@ import type { SpringPresetEntry } from "../spring";
 type PresetLibraryProps = {
   editorPanel: EditorMode;
   activePreset: string | null;
+  lastPreset: string | null;
   pinnedPresetName: string | null;
   pinnedSpringPresetName: string | null;
   dispatch: React.Dispatch<EasingAction>;
@@ -103,7 +104,12 @@ function MiniSpringCurve({ samples }: { samples: number[] }) {
 }
 
 const PIN_ICON = (
-  <svg viewBox="0 0 16 16" className="size-3" fill="currentColor" aria-hidden="true">
+  <svg
+    viewBox="0 0 16 16"
+    className="size-3"
+    fill="currentColor"
+    aria-hidden="true"
+  >
     <path d="M9.828 1.515a.5.5 0 0 1 .707 0l3.95 3.95a.5.5 0 0 1-.122.796l-2.678 1.339-.507.507 1.165 3.494a.5.5 0 0 1-.129.512L11.16 13.16a.5.5 0 0 1-.707 0L7.05 9.757l-3.464 3.464a.5.5 0 0 1-.707-.707L6.343 9.05 2.94 5.647a.5.5 0 0 1 0-.707l1.047-1.053a.5.5 0 0 1 .512-.129l3.494 1.165.507-.507L9.839 2.34l-.01-.118a.5.5 0 0 1 0-.707z" />
   </svg>
 );
@@ -121,10 +127,12 @@ const CATEGORIES = PRESETS.reduce<Record<string, typeof PRESETS>>(
 export default function PresetLibrary({
   editorPanel,
   activePreset,
+  lastPreset,
   pinnedPresetName,
   pinnedSpringPresetName,
   dispatch,
 }: PresetLibraryProps) {
+  const isModified = lastPreset !== null && activePreset === null;
   const [activeCategory, setActiveCategory] = useState<PresetCategory>(() => {
     if (activePreset) {
       if (SPRING_PRESETS.some((p) => p.name === activePreset)) return "spring";
@@ -195,6 +203,7 @@ export default function PresetLibrary({
                 key={preset.name}
                 preset={preset}
                 isActive={activePreset === preset.name}
+                isLast={isModified && lastPreset === preset.name}
                 isPinned={pinnedSpringPresetName === preset.name}
                 dispatch={dispatch}
               />
@@ -202,12 +211,10 @@ export default function PresetLibrary({
           : presets.map((preset) => {
               const isActive = activePreset === preset.name;
               const isPinned = pinnedPresetName === preset.name;
+              const isLast = isModified && lastPreset === preset.name;
 
               return (
-                <div
-                  key={preset.name}
-                  className="flex min-w-0 items-center gap-1"
-                >
+                <div key={preset.name} className="group relative min-w-0">
                   <button
                     type="button"
                     draggable
@@ -229,15 +236,30 @@ export default function PresetLibrary({
                       );
                       e.dataTransfer.effectAllowed = "copy";
                     }}
-                    className={`flex min-w-0 flex-1 items-center gap-1.5 rounded-md border px-2 py-1.5 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] ${
+                    className={`flex w-full items-center gap-1.5 rounded-md border px-2 py-1.5 pr-8 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] ${
                       isActive
                         ? "border-accent bg-accent text-white"
-                        : "border-border-hairline bg-surface-card text-text-subtle hover:border-accent cursor-pointer"
+                        : isLast
+                          ? "bg-surface-card text-text-subtle hover:border-accent cursor-pointer border-amber-400/60"
+                          : isPinned
+                            ? "text-text-subtle hover:border-accent cursor-pointer border-[var(--accent-rose)]/50 bg-[var(--accent-rose)]/10"
+                            : "border-border-hairline bg-surface-card text-text-subtle hover:border-accent cursor-pointer"
                     }`}
                     aria-pressed={isActive}
                   >
+                    {isLast && (
+                      <span
+                        aria-hidden="true"
+                        className="size-1.5 shrink-0 rounded-full bg-amber-400"
+                      />
+                    )}
                     <MiniCurve curve={preset.curve} />
                     <span className="truncate">{preset.name}</span>
+                    {isLast && (
+                      <span className="text-text-muted text-[10px] font-normal">
+                        (modified)
+                      </span>
+                    )}
                   </button>
                   <button
                     type="button"
@@ -256,10 +278,12 @@ export default function PresetLibrary({
                       isPinned ? "Unpin" : `Pin ${preset.name} for comparison`
                     }
                     aria-pressed={isPinned}
-                    className={`flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md border outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.93] ${
-                      isPinned
-                        ? "border-accent-rose bg-accent-rose text-white"
-                        : "border-border-hairline text-text-muted hover:border-accent-rose hover:text-accent-rose"
+                    className={`absolute top-1/2 right-1 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded transition-all focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.9] ${
+                      isActive
+                        ? "pointer-events-none opacity-0"
+                        : isPinned
+                          ? "text-[var(--accent-rose)]"
+                          : "text-text-muted opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 hover:text-[var(--accent-rose)]"
                     }`}
                   >
                     {PIN_ICON}
@@ -275,18 +299,20 @@ export default function PresetLibrary({
 function SpringPresetButton({
   preset,
   isActive,
+  isLast,
   isPinned,
   dispatch,
 }: {
   preset: SpringPresetEntry;
   isActive: boolean;
+  isLast: boolean;
   isPinned: boolean;
   dispatch: React.Dispatch<EasingAction>;
 }) {
   const samples = SPRING_PRESET_SAMPLES.get(preset.name) ?? [];
 
   return (
-    <div className="flex min-w-0 items-center gap-1">
+    <div className="group relative min-w-0">
       <button
         type="button"
         draggable
@@ -308,15 +334,30 @@ function SpringPresetButton({
           );
           e.dataTransfer.effectAllowed = "copy";
         }}
-        className={`flex min-w-0 flex-1 items-center gap-1.5 rounded-md border px-2 py-1.5 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] ${
+        className={`flex w-full items-center gap-1.5 rounded-md border px-2 py-1.5 pr-8 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] ${
           isActive
             ? "border-accent bg-accent text-white"
-            : "border-border-hairline bg-surface-card text-text-subtle hover:border-accent cursor-pointer"
+            : isLast
+              ? "bg-surface-card text-text-subtle hover:border-accent cursor-pointer border-amber-400/60"
+              : isPinned
+                ? "text-text-subtle hover:border-accent cursor-pointer border-[var(--accent-rose)]/50 bg-[var(--accent-rose)]/10"
+                : "border-border-hairline bg-surface-card text-text-subtle hover:border-accent cursor-pointer"
         }`}
         aria-pressed={isActive}
       >
+        {isLast && (
+          <span
+            aria-hidden="true"
+            className="size-1.5 shrink-0 rounded-full bg-amber-400"
+          />
+        )}
         <MiniSpringCurve samples={samples} />
         <span className="truncate">{preset.name}</span>
+        {isLast && (
+          <span className="text-text-muted text-[10px] font-normal">
+            (modified)
+          </span>
+        )}
       </button>
       <button
         type="button"
@@ -333,10 +374,12 @@ function SpringPresetButton({
         }
         aria-label={isPinned ? "Unpin" : `Pin ${preset.name} for comparison`}
         aria-pressed={isPinned}
-        className={`flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md border outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.93] ${
-          isPinned
-            ? "border-accent-rose bg-accent-rose text-white"
-            : "border-border-hairline text-text-muted hover:border-accent-rose hover:text-accent-rose"
+        className={`absolute top-1/2 right-1 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded transition-all focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.9] ${
+          isActive
+            ? "pointer-events-none opacity-0"
+            : isPinned
+              ? "text-[var(--accent-rose)]"
+              : "text-text-muted opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 hover:text-[var(--accent-rose)]"
         }`}
       >
         {PIN_ICON}
