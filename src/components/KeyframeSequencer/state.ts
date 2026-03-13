@@ -158,7 +158,7 @@ export function createInitialState(): KeyframeSequencerState {
       {
         id: kf0Id,
         offset: 0,
-        properties: { ...DEFAULT_PROPERTIES },
+        properties: { ...DEFAULT_PROPERTIES, opacity: 0 },
         mask: { ...DEFAULT_MASK },
       },
       {

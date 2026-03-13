@@ -47,14 +47,19 @@ const FILL_LONG: Record<string, FillMode> = {
   bo: "both",
 };
 
-const PROPERTY_KEYS: Array<keyof KeyframeProperty> = [
-  "translateX",
-  "translateY",
-  "scale",
-  "rotate",
-  "opacity",
-  "backgroundColor",
-];
+/** Short keys for encoding individual properties. */
+const PROP_SHORT: Record<keyof KeyframeProperty, string> = {
+  translateX: "tX",
+  translateY: "tY",
+  scale: "s",
+  rotate: "r",
+  opacity: "o",
+  backgroundColor: "bg",
+};
+
+const PROP_LONG: Record<string, keyof KeyframeProperty> = Object.fromEntries(
+  Object.entries(PROP_SHORT).map(([k, v]) => [v, k as keyof KeyframeProperty]),
+);
 
 function easingToName(cssValue: string): string {
   for (const [name, value] of Object.entries(EASING_PRESETS)) {
@@ -67,39 +72,54 @@ function nameToEasing(name: string): string {
   return EASING_PRESETS[name] ?? name;
 }
 
+/** Encode a color for URL: strip leading # */
+function encodeColor(color: string): string {
+  return color.startsWith("#") ? color.slice(1) : color;
+}
+
+/** Decode a color from URL: re-add # */
+function decodeColor(encoded: string): string {
+  return encoded.startsWith("#") ? encoded : `#${encoded}`;
+}
+
+function formatNum(v: number): string {
+  return String(Math.round(v * 100) / 100);
+}
+
+/**
+ * Encode a keyframe as `offset:key=val,key=val,...`
+ * Only masked (active) properties that differ from defaults are included.
+ */
 function encodeKeyframe(kf: KeyframeStop): string {
-  const values = PROPERTY_KEYS.map((key) => {
-    const v = kf.properties[key];
-    return typeof v === "number" ? String(Math.round(v * 100) / 100) : v;
-  }).join(",");
+  const parts: string[] = [];
 
-  const maskBits = PROPERTY_KEYS.map((key) => (kf.mask[key] ? "1" : "0")).join(
-    "",
-  );
+  for (const [prop, short] of Object.entries(PROP_SHORT)) {
+    const key = prop as keyof KeyframeProperty;
+    if (!kf.mask[key]) continue;
 
-  return `${kf.offset}:${values}:${maskBits}`;
+    const val = kf.properties[key];
+    if (key === "backgroundColor") {
+      parts.push(`${short}=${encodeColor(val as string)}`);
+    } else {
+      parts.push(`${short}=${formatNum(val as number)}`);
+    }
+  }
+
+  return `${kf.offset}:${parts.join(",")}`;
 }
 
 function decodeKeyframe(encoded: string): KeyframeStop | null {
-  const parts = encoded.split(":");
-  if (parts.length !== 3) return null;
+  const colonIdx = encoded.indexOf(":");
+  if (colonIdx === -1) return null;
 
-  const offsetStr = parts[0];
-  const valuesStr = parts[1];
-  const maskStr = parts[2];
-
-  if (!offsetStr || !valuesStr || !maskStr) return null;
+  const offsetStr = encoded.slice(0, colonIdx);
+  const propsStr = encoded.slice(colonIdx + 1);
 
   const offset = Number(offsetStr);
   if (Number.isNaN(offset)) return null;
 
-  const values = valuesStr.split(",");
-  if (values.length !== 6) return null;
-
-  if (maskStr.length !== 6) return null;
-
   const properties: KeyframeProperty = { ...DEFAULT_PROPERTIES };
-  const maskObj: PropertyMask = {
+  const mask: PropertyMask = {
     translateX: false,
     translateY: false,
     scale: false,
@@ -108,28 +128,31 @@ function decodeKeyframe(encoded: string): KeyframeStop | null {
     backgroundColor: false,
   };
 
-  for (let i = 0; i < PROPERTY_KEYS.length; i++) {
-    const key = PROPERTY_KEYS[i];
-    const raw = values[i];
-    if (!key || raw === undefined) return null;
+  // Empty props string means all defaults with no mask
+  if (propsStr) {
+    const pairs = propsStr.split(",");
+    for (const pair of pairs) {
+      const eqIdx = pair.indexOf("=");
+      if (eqIdx === -1) continue;
 
-    if (key === "backgroundColor") {
-      properties[key] = raw;
-    } else {
-      const num = Number(raw);
-      if (Number.isNaN(num)) return null;
-      properties[key] = num;
+      const short = pair.slice(0, eqIdx);
+      const rawVal = pair.slice(eqIdx + 1);
+      const propKey = PROP_LONG[short];
+      if (!propKey) continue;
+
+      mask[propKey] = true;
+
+      if (propKey === "backgroundColor") {
+        properties[propKey] = decodeColor(rawVal);
+      } else {
+        const num = Number(rawVal);
+        if (Number.isNaN(num)) return null;
+        properties[propKey] = num;
+      }
     }
-
-    maskObj[key] = maskStr[i] === "1";
   }
 
-  return {
-    id: crypto.randomUUID(),
-    offset,
-    properties,
-    mask: maskObj,
-  };
+  return { id: crypto.randomUUID(), offset, properties, mask };
 }
 
 export function encodeState(state: UrlState): string {
@@ -143,9 +166,7 @@ export function encodeState(state: UrlState): string {
 
   const kfParts = state.keyframes.map(encodeKeyframe);
 
-  const easingNames = state.segmentEasings.map((se) =>
-    easingToName(se.easing),
-  );
+  const easingNames = state.segmentEasings.map((se) => easingToName(se.easing));
   const easingsPart = `e:${easingNames.join(",")}`;
 
   return [header, ...kfParts, easingsPart].join("|");
