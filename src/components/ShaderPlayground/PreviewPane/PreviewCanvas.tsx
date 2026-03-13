@@ -14,6 +14,9 @@ type PreviewCanvasProps = {
   playback: "playing" | "paused";
   speed: number;
   resetCounter: number;
+  seekTimeRef: React.RefObject<number | null>;
+  invalidateRef: React.RefObject<(() => void) | null>;
+  isFullscreen: boolean;
   dispatch: React.Dispatch<ShaderAction>;
   onTimeUpdate: (time: number) => void;
 };
@@ -26,6 +29,9 @@ export default function PreviewCanvas({
   playback,
   speed,
   resetCounter,
+  seekTimeRef,
+  invalidateRef,
+  isFullscreen,
   dispatch,
   onTimeUpdate,
 }: PreviewCanvasProps) {
@@ -44,7 +50,11 @@ export default function PreviewCanvas({
 
   return (
     <div
-      className="aspect-square max-h-[min(100vw,600px)] w-full overflow-hidden"
+      className={
+        isFullscreen
+          ? "h-screen w-screen overflow-hidden"
+          : "aspect-square max-h-[min(100vw,600px)] w-full overflow-hidden"
+      }
       role="img"
       aria-label="Shader preview"
       onPointerMove={handlePointerMove}
@@ -77,6 +87,8 @@ export default function PreviewCanvas({
           speed={speed}
           resetCounter={resetCounter}
           mouse={mouse}
+          seekTimeRef={seekTimeRef}
+          invalidateRef={invalidateRef}
           dispatch={dispatch}
           onTimeUpdate={onTimeUpdate}
         />

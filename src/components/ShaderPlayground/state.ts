@@ -4,6 +4,7 @@ import { DEFAULT_FRAGMENT_SHADER, SHADER_GUIDE_COMMENT } from "./constants";
 export type ShaderState = {
   code: string;
   activePreset: string | null;
+  lastPreset: string | null;
   lastValidCode: string;
   errors: ShaderError[];
   playback: "playing" | "paused";
@@ -22,9 +23,19 @@ export type ShaderAction =
   | { type: "RESET_TIME" }
   | { type: "SET_UNIFORM"; name: string; value: number[] };
 
+/** Actions that should NOT be recorded in undo history (UI-only state) */
+export const NON_UNDOABLE: Set<ShaderAction["type"]> = new Set([
+  "SET_PLAYBACK",
+  "SET_SPEED",
+  "RESET_TIME",
+  "COMPILATION_SUCCESS",
+  "SET_ERRORS",
+]);
+
 export const initialState: ShaderState = {
   code: DEFAULT_FRAGMENT_SHADER,
   activePreset: "UV Gradient",
+  lastPreset: "UV Gradient",
   lastValidCode: DEFAULT_FRAGMENT_SHADER,
   errors: [],
   playback: "playing",
@@ -47,6 +58,7 @@ export function shaderReducer(
         code,
         lastValidCode: code,
         activePreset: action.name,
+        lastPreset: action.name,
         errors: [],
         customUniforms: {},
         speed: 1,

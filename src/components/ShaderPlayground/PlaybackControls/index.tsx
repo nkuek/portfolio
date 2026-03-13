@@ -1,13 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { SPEED_OPTIONS } from "../constants";
+import { MAX_TIME, SPEED_OPTIONS } from "../constants";
 import type { ShaderAction } from "../state";
 
 type PlaybackControlsProps = {
   playback: "playing" | "paused";
   speed: number;
   timeRef: React.RefObject<number>;
+  seekTimeRef: React.RefObject<number | null>;
+  invalidateRef: React.RefObject<(() => void) | null>;
   dispatch: React.Dispatch<ShaderAction>;
 };
 
@@ -15,17 +17,25 @@ export default function PlaybackControls({
   playback,
   speed,
   timeRef,
+  seekTimeRef,
+  invalidateRef,
   dispatch,
 }: PlaybackControlsProps) {
   const displayRef = useRef<HTMLSpanElement>(null);
+  const scrubberRef = useRef<HTMLInputElement>(null);
   const rafRef = useRef<number>(0);
+  const wasPlayingRef = useRef(false);
+  const isScrubbing = useRef(false);
 
-  // Update time display via direct DOM writes to avoid 60fps re-renders
+  // Update time display and scrubber via direct DOM writes
   useEffect(() => {
     const tick = () => {
+      const t = timeRef.current ?? 0;
       if (displayRef.current) {
-        const t = timeRef.current ?? 0;
         displayRef.current.textContent = `${t.toFixed(1)}s`;
+      }
+      if (scrubberRef.current && !isScrubbing.current) {
+        scrubberRef.current.value = String(t);
       }
       rafRef.current = requestAnimationFrame(tick);
     };
@@ -51,88 +61,131 @@ export default function PlaybackControls({
     [dispatch],
   );
 
+  const handleScrubInput = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      isScrubbing.current = true;
+      const t = parseFloat(e.target.value);
+      (seekTimeRef as React.MutableRefObject<number | null>).current = t;
+      // Kick one R3F frame so the canvas renders at the new time
+      invalidateRef.current?.();
+    },
+    [seekTimeRef, invalidateRef],
+  );
+
+  const handleScrubStart = useCallback(() => {
+    isScrubbing.current = true;
+    wasPlayingRef.current = playback === "playing";
+    if (playback === "playing") {
+      dispatch({ type: "SET_PLAYBACK", playback: "paused" });
+    }
+  }, [playback, dispatch]);
+
+  const handleScrubEnd = useCallback(() => {
+    isScrubbing.current = false;
+    if (wasPlayingRef.current) {
+      dispatch({ type: "SET_PLAYBACK", playback: "playing" });
+    }
+  }, [dispatch]);
+
   const isPlaying = playback === "playing";
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {/* Play / Pause */}
-      <button
-        type="button"
-        onClick={togglePlayback}
-        aria-label={isPlaying ? "Pause shader" : "Play shader"}
-        className="group border-border-hairline text-text-muted hover:border-accent hover:text-accent flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97]"
-      >
-        {isPlaying ? (
-          <svg
-            viewBox="0 0 16 16"
-            className="peer size-3.5"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path d="M3 1h3v14H3zM10 1h3v14h-3z" />
-          </svg>
-        ) : (
-          <svg
-            viewBox="0 0 16 16"
-            className="peer size-3.5"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path d="M4 2l10 6-10 6V2z" />
-          </svg>
-        )}
-      </button>
+    <div className="flex flex-col gap-2">
+      {/* Time scrubber */}
+      <input
+        ref={scrubberRef}
+        type="range"
+        min={0}
+        max={MAX_TIME}
+        step={0.1}
+        defaultValue={0}
+        aria-label="Scrub shader time"
+        className="accent-accent h-1.5 w-full cursor-pointer appearance-none rounded-full bg-[var(--border-hairline)] outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 [&::-webkit-slider-thumb]:size-3.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--accent)]"
+        onInput={handleScrubInput}
+        onPointerDown={handleScrubStart}
+        onPointerUp={handleScrubEnd}
+      />
 
-      {/* Reset */}
-      <button
-        type="button"
-        onClick={resetTime}
-        aria-label="Reset time"
-        className="group border-border-hairline text-text-muted hover:border-accent hover:text-accent flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97]"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          className="peer size-3.5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Play / Pause */}
+        <button
+          type="button"
+          onClick={togglePlayback}
+          aria-label={isPlaying ? "Pause shader" : "Play shader"}
+          className="group border-border-hairline text-text-muted hover:border-accent hover:text-accent flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97]"
         >
-          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-          <path d="M3 3v5h5" />
-        </svg>
-      </button>
+          {isPlaying ? (
+            <svg
+              viewBox="0 0 16 16"
+              className="peer size-3.5"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M3 1h3v14H3zM10 1h3v14h-3z" />
+            </svg>
+          ) : (
+            <svg
+              viewBox="0 0 16 16"
+              className="peer size-3.5"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M4 2l10 6-10 6V2z" />
+            </svg>
+          )}
+        </button>
 
-      {/* Speed buttons */}
-      <div className="flex gap-1" role="group" aria-label="Playback speed">
-        {SPEED_OPTIONS.map((s: number) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => setSpeed(s)}
-            aria-pressed={speed === s}
-            aria-label={`Playback speed ${s}x`}
-            className={`cursor-pointer rounded-md border px-2 py-1 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97] ${
-              speed === s
-                ? "border-accent bg-accent text-white"
-                : "border-border-hairline text-text-muted hover:border-accent"
-            }`}
+        {/* Reset */}
+        <button
+          type="button"
+          onClick={resetTime}
+          aria-label="Reset time"
+          className="group border-border-hairline text-text-muted hover:border-accent hover:text-accent flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97]"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="peer size-3.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
           >
-            {s}x
-          </button>
-        ))}
-      </div>
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+        </button>
 
-      {/* Time display */}
-      <span
-        ref={displayRef}
-        aria-label="Elapsed shader time"
-        className="text-text-muted ml-auto font-mono text-xs tabular-nums"
-      >
-        0.0s
-      </span>
+        {/* Speed buttons */}
+        <div className="flex gap-1" role="group" aria-label="Playback speed">
+          {SPEED_OPTIONS.map((s: number) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setSpeed(s)}
+              aria-pressed={speed === s}
+              aria-label={`Playback speed ${s}x`}
+              className={`cursor-pointer rounded-md border px-2 py-1 font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.97] ${
+                speed === s
+                  ? "border-accent bg-accent text-white"
+                  : "border-border-hairline text-text-muted hover:border-accent"
+              }`}
+            >
+              {s}x
+            </button>
+          ))}
+        </div>
+
+        {/* Time display */}
+        <span
+          ref={displayRef}
+          aria-label="Elapsed shader time"
+          className="text-text-muted ml-auto font-mono text-xs tabular-nums"
+        >
+          0.0s
+        </span>
+      </div>
     </div>
   );
 }

@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { DEFAULT_VERTEX_SHADER, FRAGMENT_TEST_PREAMBLE } from "../constants";
+import {
+  DEFAULT_VERTEX_SHADER,
+  FRAGMENT_TEST_PREAMBLE,
+  MAX_TIME,
+} from "../constants";
 import { parseShaderErrors } from "../glsl";
 import type { ShaderAction } from "../state";
 import type { CustomUniform } from "../types";
@@ -17,6 +21,8 @@ type ShaderQuadProps = {
   speed: number;
   resetCounter: number;
   mouse: { x: number; y: number };
+  seekTimeRef: React.RefObject<number | null>;
+  invalidateRef: React.RefObject<(() => void) | null>;
   dispatch: React.Dispatch<ShaderAction>;
   onTimeUpdate: (time: number) => void;
 };
@@ -96,13 +102,25 @@ export default function ShaderQuad({
   speed,
   resetCounter,
   mouse,
+  seekTimeRef,
+  invalidateRef,
   dispatch,
   onTimeUpdate,
 }: ShaderQuadProps) {
-  const { gl } = useThree();
+  const { gl, invalidate } = useThree();
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const timeRef = useRef(0);
   const prevResetRef = useRef(resetCounter);
+
+  // Expose R3F's invalidate so PlaybackControls can trigger frames during scrub
+  useEffect(() => {
+    (invalidateRef as React.MutableRefObject<(() => void) | null>).current =
+      invalidate;
+    return () => {
+      (invalidateRef as React.MutableRefObject<(() => void) | null>).current =
+        null;
+    };
+  }, [invalidate, invalidateRef]);
 
   // Stable key based on uniform structure — forces a clean remount of the
   // <shaderMaterial> only when custom uniform names/ranges actually change,
@@ -164,9 +182,19 @@ export default function ShaderQuad({
     const mat = materialRef.current;
     if (!mat) return;
 
-    // Advance time
-    if (playback === "playing") {
+    // Handle seek
+    const seekTime = seekTimeRef.current;
+    if (seekTime !== null) {
+      timeRef.current = seekTime;
+      (seekTimeRef as React.MutableRefObject<number | null>).current = null;
+      if (playback === "paused") {
+        invalidate();
+      }
+    } else if (playback === "playing") {
       timeRef.current += delta * speed;
+      if (timeRef.current >= MAX_TIME) {
+        timeRef.current %= MAX_TIME;
+      }
     }
     onTimeUpdate(timeRef.current);
 

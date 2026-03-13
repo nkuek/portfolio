@@ -47,3 +47,6 @@ export const CATEGORY_LABELS: Record<ShaderPresetCategory, string> = {
 };
 
 export const SPEED_OPTIONS = [0.25, 0.5, 1, 2] as const;
+
+/** Maximum shader time in seconds — time loops back to 0 at this value. */
+export const MAX_TIME = 60;

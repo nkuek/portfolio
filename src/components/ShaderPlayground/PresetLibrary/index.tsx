@@ -8,6 +8,7 @@ import { PRESETS } from "../presets";
 
 type PresetLibraryProps = {
   activePreset: string | null;
+  lastPreset: string | null;
   dispatch: React.Dispatch<ShaderAction>;
 };
 
@@ -20,10 +21,13 @@ function categoryForPreset(name: string | null): ShaderPresetCategory {
 
 export default function PresetLibrary({
   activePreset,
+  lastPreset,
   dispatch,
 }: PresetLibraryProps) {
-  const [activeCategory, setActiveCategory] =
-    useState<ShaderPresetCategory>(() => categoryForPreset(activePreset));
+  const isModified = lastPreset !== null && activePreset === null;
+  const [activeCategory, setActiveCategory] = useState<ShaderPresetCategory>(
+    () => categoryForPreset(activePreset),
+  );
   const containerRef = useRef<HTMLDivElement>(null);
   const [clipPath, setClipPath] = useState("inset(0 100% 0 0 round 9999px)");
 
@@ -112,28 +116,48 @@ export default function PresetLibrary({
 
       {/* Preset buttons */}
       <div className="flex flex-col gap-2">
-        {filteredPresets.map((preset) => (
-          <button
-            key={preset.name}
-            type="button"
-            onClick={() =>
-              dispatch({
-                type: "SELECT_PRESET",
-                name: preset.name,
-                code: preset.code,
-              })
-            }
-            aria-pressed={activePreset === preset.name}
-            className={`w-full cursor-pointer rounded-md border px-3 py-2 text-left font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${
-              activePreset === preset.name
-                ? "border-accent bg-accent/10 text-accent"
-                : "border-border-hairline text-text-subtle hover:border-accent"
-            }`}
-          >
-            <span className="block font-medium">{preset.name}</span>
-            <span className="text-text-muted block">{preset.description}</span>
-          </button>
-        ))}
+        {filteredPresets.map((preset) => {
+          const isLast = isModified && lastPreset === preset.name;
+          return (
+            <button
+              key={preset.name}
+              type="button"
+              onClick={() =>
+                dispatch({
+                  type: "SELECT_PRESET",
+                  name: preset.name,
+                  code: preset.code,
+                })
+              }
+              aria-pressed={activePreset === preset.name}
+              className={`w-full cursor-pointer rounded-md border px-3 py-2 text-left font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                activePreset === preset.name
+                  ? "border-accent bg-accent/10 text-accent"
+                  : isLast
+                    ? "text-text-subtle hover:border-accent border-amber-400/60"
+                    : "border-border-hairline text-text-subtle hover:border-accent"
+              }`}
+            >
+              <span className="flex items-center gap-1.5">
+                {isLast && (
+                  <span
+                    aria-hidden="true"
+                    className="size-1.5 shrink-0 rounded-full bg-amber-400"
+                  />
+                )}
+                <span className="font-medium">{preset.name}</span>
+                {isLast && (
+                  <span className="text-text-muted text-[10px] font-normal">
+                    (modified)
+                  </span>
+                )}
+              </span>
+              <span className="text-text-muted block">
+                {preset.description}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

@@ -5,8 +5,8 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useReducer,
   useRef,
+  useState,
 } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import ToolGuide, {
@@ -16,10 +16,14 @@ import ToolGuide, {
   GuideItem,
   Kbd,
 } from "~/components/ToolGuide";
-import { shaderReducer, initialState } from "./state";
+import useHistoryReducer from "~/hooks/useHistoryReducer";
+import cn from "~/utils/cn";
+import { shaderReducer, initialState, NON_UNDOABLE } from "./state";
 import type { ShaderState } from "./state";
 import { PRESETS } from "./presets";
+import { SHADER_GUIDE_COMMENT } from "./constants";
 import { parseCustomUniforms } from "./glsl";
+import { encodeShaderUrl, decodeShaderUrl } from "./url";
 import CodeEditor from "./CodeEditor";
 import PreviewPane from "./PreviewPane";
 import PlaybackControls from "./PlaybackControls";
@@ -34,6 +38,12 @@ function ShaderPlaygroundInner() {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const isInitRef = useRef(false);
   const timeRef = useRef(0);
+  const seekTimeRef = useRef<number | null>(null);
+  const invalidateRef = useRef<(() => void) | null>(null);
+  const scrollToLineRef = useRef<((line: number) => void) | null>(null);
+
+  // Track whether we need to decode a ?code= param asynchronously
+  const [pendingDecode, setPendingDecode] = useState<string | null>(null);
 
   // Lazy initial state from URL
   const getInitialState = useCallback((): ShaderState => {
@@ -46,18 +56,45 @@ function ShaderPlaygroundInner() {
           code: preset.code,
           lastValidCode: preset.code,
           activePreset: preset.name,
+          lastPreset: preset.name,
         };
       }
+    }
+    // Check for encoded shader state
+    const codeParam = searchParams.get("code");
+    if (codeParam) {
+      // Can't await in a lazy init — defer to useEffect
+      setPendingDecode(codeParam);
     }
     return initialState;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const [state, dispatch] = useReducer(
+  const [state, dispatch, { canUndo, canRedo }] = useHistoryReducer(
     shaderReducer,
-    undefined,
     getInitialState,
+    { nonUndoable: NON_UNDOABLE },
   );
+
+  // Keyboard shortcuts: Cmd/Ctrl+Z for undo, Cmd/Ctrl+Shift+Z for redo
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod || e.key.toLowerCase() !== "z") return;
+      // Don't capture when focused on a textarea (the code editor has its own behavior)
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+      e.preventDefault();
+      if (e.shiftKey) {
+        dispatch({ type: "REDO" });
+      } else {
+        dispatch({ type: "UNDO" });
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [dispatch]);
 
   // Auto-pause on prefers-reduced-motion
   const reducedMotion = useReducedMotion();
@@ -87,7 +124,30 @@ function ShaderPlaygroundInner() {
       document.removeEventListener("visibilitychange", handleVisibility);
   }, []);
 
-  // Debounced URL sync — only ?preset=name when a preset is active
+  // Decode ?code= param asynchronously on mount
+  useEffect(() => {
+    if (!pendingDecode) return;
+    let cancelled = false;
+    decodeShaderUrl(pendingDecode).then((decoded) => {
+      if (cancelled || !decoded) return;
+      const code = SHADER_GUIDE_COMMENT + "\n" + decoded.code;
+      dispatch({ type: "SET_CODE", code });
+      if (decoded.speed !== 1) {
+        dispatch({ type: "SET_SPEED", speed: decoded.speed });
+      }
+      for (const [name, value] of Object.entries(decoded.uniforms)) {
+        dispatch({ type: "SET_UNIFORM", name, value });
+      }
+      setPendingDecode(null);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Debounced URL sync
   useEffect(() => {
     if (!isInitRef.current) {
       isInitRef.current = true;
@@ -96,17 +156,36 @@ function ShaderPlaygroundInner() {
 
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      const params = new URLSearchParams();
       if (state.activePreset) {
+        // Simple preset URL
+        const params = new URLSearchParams();
         params.set("preset", state.activePreset);
+        router.replace(`?${params.toString()}`, { scroll: false });
+      } else {
+        // Encode full shader state
+        encodeShaderUrl(state.code, state.speed, state.customUniforms).then(
+          (encoded) => {
+            if (encoded.length > 1800) {
+              // Too long for URL — just clear params
+              router.replace(window.location.pathname, { scroll: false });
+              return;
+            }
+            const params = new URLSearchParams();
+            params.set("code", encoded);
+            router.replace(`?${params.toString()}`, { scroll: false });
+          },
+        );
       }
-      const qs = params.toString();
-      const url = qs ? `?${qs}` : window.location.pathname;
-      router.replace(url, { scroll: false });
-    }, 300);
+    }, 500);
 
     return () => clearTimeout(debounceRef.current);
-  }, [state.activePreset, router]);
+  }, [
+    state.activePreset,
+    state.code,
+    state.speed,
+    state.customUniforms,
+    router,
+  ]);
 
   // Code change handler
   const handleCodeChange = useCallback((code: string) => {
@@ -186,12 +265,69 @@ function ShaderPlaygroundInner() {
         </GuideGrid>
       </ToolGuide>
 
+      {/* Undo / Redo toolbar */}
+      <div className="mb-6 flex items-center gap-1.5">
+        <button
+          type="button"
+          aria-label="Undo"
+          disabled={!canUndo}
+          onClick={() => dispatch({ type: "UNDO" })}
+          className={cn(
+            "border-border-hairline bg-surface-card flex size-8 cursor-pointer items-center justify-center rounded-md border font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.93]",
+            canUndo
+              ? "text-text-subtle hover:border-accent hover:bg-accent hover:text-white"
+              : "text-text-muted cursor-not-allowed opacity-40",
+          )}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="size-3.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M9 14 4 9l5-5" />
+            <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          aria-label="Redo"
+          disabled={!canRedo}
+          onClick={() => dispatch({ type: "REDO" })}
+          className={cn(
+            "border-border-hairline bg-surface-card flex size-8 cursor-pointer items-center justify-center rounded-md border font-mono text-xs outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.93]",
+            canRedo
+              ? "text-text-subtle hover:border-accent hover:bg-accent hover:text-white"
+              : "text-text-muted cursor-not-allowed opacity-40",
+          )}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="size-3.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m15 14 5-5-5-5" />
+            <path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13" />
+          </svg>
+        </button>
+      </div>
+
       <div className="grid min-w-0 gap-6 lg:grid-cols-2 lg:gap-8">
         {/* Left column — Presets, Editor, Uniforms */}
         <div className="order-2 flex min-w-0 flex-col gap-6 lg:order-1">
           <div className="bg-surface-card border-border-hairline min-w-0 overflow-hidden rounded-xl border p-4 shadow-[var(--shadow-card)]">
             <PresetLibrary
               activePreset={state.activePreset}
+              lastPreset={state.lastPreset}
               dispatch={dispatch}
             />
           </div>
@@ -204,6 +340,7 @@ function ShaderPlaygroundInner() {
               code={state.code}
               onChange={handleCodeChange}
               errors={state.errors}
+              scrollToLineRef={scrollToLineRef}
             />
             <div
               className="mt-3 flex flex-col gap-1"
@@ -212,7 +349,16 @@ function ShaderPlaygroundInner() {
             >
               {state.errors.map((error, i) => (
                 <p key={i} className="font-mono text-xs text-red-500">
-                  {error.line !== null ? `Line ${error.line}: ` : ""}
+                  {error.line !== null ? (
+                    <button
+                      type="button"
+                      className="cursor-pointer underline decoration-red-500/40 hover:decoration-red-500 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-red-500"
+                      onClick={() => scrollToLineRef.current?.(error.line ?? 1)}
+                    >
+                      Line {error.line}:
+                    </button>
+                  ) : null}
+                  {error.line !== null ? " " : ""}
                   {error.message}
                 </p>
               ))}
@@ -246,6 +392,8 @@ function ShaderPlaygroundInner() {
                 playback={state.playback}
                 speed={state.speed}
                 resetCounter={state.resetCounter}
+                seekTimeRef={seekTimeRef}
+                invalidateRef={invalidateRef}
                 dispatch={dispatch}
                 onTimeUpdate={handleTimeUpdate}
               />
@@ -255,6 +403,8 @@ function ShaderPlaygroundInner() {
                 playback={state.playback}
                 speed={state.speed}
                 timeRef={timeRef}
+                seekTimeRef={seekTimeRef}
+                invalidateRef={invalidateRef}
                 dispatch={dispatch}
               />
             </div>

@@ -9,6 +9,7 @@ type CodeEditorProps = {
   code: string;
   onChange: (code: string) => void;
   errors: ShaderError[];
+  scrollToLineRef?: React.RefObject<((line: number) => void) | null>;
 };
 
 const GLSL_STYLES = `
@@ -33,10 +34,12 @@ export default function CodeEditor({
   code,
   onChange,
   errors,
+  scrollToLineRef,
 }: CodeEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const overlayRef = useRef<HTMLPreElement>(null);
   const gutterRef = useRef<HTMLDivElement>(null);
+  const errorHighlightRef = useRef<HTMLDivElement>(null);
 
   const lineCount = code.split("\n").length;
   const gutterWidth = `${Math.max(String(lineCount).length, 2) + 1}ch`;
@@ -64,12 +67,37 @@ export default function CodeEditor({
     if (gutter) {
       gutter.scrollTop = textarea.scrollTop;
     }
+    if (errorHighlightRef.current) {
+      errorHighlightRef.current.scrollTop = textarea.scrollTop;
+    }
   }, []);
 
   // Keep scroll in sync when code changes programmatically (e.g. preset selection)
   useEffect(() => {
     syncScroll();
   }, [code, syncScroll]);
+
+  // Register scroll-to-line function for click-to-jump errors
+  useEffect(() => {
+    if (!scrollToLineRef) return;
+    (
+      scrollToLineRef as React.MutableRefObject<((line: number) => void) | null>
+    ).current = (line: number) => {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+      // leading-6 = 24px per line
+      textarea.scrollTop = (line - 1) * 24;
+      textarea.focus();
+      syncScroll();
+    };
+    return () => {
+      (
+        scrollToLineRef as React.MutableRefObject<
+          ((line: number) => void) | null
+        >
+      ).current = null;
+    };
+  }, [scrollToLineRef]);
 
   const handleFormat = useCallback(() => {
     onChange(formatGLSL(code));
@@ -201,28 +229,22 @@ export default function CodeEditor({
         })}
       </div>
 
-      {/* Error line highlights */}
+      {/* Error line highlights — syncs scroll with textarea */}
       {errorLines.size > 0 && (
         <div
+          ref={errorHighlightRef}
           aria-hidden="true"
-          className="pointer-events-none absolute top-0 right-0 bottom-0 z-0"
+          className="pointer-events-none absolute top-0 right-0 bottom-0 z-0 overflow-hidden"
           style={{ left: gutterWidth }}
         >
-          <div className="relative py-3">
-            {Array.from({ length: lineCount }, (_, i) => {
-              const lineNum = i + 1;
-              if (!errorLines.has(lineNum)) return null;
-              return (
-                <div
-                  key={lineNum}
-                  className="absolute right-0 left-0 bg-red-500/10"
-                  style={{
-                    top: `calc(0.75rem + ${i} * 1.5rem)`,
-                    height: "1.5rem",
-                  }}
-                />
-              );
-            })}
+          <div className="py-3 leading-6">
+            {Array.from({ length: lineCount }, (_, i) => (
+              <div
+                key={i}
+                className={errorLines.has(i + 1) ? "bg-red-500/10" : undefined}
+                style={{ height: "1.5rem" }}
+              />
+            ))}
           </div>
         </div>
       )}
