@@ -1,18 +1,15 @@
 "use client";
 
-import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useReducer,
-  useRef,
-} from "react";
+import { Suspense, useCallback, useEffect, useReducer, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import {
-  initialState,
-  historyReducer,
-  createHistoryState,
-} from "./state";
+import ToolGuide, {
+  GuideGrid,
+  GuideSection,
+  GuideList,
+  GuideItem,
+  Kbd,
+} from "~/components/ToolGuide";
+import { initialState, historyReducer, createHistoryState } from "./state";
 import type { KeyframeSequencerState, HistoryAction } from "./state";
 import { encodeState, decodeState } from "./url";
 import cn from "~/utils/cn";
@@ -27,6 +24,12 @@ function KeyframeSequencerInner() {
   const router = useRouter();
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const isInitRef = useRef(false);
+  const progressRef = useRef(0);
+  const seekRef = useRef<((progress: number) => void) | null>(null);
+
+  const handleProgress = useCallback((progress: number) => {
+    progressRef.current = progress;
+  }, []);
 
   const getInitialHistory = useCallback(() => {
     const encoded = searchParams.get("s");
@@ -81,6 +84,26 @@ function KeyframeSequencerInner() {
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  // Pause when tab is hidden, resume when visible
+  const playbackRef = useRef(state.playback);
+  playbackRef.current = state.playback;
+  const wasPlayingRef = useRef(false);
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden) {
+        wasPlayingRef.current = playbackRef.current === "playing";
+        if (wasPlayingRef.current) {
+          dispatch({ type: "SET_PLAYBACK", playback: "paused" });
+        }
+      } else if (wasPlayingRef.current) {
+        dispatch({ type: "SET_PLAYBACK", playback: "playing" });
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibility);
   }, []);
 
   // Sync state to URL (debounced 300ms)
@@ -157,7 +180,7 @@ function KeyframeSequencerInner() {
             dispatch({ type: "SET_ANIMATION_NAME", name: e.target.value })
           }
           spellCheck={false}
-          className="border-border-hairline bg-surface-card-alt text-text min-w-0 flex-1 rounded-md border px-3 py-1.5 font-mono text-sm outline-[var(--accent)] sm:max-w-48 focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="border-border-hairline bg-surface-card-alt text-text min-w-0 flex-1 rounded-md border px-3 py-1.5 font-mono text-sm outline-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 sm:max-w-48"
         />
 
         <div className="flex items-center gap-1.5">
@@ -236,12 +259,79 @@ function KeyframeSequencerInner() {
         </div>
       </div>
 
+      <ToolGuide>
+        <GuideGrid>
+          <GuideSection title="Timeline">
+            <GuideList>
+              <GuideItem>Click + to add a keyframe</GuideItem>
+              <GuideItem>Drag markers to reposition</GuideItem>
+              <GuideItem>
+                <Kbd>Arrow keys</Kbd> nudge by 1% (<Kbd>Shift</Kbd> for 5%)
+              </GuideItem>
+              <GuideItem>
+                <Kbd>Delete</Kbd> / <Kbd>Backspace</Kbd> remove keyframe
+              </GuideItem>
+            </GuideList>
+          </GuideSection>
+          <GuideSection title="Properties">
+            <GuideList>
+              <GuideItem>Select a keyframe to edit its properties</GuideItem>
+              <GuideItem>
+                Toggle checkboxes to include/exclude from animation
+              </GuideItem>
+              <GuideItem>
+                Duplicate or delete from the property editor
+              </GuideItem>
+            </GuideList>
+          </GuideSection>
+          <GuideSection title="Easing">
+            <GuideList>
+              <GuideItem>
+                Click curve between markers to change easing
+              </GuideItem>
+              <GuideItem>
+                Paste a custom{" "}
+                <code className="text-accent font-mono text-[11px]">
+                  cubic-bezier()
+                </code>{" "}
+                or use a preset
+              </GuideItem>
+            </GuideList>
+          </GuideSection>
+          <GuideSection title="Preview & Export">
+            <GuideList>
+              <GuideItem>Play/pause preview, scrub the timeline</GuideItem>
+              <GuideItem>Choose shape, direction, and fill mode</GuideItem>
+              <GuideItem>
+                Export as CSS, Tailwind v4, or Framer Motion
+              </GuideItem>
+              <GuideItem>Click exported code to select all</GuideItem>
+            </GuideList>
+          </GuideSection>
+        </GuideGrid>
+        <div className="border-border-hairline mt-3 border-t pt-3">
+          <GuideSection title="Shortcuts">
+            <div className="text-text-muted flex flex-wrap gap-x-6 gap-y-1 font-mono text-xs">
+              <span>
+                <Kbd>Cmd/Ctrl</Kbd> + <Kbd>Z</Kbd> Undo
+              </span>
+              <span>
+                <Kbd>Cmd/Ctrl</Kbd> + <Kbd>Shift</Kbd> + <Kbd>Z</Kbd> Redo
+              </span>
+            </div>
+          </GuideSection>
+        </div>
+      </ToolGuide>
+
       {/* Timeline — full width */}
       <div className="mb-6">
         <Timeline
           keyframes={state.keyframes}
           segmentEasings={state.segmentEasings}
           selectedKeyframeId={state.selectedKeyframeId}
+          progressRef={progressRef}
+          seekRef={seekRef}
+          playback={state.playback}
           dispatch={childDispatch}
         />
       </div>
@@ -278,6 +368,8 @@ function KeyframeSequencerInner() {
               previewShape={state.previewShape}
               playback={state.playback}
               dispatch={childDispatch}
+              onProgress={handleProgress}
+              seekRef={seekRef}
             />
           </div>
           <div className="bg-surface-card border-border-hairline min-w-0 overflow-hidden rounded-xl border p-4 shadow-[var(--shadow-card)]">

@@ -11,6 +11,7 @@ type KeyframeMarkerProps = {
   trackRef: React.RefObject<HTMLDivElement | null>;
   onSelect: () => void;
   onDrag: (offset: number) => void;
+  onDelete: () => void;
 };
 
 export default function KeyframeMarker({
@@ -20,19 +21,18 @@ export default function KeyframeMarker({
   trackRef,
   onSelect,
   onDrag,
+  onDelete,
 }: KeyframeMarkerProps) {
-  const markerRef = useRef<HTMLDivElement>(null);
+  const markerRef = useRef<HTMLButtonElement>(null);
   const [hovered, setHovered] = useState(false);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      if (isEndpoint) {
-        onSelect();
-        return;
-      }
+      // Endpoints can't be dragged
+      if (isEndpoint) return;
 
       e.preventDefault();
-      onSelect();
+      markerRef.current?.focus();
 
       const marker = markerRef.current;
       const track = trackRef.current;
@@ -58,11 +58,19 @@ export default function KeyframeMarker({
       marker.addEventListener("pointerup", cleanup);
       marker.addEventListener("pointercancel", cleanup);
     },
-    [isEndpoint, onSelect, onDrag, trackRef],
+    [isEndpoint, onDrag, trackRef],
   );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      if (e.key === "Delete" || e.key === "Backspace") {
+        if (!isEndpoint) {
+          e.preventDefault();
+          onDelete();
+        }
+        return;
+      }
+
       if (isEndpoint) return;
 
       const step = e.shiftKey ? 5 : 1;
@@ -83,21 +91,17 @@ export default function KeyframeMarker({
 
       onDrag(newOffset);
     },
-    [isEndpoint, keyframe.offset, onDrag],
+    [isEndpoint, keyframe.offset, onDrag, onDelete],
   );
 
   const showLabel = isSelected || hovered;
 
   return (
-    <div
+    <button
       ref={markerRef}
-      role="slider"
-      tabIndex={0}
+      type="button"
       aria-label={`Keyframe at ${keyframe.offset}%`}
-      aria-valuenow={keyframe.offset}
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuetext={`${keyframe.offset}%`}
+      aria-pressed={isSelected}
       className={cn(
         "absolute top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 outline-none",
         !isEndpoint && "cursor-grab active:cursor-grabbing",
@@ -107,6 +111,7 @@ export default function KeyframeMarker({
         left: `${keyframe.offset}%`,
         touchAction: "none",
       }}
+      onClick={onSelect}
       onPointerDown={handlePointerDown}
       onKeyDown={handleKeyDown}
       onPointerEnter={() => setHovered(true)}
@@ -115,27 +120,40 @@ export default function KeyframeMarker({
       {/* Hit target for WCAG 2.5.8 */}
       <span className="before:absolute before:-inset-3" aria-hidden="true" />
 
-      {/* Marker dot */}
-      <div
-        className={cn(
-          "size-4 rounded-full border-2 transition-all duration-150",
-          isSelected &&
-            !isEndpoint &&
-            "border-accent bg-accent scale-125 shadow-[0_0_0_3px_var(--accent)/0.25]",
-          !isSelected &&
-            !isEndpoint &&
-            "border-accent bg-surface-card hover:border-accent hover:scale-110",
-          isEndpoint &&
-            isSelected &&
-            "border-text-muted bg-text-muted scale-110",
-          isEndpoint && !isSelected && "border-text-muted bg-surface-card",
-        )}
-      />
+      {/* Marker dot — diamond for endpoints, circle for editable */}
+      {isEndpoint ? (
+        <div
+          className={cn(
+            "size-3.5 rotate-45 rounded-sm border-2 transition-all duration-150",
+            isSelected
+              ? "border-text-muted bg-text-muted scale-110"
+              : "border-text-muted bg-surface-card",
+          )}
+        />
+      ) : (
+        <div
+          className={cn(
+            "size-5 rounded-full border-2 transition-all duration-150",
+            isSelected
+              ? "border-accent bg-accent scale-125 shadow-[0_0_0_3px_var(--accent)/0.25]"
+              : "border-accent bg-surface-card hover:border-accent hover:scale-110",
+          )}
+        />
+      )}
+
+      {/* Selected connector line — hints at property editor below */}
+      {isSelected && !isEndpoint && (
+        <div
+          className="bg-accent absolute top-full left-1/2 h-3 w-px -translate-x-1/2"
+          aria-hidden="true"
+        />
+      )}
 
       {/* Focus ring */}
       <div
         className={cn(
-          "pointer-events-none absolute inset-0 rounded-full outline-2 outline-offset-2 outline-[var(--accent)]",
+          "pointer-events-none absolute inset-0 outline-2 outline-offset-2 outline-[var(--accent)]",
+          isEndpoint ? "rounded-sm" : "rounded-full",
           "opacity-0 [:focus-visible>&]:opacity-100",
         )}
         aria-hidden="true"
@@ -144,12 +162,15 @@ export default function KeyframeMarker({
       {/* Offset label */}
       {showLabel && (
         <span
-          className="text-text-subtle absolute top-full left-1/2 mt-1.5 -translate-x-1/2 font-mono text-[10px] leading-none whitespace-nowrap"
+          className={cn(
+            "text-text-subtle absolute top-full left-1/2 -translate-x-1/2 font-mono text-xs leading-none whitespace-nowrap",
+            isSelected && !isEndpoint ? "mt-4.5" : "mt-1.5",
+          )}
           aria-hidden="true"
         >
           {keyframe.offset}%
         </span>
       )}
-    </div>
+    </button>
   );
 }

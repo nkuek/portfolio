@@ -23,6 +23,8 @@ type AnimationPreviewProps = {
   previewShape: PreviewShape;
   playback: PlaybackState;
   dispatch: React.Dispatch<KeyframeSequencerAction>;
+  onProgress?: (progress: number) => void;
+  seekRef?: React.RefObject<((progress: number) => void) | null>;
 };
 
 // ---------------------------------------------------------------------------
@@ -114,6 +116,8 @@ export default function AnimationPreview({
   previewShape,
   playback,
   dispatch,
+  onProgress,
+  seekRef,
 }: AnimationPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
   const animRef = useRef<Animation | null>(null);
@@ -123,9 +127,11 @@ export default function AnimationPreview({
   const wasPausedRef = useRef(false);
 
   const reducedMotion = useReducedMotion();
+  const playbackRef = useRef(playback);
+  playbackRef.current = playback;
 
   // -------------------------------------------------------------------------
-  // WAAPI animation lifecycle
+  // WAAPI animation lifecycle (creation only — play/pause handled separately)
   // -------------------------------------------------------------------------
 
   useEffect(() => {
@@ -142,10 +148,19 @@ export default function AnimationPreview({
       fill: fillMode,
     });
 
-    if (playback === "paused") anim.pause();
+    // Sync with current playback state (read from ref to avoid dep on playback)
+    if (playbackRef.current === "playing") anim.play();
+    else anim.pause();
     animRef.current = anim;
 
+    // Reset to "paused" when a finite animation finishes
+    const handleFinish = () => {
+      dispatch({ type: "SET_PLAYBACK", playback: "paused" });
+    };
+    anim.addEventListener("finish", handleFinish);
+
     return () => {
+      anim.removeEventListener("finish", handleFinish);
       anim.cancel();
       animRef.current = null;
     };
@@ -156,8 +171,36 @@ export default function AnimationPreview({
     iterationCount,
     direction,
     fillMode,
-    playback,
+    dispatch,
   ]);
+
+  // -------------------------------------------------------------------------
+  // Play / pause control (separate from creation so scrubbing doesn't recreate)
+  // -------------------------------------------------------------------------
+
+  useEffect(() => {
+    const anim = animRef.current;
+    if (!anim) return;
+    if (playback === "playing") anim.play();
+    else anim.pause();
+  }, [playback]);
+
+  // -------------------------------------------------------------------------
+  // Expose imperative seek to parent via mutable ref
+  // -------------------------------------------------------------------------
+
+  useEffect(() => {
+    if (!seekRef) return;
+    seekRef.current = (progress: number) => {
+      const anim = animRef.current;
+      if (anim) {
+        anim.currentTime = progress * duration;
+      }
+    };
+    return () => {
+      seekRef.current = null;
+    };
+  }, [seekRef, duration]);
 
   // -------------------------------------------------------------------------
   // Reduced motion: auto-pause
@@ -179,14 +222,15 @@ export default function AnimationPreview({
         const ct = animRef.current.currentTime as number;
         // Use modulo so the scrubber loops within a single iteration
         const progress = duration > 0 ? (ct % duration) / duration : 0;
-        if (seekerRef.current)
-          seekerRef.current.value = String(Math.min(1, progress));
+        const clamped = Math.min(1, progress);
+        if (seekerRef.current) seekerRef.current.value = String(clamped);
+        onProgress?.(clamped);
       }
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [duration]);
+  }, [duration, onProgress]);
 
   // -------------------------------------------------------------------------
   // Playback handlers

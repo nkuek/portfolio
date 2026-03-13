@@ -239,7 +239,11 @@ export function reducer(
       const newEasings = buildSegmentEasings(remaining, state.segmentEasings);
 
       // For the merged segment (left neighbor -> right neighbor), use the left segment's easing
-      if (leftSegment && targetIndex > 0 && targetIndex < state.keyframes.length - 1) {
+      if (
+        leftSegment &&
+        targetIndex > 0 &&
+        targetIndex < state.keyframes.length - 1
+      ) {
         const leftNeighbor = state.keyframes[targetIndex - 1];
         const rightNeighbor = state.keyframes[targetIndex + 1];
         if (leftNeighbor && rightNeighbor) {
@@ -349,10 +353,10 @@ export function reducer(
       return { ...state, iterationCount: action.count };
 
     case "SET_DIRECTION":
-      return { ...state, direction: action.direction };
+      return { ...state, direction: action.direction, playback: "playing" };
 
     case "SET_FILL_MODE":
-      return { ...state, fillMode: action.fillMode };
+      return { ...state, fillMode: action.fillMode, playback: "playing" };
 
     case "SET_PREVIEW_SHAPE":
       return { ...state, previewShape: action.shape };
