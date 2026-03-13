@@ -8,7 +8,7 @@ describe("shaderReducer", () => {
     it("has correct defaults", () => {
       expect(initialState.code).toBe(DEFAULT_FRAGMENT_SHADER);
       expect(initialState.lastValidCode).toBe(DEFAULT_FRAGMENT_SHADER);
-      expect(initialState.activePreset).toBeNull();
+      expect(initialState.activePreset).toBe("UV Gradient");
       expect(initialState.errors).toEqual([]);
       expect(initialState.playback).toBe("playing");
       expect(initialState.speed).toBe(1);
@@ -40,7 +40,7 @@ describe("shaderReducer", () => {
         ...initialState,
         speed: 2,
         playback: "paused",
-        customUniforms: { brightness: 0.5 },
+        customUniforms: { brightness: [0.5] },
       };
       const next = shaderReducer(state, {
         type: "SET_CODE",
@@ -48,7 +48,7 @@ describe("shaderReducer", () => {
       });
       expect(next.speed).toBe(2);
       expect(next.playback).toBe("paused");
-      expect(next.customUniforms).toEqual({ brightness: 0.5 });
+      expect(next.customUniforms).toEqual({ brightness: [0.5] });
     });
   });
 
@@ -59,7 +59,7 @@ describe("shaderReducer", () => {
         name: "Plasma",
         code: "plasma code",
       });
-      expect(next.code).toBe("plasma code");
+      expect(next.code).toContain("plasma code");
       expect(next.activePreset).toBe("Plasma");
     });
 
@@ -79,7 +79,7 @@ describe("shaderReducer", () => {
     it("clears customUniforms", () => {
       const state: ShaderState = {
         ...initialState,
-        customUniforms: { brightness: 0.8 },
+        customUniforms: { brightness: [0.8] },
       };
       const next = shaderReducer(state, {
         type: "SELECT_PRESET",
@@ -205,35 +205,38 @@ describe("shaderReducer", () => {
       const next = shaderReducer(initialState, {
         type: "SET_UNIFORM",
         name: "brightness",
-        value: 0.75,
+        value: [0.75],
       });
-      expect(next.customUniforms).toEqual({ brightness: 0.75 });
+      expect(next.customUniforms).toEqual({ brightness: [0.75] });
     });
 
     it("preserves other uniforms", () => {
       const state: ShaderState = {
         ...initialState,
-        customUniforms: { brightness: 0.5, contrast: 1.2 },
+        customUniforms: { brightness: [0.5], contrast: [1.2] },
       };
       const next = shaderReducer(state, {
         type: "SET_UNIFORM",
         name: "brightness",
-        value: 0.9,
+        value: [0.9],
       });
-      expect(next.customUniforms).toEqual({ brightness: 0.9, contrast: 1.2 });
+      expect(next.customUniforms).toEqual({
+        brightness: [0.9],
+        contrast: [1.2],
+      });
     });
 
     it("adds a new uniform to existing map", () => {
       const state: ShaderState = {
         ...initialState,
-        customUniforms: { brightness: 0.5 },
+        customUniforms: { brightness: [0.5] },
       };
       const next = shaderReducer(state, {
         type: "SET_UNIFORM",
         name: "scale",
-        value: 2.0,
+        value: [2.0],
       });
-      expect(next.customUniforms).toEqual({ brightness: 0.5, scale: 2.0 });
+      expect(next.customUniforms).toEqual({ brightness: [0.5], scale: [2.0] });
     });
   });
 });

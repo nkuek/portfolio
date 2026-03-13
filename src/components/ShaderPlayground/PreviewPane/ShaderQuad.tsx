@@ -12,7 +12,7 @@ type ShaderQuadProps = {
   code: string;
   lastValidCode: string;
   customUniformDefs: CustomUniform[];
-  customUniforms: Record<string, number>;
+  customUniforms: Record<string, number[]>;
   playback: "playing" | "paused";
   speed: number;
   resetCounter: number;
@@ -42,6 +42,48 @@ function testCompileShader(
   return { success, log };
 }
 
+/** Create the initial THREE uniform value from a CustomUniform definition. */
+function defaultUniformValue(def: CustomUniform) {
+  const v = def.value;
+  switch (def.type) {
+    case "vec2":
+      return new THREE.Vector2(v[0], v[1]);
+    case "vec3":
+      return new THREE.Vector3(v[0], v[1], v[2]);
+    case "vec4":
+      return new THREE.Vector4(v[0], v[1], v[2], v[3]);
+    default:
+      return v[0] ?? 0;
+  }
+}
+
+/** Write current values into an existing THREE uniform (avoids allocation). */
+function syncUniformValue(
+  uniform: THREE.IUniform,
+  values: number[],
+  def: CustomUniform,
+) {
+  const v = values.length > 0 ? values : def.value;
+  switch (def.type) {
+    case "vec2":
+      (uniform.value as THREE.Vector2).set(v[0] ?? 0, v[1] ?? 0);
+      break;
+    case "vec3":
+      (uniform.value as THREE.Vector3).set(v[0] ?? 0, v[1] ?? 0, v[2] ?? 0);
+      break;
+    case "vec4":
+      (uniform.value as THREE.Vector4).set(
+        v[0] ?? 0,
+        v[1] ?? 0,
+        v[2] ?? 0,
+        v[3] ?? 0,
+      );
+      break;
+    default:
+      uniform.value = v[0] ?? 0;
+  }
+}
+
 /** Reusable vector to avoid allocating in useFrame */
 const _sizeVec = new THREE.Vector2();
 
@@ -66,7 +108,7 @@ export default function ShaderQuad({
   // <shaderMaterial> only when custom uniform names/ranges actually change,
   // rather than on every code edit.
   const uniformStructureKey = customUniformDefs
-    .map((d) => `${d.name}:${d.min}:${d.max}`)
+    .map((d) => `${d.name}:${d.type}:${d.min}:${d.max}`)
     .join(",");
 
   // Build uniforms object — only recreate when the structure actually changes.
@@ -79,7 +121,7 @@ export default function ShaderQuad({
     };
 
     for (const def of customUniformDefs) {
-      u[def.name] = { value: def.value };
+      u[def.name] = { value: defaultUniformValue(def) };
     }
 
     return u;
@@ -139,8 +181,9 @@ export default function ShaderQuad({
 
     // Sync custom uniform values from props
     for (const def of customUniformDefs) {
-      if (mat.uniforms[def.name]) {
-        mat.uniforms[def.name].value = customUniforms[def.name] ?? def.value;
+      const u = mat.uniforms[def.name];
+      if (u) {
+        syncUniformValue(u, customUniforms[def.name] ?? def.value, def);
       }
     }
   });

@@ -10,7 +10,7 @@ type PreviewCanvasProps = {
   code: string;
   lastValidCode: string;
   customUniformDefs: CustomUniform[];
-  customUniforms: Record<string, number>;
+  customUniforms: Record<string, number[]>;
   playback: "playing" | "paused";
   speed: number;
   resetCounter: number;
@@ -44,7 +44,7 @@ export default function PreviewCanvas({
 
   return (
     <div
-      className="aspect-square w-full max-h-[min(100vw,600px)] overflow-hidden"
+      className="aspect-square max-h-[min(100vw,600px)] w-full overflow-hidden"
       role="img"
       aria-label="Shader preview"
       onPointerMove={handlePointerMove}

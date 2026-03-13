@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { tokenizeGLSL } from "./highlighting";
+import { formatGLSL } from "./formatting";
 import type { ShaderError } from "../types";
 
 type CodeEditorProps = {
@@ -70,34 +71,114 @@ export default function CodeEditor({
     syncScroll();
   }, [code, syncScroll]);
 
+  const handleFormat = useCallback(() => {
+    onChange(formatGLSL(code));
+  }, [code, onChange]);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      const textarea = e.currentTarget;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+
       if (e.key === "Tab") {
         e.preventDefault();
-        const textarea = e.currentTarget;
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
         const before = code.slice(0, start);
         const after = code.slice(end);
         onChange(before + "  " + after);
 
-        // Restore cursor position after React re-renders the value
         requestAnimationFrame(() => {
           textarea.selectionStart = start + 2;
           textarea.selectionEnd = start + 2;
         });
+        return;
       }
+
+      // Enter: auto-indent to match current line, extra level after {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const before = code.slice(0, start);
+        const after = code.slice(end);
+
+        // Find the current line's leading whitespace
+        const currentLine = before.split("\n").pop() ?? "";
+        const match = currentLine.match(/^(\s*)/);
+        let indent = match?.[1] ?? "";
+
+        // Extra indent after {
+        const trimmedBefore = before.trimEnd();
+        if (trimmedBefore.endsWith("{")) {
+          indent += "  ";
+        }
+
+        // If the cursor is right before }, auto-dedent the closing brace
+        const afterTrimmed = after.trimStart();
+        if (afterTrimmed.startsWith("}") && indent.length >= 2) {
+          const closingIndent = indent.slice(2);
+          // Strip existing whitespace before the }
+          const restAfterBrace = after.slice(after.indexOf("}"));
+          const newCode = `${before}\n${indent}\n${closingIndent}${restAfterBrace}`;
+          const cursorPos = before.length + 1 + indent.length;
+          onChange(newCode);
+
+          requestAnimationFrame(() => {
+            textarea.selectionStart = cursorPos;
+            textarea.selectionEnd = cursorPos;
+          });
+          return;
+        }
+
+        const newCode = `${before}\n${indent}${after}`;
+        const cursorPos = before.length + 1 + indent.length;
+        onChange(newCode);
+
+        requestAnimationFrame(() => {
+          textarea.selectionStart = cursorPos;
+          textarea.selectionEnd = cursorPos;
+        });
+        return;
+      }
+
+      // Shift+Alt+F to format (matches VS Code convention)
+      if (e.key === "f" && e.shiftKey && e.altKey) {
+        e.preventDefault();
+        handleFormat();
+        return;
+      }
+
       // Escape releases focus so keyboard users aren't trapped
       if (e.key === "Escape") {
         e.currentTarget.blur();
       }
     },
-    [code, onChange],
+    [code, onChange, handleFormat],
   );
 
   return (
-    <div className="bg-surface-card-alt border-border-hairline relative overflow-hidden rounded-lg border">
+    <div className="bg-surface-card-alt border-border-hairline relative h-80 overflow-hidden rounded-lg border">
       <style dangerouslySetInnerHTML={{ __html: GLSL_STYLES }} />
+
+      {/* Format button */}
+      <button
+        type="button"
+        aria-label="Format code (Shift+Alt+F)"
+        title="Format (Shift+Alt+F)"
+        onClick={handleFormat}
+        className="border-border-hairline bg-surface-card text-text-muted hover:border-accent hover:text-accent absolute top-2 right-2 z-30 flex size-7 cursor-pointer items-center justify-center rounded-md border outline-[var(--accent)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-95"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          className="size-3.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M4 7h16M4 12h10M4 17h12" />
+        </svg>
+      </button>
 
       {/* Line number gutter */}
       <div
@@ -172,10 +253,9 @@ export default function CodeEditor({
         autoCorrect="off"
         autoCapitalize="off"
         aria-label="GLSL fragment shader editor"
-        className={`relative z-2 m-0 block h-80 w-full resize-none bg-transparent py-3 pr-3 pl-3 text-transparent outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-0 ${SHARED_TEXT_CLASSES}`}
+        className={`absolute top-0 right-0 bottom-0 z-2 m-0 block resize-none bg-transparent py-3 pr-3 pl-3 text-transparent outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-0 ${SHARED_TEXT_CLASSES}`}
         style={{
           left: gutterWidth,
-          width: `calc(100% - ${gutterWidth})`,
           caretColor: "var(--text)",
           tabSize: 2,
         }}

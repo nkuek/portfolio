@@ -9,7 +9,24 @@ void main() {
 }
 `;
 
-export const DEFAULT_FRAGMENT_SHADER = `// Default UV gradient
+/** Guide comment prepended to all shader code in the editor. */
+export const SHADER_GUIDE_COMMENT = `// Built-in uniforms (do not remove):
+//   u_time       — elapsed time in seconds
+//   u_resolution — canvas size in pixels
+//   u_mouse      — normalized mouse position (0–1)
+//
+// Add your own uniforms for interactive sliders:
+//   uniform float speed;            — float slider (0–10)
+//   uniform vec3 color;             — vec3 with x/y/z sliders (0–1)
+//   uniform float amp; // range: 0, 5  — custom range
+`;
+
+/** Strip the guide comment block from shader code (for exports). */
+export function stripGuideComment(code: string): string {
+  return code.replace(SHADER_GUIDE_COMMENT, "").replace(/^\n+/, "");
+}
+
+export const DEFAULT_FRAGMENT_SHADER = `${SHADER_GUIDE_COMMENT}
 uniform float u_time;
 uniform vec2 u_resolution;
 varying vec2 vUv;

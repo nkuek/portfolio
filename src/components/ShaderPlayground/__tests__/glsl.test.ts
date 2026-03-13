@@ -2,11 +2,19 @@ import { describe, it, expect } from "vitest";
 import { parseCustomUniforms, parseShaderErrors } from "../glsl";
 
 describe("parseCustomUniforms", () => {
-  it("parses a single custom uniform", () => {
+  it("parses a single custom float uniform", () => {
     const code = "uniform float brightness;";
     const result = parseCustomUniforms(code);
     expect(result).toEqual([
-      { name: "brightness", value: 0, min: 0, max: 1, step: 0.01 },
+      {
+        name: "brightness",
+        type: "float",
+        components: 1,
+        value: [5],
+        min: 0,
+        max: 10,
+        step: 0.1,
+      },
     ]);
   });
 
@@ -25,7 +33,15 @@ uniform float contrast;
     const code = "uniform float scale; // range: 0.5, 3.0";
     const result = parseCustomUniforms(code);
     expect(result).toEqual([
-      { name: "scale", value: 0.5, min: 0.5, max: 3.0, step: 0.01 },
+      {
+        name: "scale",
+        type: "float",
+        components: 1,
+        value: [1.75],
+        min: 0.5,
+        max: 3.0,
+        step: 0.1,
+      },
     ]);
   });
 
@@ -33,7 +49,7 @@ uniform float contrast;
     const code = "uniform float opacity;";
     const result = parseCustomUniforms(code);
     expect(result[0]?.min).toBe(0);
-    expect(result[0]?.max).toBe(1);
+    expect(result[0]?.max).toBe(10);
   });
 
   it("skips built-in uniforms", () => {
@@ -57,15 +73,50 @@ void main() {
     expect(result).toEqual([]);
   });
 
-  it("skips vec2/vec3 uniforms (only parses float)", () => {
+  it("parses vec2 uniforms", () => {
+    const code = "uniform vec2 offset; // range: -1, 1";
+    const result = parseCustomUniforms(code);
+    expect(result).toEqual([
+      {
+        name: "offset",
+        type: "vec2",
+        components: 2,
+        value: [0, 0],
+        min: -1,
+        max: 1,
+        step: 0.01,
+      },
+    ]);
+  });
+
+  it("parses vec3 uniforms", () => {
+    const code = "uniform vec3 color;";
+    const result = parseCustomUniforms(code);
+    expect(result).toHaveLength(1);
+    expect(result[0]?.type).toBe("vec3");
+    expect(result[0]?.components).toBe(3);
+    expect(result[0]?.value).toEqual([0.5, 0.5, 0.5]);
+  });
+
+  it("parses vec4 uniforms", () => {
+    const code = "uniform vec4 tint;";
+    const result = parseCustomUniforms(code);
+    expect(result).toHaveLength(1);
+    expect(result[0]?.type).toBe("vec4");
+    expect(result[0]?.components).toBe(4);
+  });
+
+  it("parses mixed float and vector uniforms", () => {
     const code = `
-uniform vec2 u_mouse;
 uniform float brightness;
 uniform vec3 color;
 `;
     const result = parseCustomUniforms(code);
-    expect(result).toHaveLength(1);
+    expect(result).toHaveLength(2);
     expect(result[0]?.name).toBe("brightness");
+    expect(result[0]?.type).toBe("float");
+    expect(result[1]?.name).toBe("color");
+    expect(result[1]?.type).toBe("vec3");
   });
 });
 

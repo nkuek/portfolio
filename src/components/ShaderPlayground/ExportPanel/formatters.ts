@@ -1,5 +1,7 @@
+import { stripGuideComment } from "../constants";
+
 export function formatRawGLSL(code: string): string {
-  return "precision mediump float;\n" + code;
+  return "precision mediump float;\n" + stripGuideComment(code);
 }
 
 export function formatThreeJS(code: string): string {
@@ -16,12 +18,12 @@ export function formatThreeJS(code: string): string {
       gl_Position = vec4(position, 1.0);
     }
   \`,
-  fragmentShader: \`${code}\`,
+  fragmentShader: \`${stripGuideComment(code)}\`,
 });`;
 }
 
 export function formatTSL(code: string): string {
-  let body = code;
+  let body = stripGuideComment(code);
 
   // Strip declarations
   body = body.replace(/precision\s+\w+\s+float\s*;\s*/g, "");
@@ -130,7 +132,7 @@ material.colorNode = shader();`;
 }
 
 export function formatShadertoy(code: string): string {
-  let result = code;
+  let result = stripGuideComment(code);
 
   // Remove precision declarations
   result = result.replace(/precision\s+\w+\s+float\s*;\s*/g, "");

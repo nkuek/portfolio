@@ -9,6 +9,13 @@ import {
   useRef,
 } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import ToolGuide, {
+  GuideGrid,
+  GuideSection,
+  GuideList,
+  GuideItem,
+  Kbd,
+} from "~/components/ToolGuide";
 import { shaderReducer, initialState } from "./state";
 import type { ShaderState } from "./state";
 import { PRESETS } from "./presets";
@@ -60,6 +67,26 @@ function ShaderPlaygroundInner() {
     }
   }, [reducedMotion]);
 
+  // Pause when tab is hidden, resume when visible
+  const playbackRef = useRef(state.playback);
+  playbackRef.current = state.playback;
+  const wasPlayingRef = useRef(false);
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden) {
+        wasPlayingRef.current = playbackRef.current === "playing";
+        if (wasPlayingRef.current) {
+          dispatch({ type: "SET_PLAYBACK", playback: "paused" });
+        }
+      } else if (wasPlayingRef.current) {
+        dispatch({ type: "SET_PLAYBACK", playback: "playing" });
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibility);
+  }, []);
+
   // Debounced URL sync — only ?preset=name when a preset is active
   useEffect(() => {
     if (!isInitRef.current) {
@@ -106,17 +133,70 @@ function ShaderPlaygroundInner() {
         </p>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
+      <ToolGuide>
+        <GuideGrid>
+          <GuideSection title="Editor">
+            <GuideList>
+              <GuideItem>Edit GLSL — preview updates live</GuideItem>
+              <GuideItem>
+                <Kbd>Tab</Kbd> inserts 2 spaces; <Kbd>Shift</Kbd>+<Kbd>Alt</Kbd>
+                +<Kbd>F</Kbd> formats
+              </GuideItem>
+              <GuideItem>
+                Errors show inline with line numbers highlighted
+              </GuideItem>
+            </GuideList>
+          </GuideSection>
+          <GuideSection title="Uniforms">
+            <GuideList>
+              <GuideItem>
+                Add{" "}
+                <code className="text-accent font-mono text-[11px]">
+                  uniform float/vec2/vec3/vec4
+                </code>{" "}
+                for custom sliders
+              </GuideItem>
+              <GuideItem>
+                Use{" "}
+                <code className="text-accent font-mono text-[11px]">
+                  {"// range: 0, 10"}
+                </code>{" "}
+                to set min/max
+              </GuideItem>
+            </GuideList>
+          </GuideSection>
+          <GuideSection title="Playback">
+            <GuideList>
+              <GuideItem>
+                Select a preset to start from a working shader
+              </GuideItem>
+              <GuideItem>
+                Adjust speed (0.5x, 1x, 2x) or pause to freeze time
+              </GuideItem>
+            </GuideList>
+          </GuideSection>
+          <GuideSection title="Export">
+            <GuideList>
+              <GuideItem>
+                Export as Raw GLSL, Three.js, TSL, or Shadertoy
+              </GuideItem>
+              <GuideItem>Click exported code to select all</GuideItem>
+            </GuideList>
+          </GuideSection>
+        </GuideGrid>
+      </ToolGuide>
+
+      <div className="grid min-w-0 gap-6 lg:grid-cols-2 lg:gap-8">
         {/* Left column — Presets, Editor, Uniforms */}
-        <div className="order-2 flex flex-col gap-6 lg:order-1">
-          <div className="bg-surface-card border-border-hairline rounded-xl border p-4 shadow-[var(--shadow-card)]">
+        <div className="order-2 flex min-w-0 flex-col gap-6 lg:order-1">
+          <div className="bg-surface-card border-border-hairline min-w-0 overflow-hidden rounded-xl border p-4 shadow-[var(--shadow-card)]">
             <PresetLibrary
               activePreset={state.activePreset}
               dispatch={dispatch}
             />
           </div>
 
-          <div className="bg-surface-card border-border-hairline rounded-xl border p-4 shadow-[var(--shadow-card)]">
+          <div className="bg-surface-card border-border-hairline min-w-0 overflow-hidden rounded-xl border p-4 shadow-[var(--shadow-card)]">
             <h3 className="text-text-subtle mb-3 text-sm font-medium">
               Fragment Shader
             </h3>
@@ -155,9 +235,9 @@ function ShaderPlaygroundInner() {
         </div>
 
         {/* Right column — Canvas, Playback, Export */}
-        <div className="order-1 lg:order-2">
-          <div className="flex flex-col gap-4 lg:sticky lg:top-24">
-            <div className="bg-surface-card border-border-hairline overflow-hidden rounded-xl border shadow-[var(--shadow-card)]">
+        <div className="order-1 min-w-0 lg:order-2">
+          <div className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-24">
+            <div className="bg-surface-card border-border-hairline min-w-0 overflow-hidden rounded-xl border shadow-[var(--shadow-card)]">
               <PreviewPane
                 code={state.code}
                 lastValidCode={state.lastValidCode}
@@ -170,7 +250,7 @@ function ShaderPlaygroundInner() {
                 onTimeUpdate={handleTimeUpdate}
               />
             </div>
-            <div className="bg-surface-card border-border-hairline rounded-xl border p-4 shadow-[var(--shadow-card)]">
+            <div className="bg-surface-card border-border-hairline min-w-0 overflow-hidden rounded-xl border p-4 shadow-[var(--shadow-card)]">
               <PlaybackControls
                 playback={state.playback}
                 speed={state.speed}
@@ -178,7 +258,7 @@ function ShaderPlaygroundInner() {
                 dispatch={dispatch}
               />
             </div>
-            <div className="bg-surface-card border-border-hairline rounded-xl border p-4 shadow-[var(--shadow-card)]">
+            <div className="bg-surface-card border-border-hairline min-w-0 overflow-hidden rounded-xl border p-4 shadow-[var(--shadow-card)]">
               <ExportPanel code={state.code} />
             </div>
           </div>

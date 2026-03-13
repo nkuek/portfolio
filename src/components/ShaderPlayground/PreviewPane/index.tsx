@@ -10,7 +10,7 @@ type PreviewPaneProps = {
   code: string;
   lastValidCode: string;
   customUniformDefs: CustomUniform[];
-  customUniforms: Record<string, number>;
+  customUniforms: Record<string, number[]>;
   playback: "playing" | "paused";
   speed: number;
   resetCounter: number;
@@ -45,7 +45,7 @@ class WebGLErrorBoundary extends Component<
 
 function CanvasPlaceholder() {
   return (
-    <div className="bg-surface-card-alt aspect-square w-full max-h-[min(100vw,600px)]" />
+    <div className="bg-surface-card-alt aspect-square max-h-[min(100vw,600px)] w-full" />
   );
 }
 
@@ -59,7 +59,7 @@ export default function PreviewPane(props: PreviewPaneProps) {
   return (
     <WebGLErrorBoundary
       fallback={
-        <div className="bg-surface-card-alt text-text-muted flex aspect-square w-full max-h-[min(100vw,600px)] items-center justify-center font-mono text-sm">
+        <div className="bg-surface-card-alt text-text-muted flex aspect-square max-h-[min(100vw,600px)] w-full items-center justify-center font-mono text-sm">
           WebGL is not available in this browser.
         </div>
       }

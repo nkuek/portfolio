@@ -7,9 +7,14 @@ export type ShaderPreset = {
   code: string;
 };
 
+export type UniformType = "float" | "vec2" | "vec3" | "vec4";
+
 export type CustomUniform = {
   name: string;
-  value: number;
+  type: UniformType;
+  /** Number of components: 1 for float, 2–4 for vectors */
+  components: number;
+  value: number[];
   min: number;
   max: number;
   step: number;
