@@ -28,6 +28,7 @@ export type KeyframeSequencerState = {
   previewShape: PreviewShape;
   playback: PlaybackState;
   activePreset: string | null;
+  lastPreset: string | null;
 };
 
 export type KeyframeSequencerAction =
@@ -62,6 +63,7 @@ export type KeyframeSequencerAction =
   | { type: "SET_PLAYBACK"; playback: PlaybackState }
   | { type: "LOAD_PRESET"; preset: AnimationPreset }
   | { type: "DUPLICATE_KEYFRAME"; id: string }
+  | { type: "CLONE_KEYFRAME"; sourceId: string; newId: string }
   | { type: "RESET" };
 
 function interpolateProperties(
@@ -185,6 +187,7 @@ export function createInitialState(): KeyframeSequencerState {
     previewShape: "box",
     playback: "playing",
     activePreset: null,
+    lastPreset: null,
   };
 }
 
@@ -372,6 +375,7 @@ export function reducer(
         duration: action.preset.duration,
         selectedKeyframeId: action.preset.keyframes[0]?.id ?? null,
         activePreset: action.preset.name,
+        lastPreset: action.preset.name,
       };
 
     case "DUPLICATE_KEYFRAME": {
@@ -421,82 +425,58 @@ export function reducer(
       };
     }
 
+    case "CLONE_KEYFRAME": {
+      const source = state.keyframes.find((kf) => kf.id === action.sourceId);
+      if (!source) return state;
+
+      const newOffset = Math.min(source.offset + 5, 99);
+      const clone: KeyframeStop = {
+        id: action.newId,
+        offset: newOffset,
+        properties: { ...source.properties },
+        mask: { ...source.mask },
+      };
+
+      const sourceSegment = state.segmentEasings.find(
+        (e) => e.fromId === source.id,
+      );
+
+      const sorted = [...state.keyframes, clone].sort(
+        (a, b) => a.offset - b.offset,
+      );
+      const newEasings = buildSegmentEasings(sorted, state.segmentEasings);
+
+      if (sourceSegment) {
+        const idx = newEasings.findIndex(
+          (e) => e.fromId === source.id && e.toId === action.newId,
+        );
+        if (idx >= 0) {
+          newEasings[idx] = {
+            fromId: source.id,
+            toId: action.newId,
+            easing: sourceSegment.easing,
+            easingName: sourceSegment.easingName,
+          };
+        }
+      }
+
+      return {
+        ...state,
+        keyframes: sorted,
+        segmentEasings: newEasings,
+        selectedKeyframeId: action.newId,
+        activePreset: null,
+      };
+    }
+
     case "RESET":
       return createInitialState();
   }
 }
 
-// ---------------------------------------------------------------------------
-// History wrapper for undo/redo
-// ---------------------------------------------------------------------------
-
 /** Actions that should NOT be recorded in undo history (UI-only state) */
-const NON_UNDOABLE: Set<KeyframeSequencerAction["type"]> = new Set([
+export const NON_UNDOABLE: Set<KeyframeSequencerAction["type"]> = new Set([
   "SELECT_KEYFRAME",
   "SET_PLAYBACK",
   "SET_PREVIEW_SHAPE",
 ]);
-
-export type HistoryState = {
-  present: KeyframeSequencerState;
-  past: KeyframeSequencerState[];
-  future: KeyframeSequencerState[];
-};
-
-export type HistoryAction =
-  | KeyframeSequencerAction
-  | { type: "UNDO" }
-  | { type: "REDO" };
-
-const MAX_HISTORY = 50;
-
-export function createHistoryState(
-  present: KeyframeSequencerState,
-): HistoryState {
-  return { present, past: [], future: [] };
-}
-
-export function historyReducer(
-  state: HistoryState,
-  action: HistoryAction,
-): HistoryState {
-  switch (action.type) {
-    case "UNDO": {
-      if (state.past.length === 0) return state;
-      const previous = state.past[state.past.length - 1];
-      if (!previous) return state;
-      return {
-        past: state.past.slice(0, -1),
-        present: previous,
-        future: [state.present, ...state.future].slice(0, MAX_HISTORY),
-      };
-    }
-
-    case "REDO": {
-      if (state.future.length === 0) return state;
-      const next = state.future[0];
-      if (!next) return state;
-      return {
-        past: [...state.past, state.present].slice(-MAX_HISTORY),
-        present: next,
-        future: state.future.slice(1),
-      };
-    }
-
-    default: {
-      const nextPresent = reducer(state.present, action);
-      if (nextPresent === state.present) return state;
-
-      // Non-undoable actions don't push to history
-      if (NON_UNDOABLE.has(action.type)) {
-        return { ...state, present: nextPresent };
-      }
-
-      return {
-        past: [...state.past, state.present].slice(-MAX_HISTORY),
-        present: nextPresent,
-        future: [],
-      };
-    }
-  }
-}

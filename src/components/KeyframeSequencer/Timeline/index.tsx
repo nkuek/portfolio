@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   KeyframeStop,
   PlaybackState,
@@ -9,6 +9,7 @@ import type {
 import type { KeyframeSequencerAction } from "../state";
 import KeyframeMarker from "./KeyframeMarker";
 import SegmentEasing from "./SegmentEasing";
+import EasingPicker from "./EasingPicker";
 
 type TimelineProps = {
   keyframes: KeyframeStop[];
@@ -28,6 +29,8 @@ const ZEBRA_BANDS = [
   { left: 50, width: 25 },
 ] as const;
 
+type EditingSegment = { fromId: string; toId: string } | null;
+
 export default function Timeline({
   keyframes,
   segmentEasings,
@@ -41,6 +44,7 @@ export default function Timeline({
   const playheadRef = useRef<HTMLDivElement>(null);
   const scrubbingRef = useRef(false);
   const wasPausedBeforeScrubRef = useRef(false);
+  const [editingSegment, setEditingSegment] = useState<EditingSegment>(null);
 
   // ---------------------------------------------------------------------------
   // Track scrubbing — click or drag on the track to seek the animation
@@ -113,6 +117,16 @@ export default function Timeline({
     dispatch({ type: "ADD_KEYFRAME", offset: clamped });
   }, [keyframes, dispatch]);
 
+  // Close easing picker on Escape
+  useEffect(() => {
+    if (!editingSegment) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setEditingSegment(null);
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [editingSegment]);
+
   // Playhead rAF loop — reads progressRef and writes DOM directly
   useEffect(() => {
     let raf = 0;
@@ -126,7 +140,30 @@ export default function Timeline({
     return () => cancelAnimationFrame(raf);
   }, [progressRef]);
 
+  const handleEasingSelect = useCallback(
+    (name: string, value: string) => {
+      if (!editingSegment) return;
+      dispatch({
+        type: "SET_SEGMENT_EASING",
+        fromId: editingSegment.fromId,
+        toId: editingSegment.toId,
+        easing: value,
+        easingName: name,
+      });
+      setEditingSegment(null);
+    },
+    [editingSegment, dispatch],
+  );
+
   const sorted = [...keyframes].sort((a, b) => a.offset - b.offset);
+
+  // Find editing segment data for EasingPicker
+  const editingSegmentData = editingSegment
+    ? segmentEasings.find(
+        (s) =>
+          s.fromId === editingSegment.fromId && s.toId === editingSegment.toId,
+      )
+    : undefined;
 
   return (
     <div className="bg-surface-card border-border-hairline overflow-hidden rounded-xl border p-4 shadow-[var(--shadow-card)]">
@@ -204,7 +241,18 @@ export default function Timeline({
                 segment={segment}
                 leftOffset={fromKf.offset}
                 rightOffset={toKf.offset}
-                dispatch={dispatch}
+                isEditing={
+                  editingSegment?.fromId === segment.fromId &&
+                  editingSegment?.toId === segment.toId
+                }
+                onEditClick={() => {
+                  setEditingSegment((prev) =>
+                    prev?.fromId === segment.fromId &&
+                    prev?.toId === segment.toId
+                      ? null
+                      : { fromId: segment.fromId, toId: segment.toId },
+                  );
+                }}
               />
             );
           })}
@@ -222,6 +270,9 @@ export default function Timeline({
                 dispatch({ type: "UPDATE_KEYFRAME_OFFSET", id: kf.id, offset })
               }
               onDelete={() => dispatch({ type: "REMOVE_KEYFRAME", id: kf.id })}
+              onCloneDrag={(newId) =>
+                dispatch({ type: "CLONE_KEYFRAME", sourceId: kf.id, newId })
+              }
             />
           ))}
         </div>
@@ -237,6 +288,25 @@ export default function Timeline({
               {tick}%
             </span>
           ))}
+        </div>
+      </div>
+
+      {/* Inline easing picker — animated open/close */}
+      <div
+        className={`grid transition-[grid-template-rows] duration-200 ease-[var(--ease-spring)] ${
+          editingSegment ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="overflow-hidden">
+          {editingSegmentData && (
+            <div className="mt-3">
+              <EasingPicker
+                segment={editingSegmentData}
+                onSelect={handleEasingSelect}
+                onClose={() => setEditingSegment(null)}
+              />
+            </div>
+          )}
         </div>
       </div>
 

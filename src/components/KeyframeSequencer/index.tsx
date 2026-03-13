@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useReducer, useRef } from "react";
+import { Suspense, useCallback, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import ToolGuide, {
   GuideGrid,
@@ -9,8 +9,9 @@ import ToolGuide, {
   GuideItem,
   Kbd,
 } from "~/components/ToolGuide";
-import { initialState, historyReducer, createHistoryState } from "./state";
-import type { KeyframeSequencerState, HistoryAction } from "./state";
+import useHistoryReducer from "~/hooks/useHistoryReducer";
+import { initialState, reducer, NON_UNDOABLE } from "./state";
+import type { KeyframeSequencerState, KeyframeSequencerAction } from "./state";
 import { encodeState, decodeState } from "./url";
 import cn from "~/utils/cn";
 import Timeline from "./Timeline";
@@ -31,12 +32,12 @@ function KeyframeSequencerInner() {
     progressRef.current = progress;
   }, []);
 
-  const getInitialHistory = useCallback(() => {
+  const getInitialState = useCallback(() => {
     const encoded = searchParams.get("s");
     if (encoded) {
       const decoded = decodeState(encoded);
       if (decoded) {
-        const present: KeyframeSequencerState = {
+        return {
           ...initialState,
           keyframes: decoded.keyframes,
           segmentEasings: decoded.segmentEasings,
@@ -46,25 +47,21 @@ function KeyframeSequencerInner() {
           direction: decoded.direction,
           fillMode: decoded.fillMode,
           activePreset: decoded.activePreset,
+          lastPreset: decoded.activePreset,
           selectedKeyframeId: decoded.keyframes[0]?.id ?? null,
-        };
-        return createHistoryState(present);
+        } satisfies KeyframeSequencerState;
       }
     }
-    return createHistoryState(initialState);
+    return initialState;
     // Only run on initial render
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const [history, dispatch] = useReducer(
-    historyReducer,
-    undefined,
-    getInitialHistory,
+  const [state, dispatch, { canUndo, canRedo }] = useHistoryReducer(
+    reducer,
+    getInitialState,
+    { nonUndoable: NON_UNDOABLE },
   );
-
-  const state = history.present;
-  const canUndo = history.past.length > 0;
-  const canRedo = history.future.length > 0;
 
   // Keyboard shortcuts: Cmd/Ctrl+Z for undo, Cmd/Ctrl+Shift+Z for redo
   useEffect(() => {
@@ -151,9 +148,8 @@ function KeyframeSequencerInner() {
   const isEndpoint =
     selectedKeyframe?.offset === 0 || selectedKeyframe?.offset === 100;
 
-  // Cast dispatch so child components only see KeyframeSequencerAction
-  // (HistoryAction is a superset, so this is safe)
-  const childDispatch = dispatch as React.Dispatch<HistoryAction>;
+  // Cast dispatch so child components can use KeyframeSequencerAction directly
+  const childDispatch = dispatch as React.Dispatch<KeyframeSequencerAction>;
 
   return (
     <main className="mx-auto max-w-7xl px-4 pt-24 pb-16 sm:px-6 sm:pt-28 sm:pb-24 lg:px-8">
@@ -350,6 +346,7 @@ function KeyframeSequencerInner() {
           <div className="bg-surface-card border-border-hairline min-w-0 overflow-hidden rounded-xl border p-4 shadow-[var(--shadow-card)]">
             <PresetLibrary
               activePreset={state.activePreset}
+              lastPreset={state.lastPreset}
               dispatch={childDispatch}
             />
           </div>

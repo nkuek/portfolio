@@ -3,10 +3,9 @@ import {
   reducer,
   initialState,
   buildSegmentEasings,
-  historyReducer,
-  createHistoryState,
+  NON_UNDOABLE,
 } from "../state";
-import type { KeyframeSequencerState } from "../state";
+import type { KeyframeSequencerState, KeyframeSequencerAction } from "../state";
 import type { AnimationPreset, KeyframeStop, SegmentEasing } from "../types";
 import {
   DEFAULT_EASING,
@@ -14,6 +13,67 @@ import {
   DEFAULT_MASK,
   DEFAULT_PROPERTIES,
 } from "../constants";
+
+/**
+ * Minimal in-test history wrapper that mirrors useHistoryReducer logic,
+ * so we can unit-test undo/redo without React hooks.
+ */
+type HistoryState = {
+  present: KeyframeSequencerState;
+  past: KeyframeSequencerState[];
+  future: KeyframeSequencerState[];
+};
+type HistoryAction =
+  | KeyframeSequencerAction
+  | { type: "UNDO" }
+  | { type: "REDO" };
+
+function createHistoryState(present: KeyframeSequencerState): HistoryState {
+  return { present, past: [], future: [] };
+}
+
+function historyReducer(
+  state: HistoryState,
+  action: HistoryAction,
+): HistoryState {
+  switch (action.type) {
+    case "UNDO": {
+      if (state.past.length === 0) return state;
+      const previous = state.past[state.past.length - 1];
+      if (!previous) return state;
+      return {
+        past: state.past.slice(0, -1),
+        present: previous,
+        future: [state.present, ...state.future].slice(0, 50),
+      };
+    }
+    case "REDO": {
+      if (state.future.length === 0) return state;
+      const next = state.future[0];
+      if (!next) return state;
+      return {
+        past: [...state.past, state.present].slice(-50),
+        present: next,
+        future: state.future.slice(1),
+      };
+    }
+    default: {
+      const nextPresent = reducer(
+        state.present,
+        action as KeyframeSequencerAction,
+      );
+      if (nextPresent === state.present) return state;
+      if (NON_UNDOABLE.has((action as KeyframeSequencerAction).type)) {
+        return { ...state, present: nextPresent };
+      }
+      return {
+        past: [...state.past, state.present].slice(-50),
+        present: nextPresent,
+        future: [],
+      };
+    }
+  }
+}
 
 /** Helper to get a state with a middle keyframe at 50% for removal/update tests */
 function stateWithMiddle(): KeyframeSequencerState {
@@ -127,8 +187,7 @@ describe("reducer", () => {
   describe("REMOVE_KEYFRAME", () => {
     it("removes a middle keyframe", () => {
       const state = stateWithMiddle();
-      const middleId =
-        state.keyframes.find((kf) => kf.offset === 50)?.id ?? "";
+      const middleId = state.keyframes.find((kf) => kf.offset === 50)?.id ?? "";
       const next = reducer(state, { type: "REMOVE_KEYFRAME", id: middleId });
       expect(next.keyframes).toHaveLength(2);
       expect(next.keyframes.find((kf) => kf.offset === 50)).toBeUndefined();
@@ -199,8 +258,7 @@ describe("reducer", () => {
   describe("UPDATE_KEYFRAME_OFFSET", () => {
     it("updates offset and re-sorts", () => {
       const state = stateWithMiddle();
-      const middleId =
-        state.keyframes.find((kf) => kf.offset === 50)?.id ?? "";
+      const middleId = state.keyframes.find((kf) => kf.offset === 50)?.id ?? "";
       const next = reducer(state, {
         type: "UPDATE_KEYFRAME_OFFSET",
         id: middleId,
@@ -217,17 +275,16 @@ describe("reducer", () => {
 
     it("clamps to (0, 100) exclusive", () => {
       const state = stateWithMiddle();
-      const middleId =
-        state.keyframes.find((kf) => kf.offset === 50)?.id ?? "";
+      const middleId = state.keyframes.find((kf) => kf.offset === 50)?.id ?? "";
 
       const clamped0 = reducer(state, {
         type: "UPDATE_KEYFRAME_OFFSET",
         id: middleId,
         offset: -10,
       });
-      expect(
-        clamped0.keyframes.find((kf) => kf.id === middleId)?.offset,
-      ).toBe(1);
+      expect(clamped0.keyframes.find((kf) => kf.id === middleId)?.offset).toBe(
+        1,
+      );
 
       const clamped100 = reducer(state, {
         type: "UPDATE_KEYFRAME_OFFSET",
@@ -539,10 +596,46 @@ describe("reducer", () => {
       const segFromMiddle = next.segmentEasings.find(
         (e) => e.fromId === middleKf?.id && e.toId !== state.keyframes[2]?.id,
       );
-      expect(segFromMiddle?.easing).toBe(
-        "cubic-bezier(0.68, -0.6, 0.32, 1.6)",
-      );
+      expect(segFromMiddle?.easing).toBe("cubic-bezier(0.68, -0.6, 0.32, 1.6)");
       expect(segFromMiddle?.easingName).toBe("back-in-out");
+    });
+  });
+
+  describe("CLONE_KEYFRAME", () => {
+    it("clones with the provided newId", () => {
+      const state = stateWithMiddle();
+      const middleKf = state.keyframes.find((kf) => kf.offset === 50);
+      const next = reducer(state, {
+        type: "CLONE_KEYFRAME",
+        sourceId: middleKf?.id ?? "",
+        newId: "my-clone-id",
+      });
+      expect(next.keyframes).toHaveLength(4);
+      const cloned = next.keyframes.find((kf) => kf.id === "my-clone-id");
+      expect(cloned).toBeDefined();
+      expect(cloned?.offset).toBe(55);
+      expect(cloned?.properties).toEqual(middleKf?.properties);
+      expect(cloned?.mask).toEqual(middleKf?.mask);
+    });
+
+    it("selects the cloned keyframe", () => {
+      const state = stateWithMiddle();
+      const middleKf = state.keyframes.find((kf) => kf.offset === 50);
+      const next = reducer(state, {
+        type: "CLONE_KEYFRAME",
+        sourceId: middleKf?.id ?? "",
+        newId: "clone-id",
+      });
+      expect(next.selectedKeyframeId).toBe("clone-id");
+    });
+
+    it("returns unchanged state for unknown sourceId", () => {
+      const next = reducer(initialState, {
+        type: "CLONE_KEYFRAME",
+        sourceId: "nonexistent",
+        newId: "new-id",
+      });
+      expect(next).toBe(initialState);
     });
   });
 

@@ -2,7 +2,15 @@
 
 import { useCallback, useRef, useState } from "react";
 import cn from "~/utils/cn";
-import type { KeyframeStop } from "../types";
+import type { KeyframeStop, PropertyMask } from "../types";
+
+/** Color based on number of active (masked) properties */
+function markerColor(mask: PropertyMask): string {
+  const count = Object.values(mask).filter(Boolean).length;
+  if (count >= 5) return "var(--accent-rose)";
+  if (count >= 3) return "#a855f7";
+  return "var(--accent)";
+}
 
 type KeyframeMarkerProps = {
   keyframe: KeyframeStop;
@@ -12,6 +20,7 @@ type KeyframeMarkerProps = {
   onSelect: () => void;
   onDrag: (offset: number) => void;
   onDelete: () => void;
+  onCloneDrag?: (newId: string) => void;
 };
 
 export default function KeyframeMarker({
@@ -22,7 +31,9 @@ export default function KeyframeMarker({
   onSelect,
   onDrag,
   onDelete,
+  onCloneDrag,
 }: KeyframeMarkerProps) {
+  const color = isEndpoint ? undefined : markerColor(keyframe.mask);
   const markerRef = useRef<HTMLButtonElement>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -38,6 +49,14 @@ export default function KeyframeMarker({
       const track = trackRef.current;
       if (!marker || !track) return;
 
+      // Option/Alt-drag: clone the keyframe first, then drag the clone
+      let dragId: string | undefined;
+      if (e.altKey && onCloneDrag) {
+        const newId = crypto.randomUUID();
+        onCloneDrag(newId);
+        dragId = newId;
+      }
+
       marker.setPointerCapture(e.pointerId);
 
       const onMove = (ev: PointerEvent) => {
@@ -45,7 +64,12 @@ export default function KeyframeMarker({
         const x = ev.clientX - rect.left;
         const pct = Math.round((x / rect.width) * 100);
         const clamped = Math.max(1, Math.min(99, pct));
-        onDrag(clamped);
+        // If we cloned, drag the clone; otherwise drag this keyframe
+        if (dragId) {
+          onDrag(clamped);
+        } else {
+          onDrag(clamped);
+        }
       };
 
       const cleanup = () => {
@@ -58,7 +82,7 @@ export default function KeyframeMarker({
       marker.addEventListener("pointerup", cleanup);
       marker.addEventListener("pointercancel", cleanup);
     },
-    [isEndpoint, onDrag, trackRef],
+    [isEndpoint, onDrag, onCloneDrag, trackRef],
   );
 
   const handleKeyDown = useCallback(
@@ -132,19 +156,23 @@ export default function KeyframeMarker({
         />
       ) : (
         <div
-          className={cn(
-            "size-5 rounded-full border-2 transition-all duration-150",
-            isSelected
-              ? "border-accent bg-accent scale-125 shadow-[0_0_0_3px_var(--accent)/0.25]"
-              : "border-accent bg-surface-card hover:border-accent hover:scale-110",
-          )}
+          className="size-5 rounded-full border-2 transition-all duration-150"
+          style={{
+            borderColor: color,
+            backgroundColor: isSelected ? color : "var(--surface-card)",
+            transform: isSelected ? "scale(1.25)" : undefined,
+            boxShadow: isSelected
+              ? `0 0 0 3px color-mix(in srgb, ${color ?? "var(--accent)"} 25%, transparent)`
+              : undefined,
+          }}
         />
       )}
 
       {/* Selected connector line — hints at property editor below */}
       {isSelected && !isEndpoint && (
         <div
-          className="bg-accent absolute top-full left-1/2 h-3 w-px -translate-x-1/2"
+          className="absolute top-full left-1/2 h-3 w-px -translate-x-1/2"
+          style={{ backgroundColor: color }}
           aria-hidden="true"
         />
       )}

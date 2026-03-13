@@ -258,8 +258,9 @@ export default function AnimationPreview({
       if (animRef.current) {
         animRef.current.currentTime = time;
       }
+      onProgress?.(val);
     },
-    [duration],
+    [duration, onProgress],
   );
 
   const handleSeekEnd = useCallback(() => {
