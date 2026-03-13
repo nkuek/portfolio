@@ -278,7 +278,7 @@ export default function PresetLibrary({
                       isPinned ? "Unpin" : `Pin ${preset.name} for comparison`
                     }
                     aria-pressed={isPinned}
-                    className={`absolute top-1/2 right-1 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded transition-all focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.9] ${
+                    className={`absolute top-1/2 right-1 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded outline-[var(--accent)] transition-[color,opacity] focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.9] ${
                       isActive
                         ? "pointer-events-none opacity-0"
                         : isPinned
@@ -374,7 +374,7 @@ function SpringPresetButton({
         }
         aria-label={isPinned ? "Unpin" : `Pin ${preset.name} for comparison`}
         aria-pressed={isPinned}
-        className={`absolute top-1/2 right-1 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded transition-all focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.9] ${
+        className={`absolute top-1/2 right-1 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded outline-[var(--accent)] transition-[color,opacity] focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.9] ${
           isActive
             ? "pointer-events-none opacity-0"
             : isPinned

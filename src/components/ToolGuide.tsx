@@ -14,12 +14,12 @@ export default function ToolGuide({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="bg-surface-card border-border-hairline mb-6 overflow-hidden rounded-xl border shadow-[var(--shadow-card)]">
+    <div className="bg-surface-card border-border-hairline mb-6 rounded-xl border shadow-[var(--shadow-card)]">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="text-text-subtle flex w-full cursor-pointer items-center gap-2 px-4 py-3 text-sm font-medium outline-[var(--accent)] transition-colors hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="text-text-subtle flex w-full cursor-pointer items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium outline-[var(--accent)] transition-colors hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         <svg
           aria-hidden="true"

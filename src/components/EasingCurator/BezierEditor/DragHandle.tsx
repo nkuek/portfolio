@@ -45,6 +45,7 @@ export default function DragHandle({
       const svg = svgRef.current;
       if (!circle || !svg) return;
 
+      circle.focus();
       circle.setPointerCapture(e.pointerId);
       onDragStart?.();
 
